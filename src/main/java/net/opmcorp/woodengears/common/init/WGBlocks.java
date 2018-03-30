@@ -8,6 +8,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.opmcorp.woodengears.WoodenGears;
+import net.opmcorp.woodengears.common.block.BlockCable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,11 +19,16 @@ public class WGBlocks
 {
     public static Map<Block, ItemBlock> BLOCKS;
 
+    @GameRegistry.ObjectHolder("blockcable")
+    public static BlockCable CABLE;
+
     public static void init()
     {
         BLOCKS = new LinkedHashMap<>();
 
         MinecraftForge.EVENT_BUS.register(new WGBlocks());
+
+        registerBlock(new BlockCable());
     }
 
     @SubscribeEvent
