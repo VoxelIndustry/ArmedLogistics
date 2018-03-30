@@ -8,6 +8,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.opmcorp.woodengears.WoodenGears;
+import net.opmcorp.woodengears.common.block.BlockLogic;
 import net.opmcorp.woodengears.common.block.BlockArmReservoir;
 import net.opmcorp.woodengears.common.block.BlockCable;
 
@@ -26,9 +27,14 @@ public class WGBlocks
     @GameRegistry.ObjectHolder("blockarmreservoir")
     public static BlockArmReservoir ARM_RESERVOIR;
 
+    @GameRegistry.ObjectHolder("logic")
+    public static Block LOGIC;
+
     public static void init()
     {
         BLOCKS = new LinkedHashMap<>();
+
+        registerBlock(new BlockLogic());
 
         MinecraftForge.EVENT_BUS.register(new WGBlocks());
 
