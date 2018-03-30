@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "woodengears",
+    "name": "Wooden Gears",
+    "description": "A low tech logistic mod.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": ["Ourten", "Phenix246", "Superloup", "Zac"],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
