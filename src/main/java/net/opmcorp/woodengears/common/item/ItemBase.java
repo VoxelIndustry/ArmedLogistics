@@ -10,13 +10,10 @@ import java.util.Map;
 
 public class ItemBase extends Item implements IItemModelProvider
 {
-    public String name;
-
     private Map<String, ModelResourceLocation> variants;
 
     public ItemBase(String name)
     {
-        this.name = name;
         this.setRegistryName(WoodenGears.MODID, name);
         this.setUnlocalizedName(name);
         this.setCreativeTab(WoodenGears.TAB_ALL);
