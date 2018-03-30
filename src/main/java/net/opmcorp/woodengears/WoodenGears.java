@@ -16,6 +16,9 @@ public class WoodenGears
     public static final String NAME    = "Wooden Gears";
     public static final String VERSION = "0.1.0";
 
+    @Mod.Instance(MODID)
+    public static WoodenGears instance;
+
     public static Logger logger;
 
     @SidedProxy(clientSide = "net.opmcorp.woodengears.client.ClientProxy",
