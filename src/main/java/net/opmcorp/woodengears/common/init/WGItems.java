@@ -17,7 +17,7 @@ public class WGItems
 {
     public static List<Item> ITEMS;
 
-    @GameRegistry.ObjectHolder("item_logistic_arm")
+    @GameRegistry.ObjectHolder("logistic_arm")
     public static Item logistic_arm;
 
     public static void init()
