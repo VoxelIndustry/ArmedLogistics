@@ -11,6 +11,7 @@ import net.opmcorp.woodengears.WoodenGears;
 import net.opmcorp.woodengears.common.block.BlockLogic;
 import net.opmcorp.woodengears.common.block.BlockArmReservoir;
 import net.opmcorp.woodengears.common.block.BlockCable;
+import net.opmcorp.woodengears.common.tile.TileArmReservoir;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,6 +41,8 @@ public class WGBlocks
 
         registerBlock(new BlockCable());
         registerBlock(new BlockArmReservoir());
+
+        registerTile(TileArmReservoir.class, "armreservoir");
     }
 
     @SubscribeEvent

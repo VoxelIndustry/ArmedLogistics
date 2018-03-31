@@ -6,13 +6,21 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.opmcorp.woodengears.WoodenGears;
+import net.opmcorp.woodengears.common.gui.GuiType;
+import net.opmcorp.woodengears.common.tile.TileArmReservoir;
 
-public class BlockArmReservoir extends BlockBase
+import javax.annotation.Nullable;
+
+public class BlockArmReservoir extends BlockTileBase
 {
     private static final PropertyDirection FACING = BlockDirectional.FACING;
 
@@ -70,5 +78,24 @@ public class BlockArmReservoir extends BlockBase
     protected BlockStateContainer createBlockState()
     {
         return new BlockStateContainer(this, FACING);
+    }
+
+    @Override
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player,
+                                    EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    {
+        if (player.isSneaking())
+            return false;
+
+        player.openGui(WoodenGears.instance, GuiType.ARM_RESERVOIR.ordinal(),
+                world, pos.getX(), pos.getY(), pos.getZ());
+        return true;
+    }
+
+    @Nullable
+    @Override
+    public TileEntity createNewTileEntity(World worldIn, int meta)
+    {
+        return new TileArmReservoir();
     }
 }
