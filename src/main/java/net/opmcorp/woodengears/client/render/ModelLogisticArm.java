@@ -2,195 +2,212 @@ package net.opmcorp.woodengears.client.render;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
-import net.opmcorp.woodengears.common.entity.EntityLogisticArm;
+import net.minecraft.entity.Entity;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
+@SideOnly(Side.CLIENT)
 public class ModelLogisticArm extends ModelBase
 {
-    ModelRenderer core1;
-    ModelRenderer core2;
-    ModelRenderer core3;
-    ModelRenderer core4;
-    ModelRenderer core5;
-    ModelRenderer core6;
-    ModelRenderer core7;
-    ModelRenderer core8;
-    ModelRenderer core9;
-    ModelRenderer core10;
-    ModelRenderer core11;
-    ModelRenderer core12;
-    ModelRenderer core13;
-    ModelRenderer core14;
-    ModelRenderer core15;
-    ModelRenderer core16;
-    ModelRenderer core17;
-    ModelRenderer core18;
+    private ModelRenderer mainPedestal;
+    private ModelRenderer secondPedestal;
+
+    private ModelRenderer bodyPiston1;
+    private ModelRenderer bodyPiston2;
+
+    private ModelRenderer piston1;
+    private ModelRenderer piston2;
+
+    private ModelRenderer rodPiston1;
+    private ModelRenderer rodPiston2;
+
+    private ModelRenderer mainSupportPliers;
+
+    private ModelRenderer headPiston1;
+    private ModelRenderer headPiston2;
+
+    private ModelRenderer mainPliers;
+    private ModelRenderer topPhalanxPliers1;
+    private ModelRenderer bottomPhalanxPliers1;
+    private ModelRenderer topPhalanxPliers2;
+    private ModelRenderer bottomPhlanxPliers2;
+
+    private ModelRenderer secondSupportPliers1;
+    private ModelRenderer secondSupportPliers2;
 
     public ModelLogisticArm()
     {
-        core1 = new ModelRenderer(this, 20, 11);
-        core1.setTextureSize(64, 32);
-        core1.addBox(-5.5F, -2F, -5.5F, 11, 4, 11);
-        core1.setRotationPoint(8F, -6F, 0F);
-        core2 = new ModelRenderer(this, 28, 0);
-        core2.setTextureSize(64, 32);
-        core2.addBox(-4.5F, -1F, -4.5F, 9, 2, 9);
-        core2.setRotationPoint(8F, -3F, 0F);
-        core3 = new ModelRenderer(this, 0, 0);
-        core3.setTextureSize(64, 32);
-        core3.addBox(-1.5F, -8F, -1.5F, 3, 16, 3);
-        core3.setRotationPoint(5.5F, 6F, 0F);
-        core4 = new ModelRenderer(this, 0, 0);
-        core4.setTextureSize(64, 32);
-        core4.addBox(-1.5F, -8F, -1.5F, 3, 16, 3);
-        core4.setRotationPoint(10.5F, 6F, 0F);
-        core5 = new ModelRenderer(this, 12, 0);
-        core5.setTextureSize(64, 32);
-        core5.addBox(-1F, -10F, -1F, 2, 20, 2);
-        core5.setRotationPoint(5.5F, 4.5F, 0F);
-        core6 = new ModelRenderer(this, 12, 0);
-        core6.setTextureSize(64, 32);
-        core6.addBox(-1F, -10F, -1F, 2, 20, 2);
-        core6.setRotationPoint(10.5F, 4.5F, 0F);
-        core7 = new ModelRenderer(this, 20, 0);
-        core7.setTextureSize(64, 32);
-        core7.addBox(-0.5F, -10.5F, -0.5F, 1, 21, 1);
-        core7.setRotationPoint(5.5F, 4.5F, 0F);
-        core8 = new ModelRenderer(this, 20, 0);
-        core8.setTextureSize(64, 32);
-        core8.addBox(-0.5F, -10.5F, -0.5F, 1, 21, 1);
-        core8.setRotationPoint(10.5F, 4.5F, 0F);
-        core9 = new ModelRenderer(this, 0, 25);
-        core9.setTextureSize(64, 32);
-        core9.addBox(-4F, -2F, -1.5F, 8, 4, 3);
-        core9.setRotationPoint(8F, 17.5F, 0F);
-        core10 = new ModelRenderer(this, 23, 29);
-        core10.setTextureSize(64, 32);
-        core10.addBox(-1F, -0.5F, -1F, 2, 1, 2);
-        core10.setRotationPoint(10.5F, 15.5F, 0F);
-        core11 = new ModelRenderer(this, 23, 29);
-        core11.setTextureSize(64, 32);
-        core11.addBox(-1F, -0.5F, -1F, 2, 1, 2);
-        core11.setRotationPoint(5.5F, 15.5F, 0F);
-        core12 = new ModelRenderer(this, 4, 19);
-        core12.setTextureSize(64, 32);
-        core12.addBox(-0.5F, -0.5F, -2F, 1, 1, 4);
-        core12.setRotationPoint(8F, 19.5F, 0F);
-        core13 = new ModelRenderer(this, 0, 20);
-        core13.setTextureSize(64, 32);
-        core13.addBox(-0.5F, -1.5F, -0.5F, 1, 3, 1);
-        core13.setRotationPoint(8F, 21F, -2.5F);
-        core14 = new ModelRenderer(this, 14, 22);
-        core14.setTextureSize(64, 32);
-        core14.addBox(-0.5F, -0.5F, -1F, 1, 1, 2);
-        core14.setRotationPoint(8F, 22.85F, -1.94F);
-        core15 = new ModelRenderer(this, 0, 20);
-        core15.setTextureSize(64, 32);
-        core15.addBox(-0.5F, -1.5F, -0.5F, 1, 3, 1);
-        core15.setRotationPoint(8F, 21F, 2.5F);
-        core16 = new ModelRenderer(this, 14, 22);
-        core16.setTextureSize(64, 32);
-        core16.addBox(-0.5F, -0.5F, -1F, 1, 1, 2);
-        core16.setRotationPoint(8F, 22.85F, 1.94F);
-        core17 = new ModelRenderer(this, 50, 27);
-        core17.setTextureSize(64, 32);
-        core17.addBox(-3F, -2F, -0.5F, 6, 4, 1);
-        core17.setRotationPoint(8F, 17.5F, -2F);
-        core18 = new ModelRenderer(this, 50, 27);
-        core18.setTextureSize(64, 32);
-        core18.addBox(-3F, -2F, -0.5F, 6, 4, 1);
-        core18.setRotationPoint(8F, 17.5F, 2F);
+        mainPedestal = new ModelRenderer(this, 20, 11);
+        mainPedestal.setTextureSize(64, 32);
+        mainPedestal.addBox(-5.5F, -2F, -5.5F, 11, 4, 11);
+        mainPedestal.setRotationPoint(8F, -6F, 0F);
+        secondPedestal = new ModelRenderer(this, 28, 0);
+        secondPedestal.setTextureSize(64, 32);
+        secondPedestal.addBox(-4.5F, -1F, -4.5F, 9, 2, 9);
+        secondPedestal.setRotationPoint(8F, -3F, 0F);
+        bodyPiston1 = new ModelRenderer(this, 0, 0);
+        bodyPiston1.setTextureSize(64, 32);
+        bodyPiston1.addBox(-1.5F, -8F, -1.5F, 3, 16, 3);
+        bodyPiston1.setRotationPoint(5.5F, 6F, 0F);
+        bodyPiston2 = new ModelRenderer(this, 0, 0);
+        bodyPiston2.setTextureSize(64, 32);
+        bodyPiston2.addBox(-1.5F, -8F, -1.5F, 3, 16, 3);
+        bodyPiston2.setRotationPoint(10.5F, 6F, 0F);
+        piston1 = new ModelRenderer(this, 12, 0);
+        piston1.setTextureSize(64, 32);
+        piston1.addBox(-1F, -10F, -1F, 2, 20, 2);
+        piston1.setRotationPoint(5.5F, 4.5F, 0F);
+        piston2 = new ModelRenderer(this, 12, 0);
+        piston2.setTextureSize(64, 32);
+        piston2.addBox(-1F, -10F, -1F, 2, 20, 2);
+        piston2.setRotationPoint(10.5F, 4.5F, 0F);
+        rodPiston1 = new ModelRenderer(this, 20, 0);
+        rodPiston1.setTextureSize(64, 32);
+        rodPiston1.addBox(-0.5F, -10.5F, -0.5F, 1, 21, 1);
+        rodPiston1.setRotationPoint(5.5F, 4.5F, 0F);
+        rodPiston2 = new ModelRenderer(this, 20, 0);
+        rodPiston2.setTextureSize(64, 32);
+        rodPiston2.addBox(-0.5F, -10.5F, -0.5F, 1, 21, 1);
+        rodPiston2.setRotationPoint(10.5F, 4.5F, 0F);
+        mainSupportPliers = new ModelRenderer(this, 0, 25);
+        mainSupportPliers.setTextureSize(64, 32);
+        mainSupportPliers.addBox(-4F, -2F, -1.5F, 8, 4, 3);
+        mainSupportPliers.setRotationPoint(8F, 17.5F, 0F);
+        headPiston1 = new ModelRenderer(this, 23, 29);
+        headPiston1.setTextureSize(64, 32);
+        headPiston1.addBox(-1F, -0.5F, -1F, 2, 1, 2);
+        headPiston1.setRotationPoint(10.5F, 15.5F, 0F);
+        headPiston2 = new ModelRenderer(this, 23, 29);
+        headPiston2.setTextureSize(64, 32);
+        headPiston2.addBox(-1F, -0.5F, -1F, 2, 1, 2);
+        headPiston2.setRotationPoint(5.5F, 15.5F, 0F);
+        mainPliers = new ModelRenderer(this, 4, 19);
+        mainPliers.setTextureSize(64, 32);
+        mainPliers.addBox(-0.5F, -0.5F, -2F, 1, 1, 4);
+        mainPliers.setRotationPoint(8F, 19.5F, 0F);
+        topPhalanxPliers1 = new ModelRenderer(this, 0, 20);
+        topPhalanxPliers1.setTextureSize(64, 32);
+        topPhalanxPliers1.addBox(-0.5F, -1.5F, -0.5F, 1, 3, 1);
+        topPhalanxPliers1.setRotationPoint(8F, 21F, -2.5F);
+        bottomPhalanxPliers1 = new ModelRenderer(this, 14, 22);
+        bottomPhalanxPliers1.setTextureSize(64, 32);
+        bottomPhalanxPliers1.addBox(-0.5F, -0.5F, -1F, 1, 1, 2);
+        bottomPhalanxPliers1.setRotationPoint(8F, 22.85F, -1.94F);
+        topPhalanxPliers2 = new ModelRenderer(this, 0, 20);
+        topPhalanxPliers2.setTextureSize(64, 32);
+        topPhalanxPliers2.addBox(-0.5F, -1.5F, -0.5F, 1, 3, 1);
+        topPhalanxPliers2.setRotationPoint(8F, 21F, 2.5F);
+        bottomPhlanxPliers2 = new ModelRenderer(this, 14, 22);
+        bottomPhlanxPliers2.setTextureSize(64, 32);
+        bottomPhlanxPliers2.addBox(-0.5F, -0.5F, -1F, 1, 1, 2);
+        bottomPhlanxPliers2.setRotationPoint(8F, 22.85F, 1.94F);
+        secondSupportPliers1 = new ModelRenderer(this, 50, 27);
+        secondSupportPliers1.setTextureSize(64, 32);
+        secondSupportPliers1.addBox(-3F, -2F, -0.5F, 6, 4, 1);
+        secondSupportPliers1.setRotationPoint(8F, 17.5F, -2F);
+        secondSupportPliers2 = new ModelRenderer(this, 50, 27);
+        secondSupportPliers2.setTextureSize(64, 32);
+        secondSupportPliers2.addBox(-3F, -2F, -0.5F, 6, 4, 1);
+        secondSupportPliers2.setRotationPoint(8F, 17.5F, 2F);
     }
 
-    public void render(EntityLogisticArm entity, float par2, float par3, float par4, float par5, float par6, float par7)
+    @Override
+    public void render(Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale)
     {
-        core1.rotateAngleX = 0F;
-        core1.rotateAngleY = 0F;
-        core1.rotateAngleZ = 0F;
-        core1.renderWithRotation(par7);
+        this.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale, entity);
+    }
 
-        core2.rotateAngleX = 0F;
-        core2.rotateAngleY = 0F;
-        core2.rotateAngleZ = 0F;
-        core2.renderWithRotation(par7);
+    @Override
+    public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entity)
+    {
+        mainPedestal.rotateAngleX = 0F;
+        mainPedestal.rotateAngleY = 0F;
+        mainPedestal.rotateAngleZ = 0F;
+        mainPedestal.renderWithRotation(scaleFactor);
 
-        core3.rotateAngleX = 0F;
-        core3.rotateAngleY = 0F;
-        core3.rotateAngleZ = 0F;
-        core3.renderWithRotation(par7);
+        secondPedestal.rotateAngleX = mainPedestal.rotateAngleX;
+        secondPedestal.rotateAngleY = mainPedestal.rotateAngleY;
+        secondPedestal.rotateAngleZ = mainPedestal.rotateAngleZ;
+        secondPedestal.renderWithRotation(scaleFactor);
 
-        core4.rotateAngleX = 0F;
-        core4.rotateAngleY = 0F;
-        core4.rotateAngleZ = 0F;
-        core4.renderWithRotation(par7);
+        bodyPiston1.rotateAngleX = secondPedestal.rotateAngleX;
+        bodyPiston1.rotateAngleY = secondPedestal.rotateAngleY;
+        bodyPiston1.rotateAngleZ = secondPedestal.rotateAngleZ;
+        bodyPiston1.renderWithRotation(scaleFactor);
 
-        core5.rotateAngleX = 0F;
-        core5.rotateAngleY = 0F;
-        core5.rotateAngleZ = 0F;
-        core5.renderWithRotation(par7);
+        bodyPiston2.rotateAngleX = bodyPiston1.rotateAngleX;
+        bodyPiston2.rotateAngleY = bodyPiston1.rotateAngleY;
+        bodyPiston2.rotateAngleZ = bodyPiston1.rotateAngleZ;
+        bodyPiston2.renderWithRotation(scaleFactor);
 
-        core6.rotateAngleX = 0F;
-        core6.rotateAngleY = 0F;
-        core6.rotateAngleZ = 0F;
-        core6.renderWithRotation(par7);
+        piston1.rotateAngleX = bodyPiston1.rotateAngleX;
+        piston1.rotateAngleY = bodyPiston1.rotateAngleY;
+        piston1.rotateAngleZ = bodyPiston1.rotateAngleZ;
+        piston1.renderWithRotation(scaleFactor);
 
-        core7.rotateAngleX = 0F;
-        core7.rotateAngleY = 0F;
-        core7.rotateAngleZ = 0F;
-        core7.renderWithRotation(par7);
+        piston2.rotateAngleX = bodyPiston2.rotateAngleX;
+        piston2.rotateAngleY = bodyPiston2.rotateAngleY;
+        piston2.rotateAngleZ = bodyPiston2.rotateAngleZ;
+        piston2.renderWithRotation(scaleFactor);
 
-        core8.rotateAngleX = 0F;
-        core8.rotateAngleY = 0F;
-        core8.rotateAngleZ = 0F;
-        core8.renderWithRotation(par7);
+        rodPiston1.rotateAngleX = piston1.rotateAngleX;
+        rodPiston1.rotateAngleY = piston1.rotateAngleY;
+        rodPiston1.rotateAngleZ = piston1.rotateAngleZ;
+        rodPiston1.renderWithRotation(scaleFactor);
 
-        core9.rotateAngleX = 0F;
-        core9.rotateAngleY = 0F;
-        core9.rotateAngleZ = 0F;
-        core9.renderWithRotation(par7);
+        rodPiston2.rotateAngleX = bodyPiston2.rotateAngleX;
+        rodPiston2.rotateAngleY = bodyPiston2.rotateAngleY;
+        rodPiston2.rotateAngleZ = bodyPiston2.rotateAngleZ;
+        rodPiston2.renderWithRotation(scaleFactor);
 
-        core10.rotateAngleX = 0F;
-        core10.rotateAngleY = 0F;
-        core10.rotateAngleZ = 0F;
-        core10.renderWithRotation(par7);
+        mainSupportPliers.rotateAngleX = 0F;
+        mainSupportPliers.rotateAngleY = 0F;
+        mainSupportPliers.rotateAngleZ = 0F;
+        mainSupportPliers.renderWithRotation(scaleFactor);
 
-        core11.rotateAngleX = 0F;
-        core11.rotateAngleY = 0F;
-        core11.rotateAngleZ = 0F;
-        core11.renderWithRotation(par7);
+        headPiston1.rotateAngleX = rodPiston1.rotateAngleX;
+        headPiston1.rotateAngleY = rodPiston1.rotateAngleY;
+        headPiston1.rotateAngleZ = rodPiston1.rotateAngleZ;
+        headPiston1.renderWithRotation(scaleFactor);
 
-        core12.rotateAngleX = 0F;
-        core12.rotateAngleY = 3.141593F;
-        core12.rotateAngleZ = 0F;
-        core12.renderWithRotation(par7);
+        headPiston2.rotateAngleX = rodPiston2.rotateAngleX;
+        headPiston2.rotateAngleY = rodPiston2.rotateAngleY;
+        headPiston2.rotateAngleZ = rodPiston2.rotateAngleZ;
+        headPiston2.renderWithRotation(scaleFactor);
 
-        core13.rotateAngleX = 0F;
-        core13.rotateAngleY = 1.748455E-07F;
-        core13.rotateAngleZ = 0F;
-        core13.renderWithRotation(par7);
+        mainPliers.rotateAngleX = 0F;
+        mainPliers.rotateAngleY = 3.141593F;
+        mainPliers.rotateAngleZ = 0F;
+        mainPliers.renderWithRotation(scaleFactor);
 
-        core14.rotateAngleX = 0.7853982F;
-        core14.rotateAngleY = -3.141593F;
-        core14.rotateAngleZ = -3.141593F;
-        core14.renderWithRotation(par7);
+        topPhalanxPliers1.rotateAngleX = 0F;
+        topPhalanxPliers1.rotateAngleY = 1.748455E-07F;
+        topPhalanxPliers1.rotateAngleZ = 0F;
+        topPhalanxPliers1.renderWithRotation(scaleFactor);
 
-        core15.rotateAngleX = 0F;
-        core15.rotateAngleY = -3.141593F;
-        core15.rotateAngleZ = 0F;
-        core15.renderWithRotation(par7);
+        bottomPhalanxPliers1.rotateAngleX = 0.7853982F;
+        bottomPhalanxPliers1.rotateAngleY = -3.141593F;
+        bottomPhalanxPliers1.rotateAngleZ = -3.141593F;
+        bottomPhalanxPliers1.renderWithRotation(scaleFactor);
 
-        core16.rotateAngleX = 0.7853982F;
-        core16.rotateAngleY = 1.748455E-07F;
-        core16.rotateAngleZ = -3.141593F;
-        core16.renderWithRotation(par7);
+        topPhalanxPliers2.rotateAngleX = 0F;
+        topPhalanxPliers2.rotateAngleY = -3.141593F;
+        topPhalanxPliers2.rotateAngleZ = 0F;
+        topPhalanxPliers2.renderWithRotation(scaleFactor);
 
-        core17.rotateAngleX = 0F;
-        core17.rotateAngleY = 0F;
-        core17.rotateAngleZ = 0F;
-        core17.renderWithRotation(par7);
+        bottomPhlanxPliers2.rotateAngleX = 0.7853982F;
+        bottomPhlanxPliers2.rotateAngleY = 1.748455E-07F;
+        bottomPhlanxPliers2.rotateAngleZ = -3.141593F;
+        bottomPhlanxPliers2.renderWithRotation(scaleFactor);
 
-        core18.rotateAngleX = 1.57853E-24F;
-        core18.rotateAngleY = 3.141593F;
-        core18.rotateAngleZ = -3.141593F;
-        core18.renderWithRotation(par7);
+        secondSupportPliers1.rotateAngleX = 0F;
+        secondSupportPliers1.rotateAngleY = 0F;
+        secondSupportPliers1.rotateAngleZ = 0F;
+        secondSupportPliers1.renderWithRotation(scaleFactor);
+
+        secondSupportPliers2.rotateAngleX = 1.57853E-24F;
+        secondSupportPliers2.rotateAngleY = 3.141593F;
+        secondSupportPliers2.rotateAngleZ = -3.141593F;
+        secondSupportPliers2.renderWithRotation(scaleFactor);
     }
 }

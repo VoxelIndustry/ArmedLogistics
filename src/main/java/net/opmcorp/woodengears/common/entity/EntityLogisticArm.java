@@ -28,13 +28,13 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     public EntityLogisticArm(World worldIn)
     {
         super(worldIn);
-        this.setSize(1.0F, 1.0F);
+        this.setSize(0.3525F, 1.0F);
     }
 
     public EntityLogisticArm(World world, BlockPos pos)
     {
         this(world);
-        this.setPositionAndRotation(pos.getX() + 0.5D, pos.getY() - 1.0D, pos.getZ() + 0.5D, 0.0F, 90.0F);
+        this.setPositionAndRotation(pos.getX() + 0.25D, pos.getY() - 1.0D, pos.getZ() + 0.5D, 0.0F, 90.0F);
         this.motionX = 0.0D;
         this.motionY = 0.0D;
         this.motionZ = 0.0D;
