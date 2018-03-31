@@ -7,11 +7,14 @@ import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.opmcorp.woodengears.WoodenGears;
+import net.opmcorp.woodengears.client.render.RenderLogisticArm;
 import net.opmcorp.woodengears.common.CommonProxy;
 import net.opmcorp.woodengears.common.IModelProvider;
+import net.opmcorp.woodengears.common.entity.EntityLogisticArm;
 import net.opmcorp.woodengears.common.init.WGBlocks;
 import net.opmcorp.woodengears.common.init.WGItems;
 import net.opmcorp.woodengears.common.item.IItemModelProvider;
@@ -30,6 +33,8 @@ public class ClientProxy extends CommonProxy
 
         WGItems.ITEMS.stream().filter(IItemModelProvider.class::isInstance)
                 .forEach(item -> ((IItemModelProvider) item).registerVariants());
+
+        RenderingRegistry.registerEntityRenderingHandler(EntityLogisticArm.class, RenderLogisticArm::new);
     }
 
     @Override
