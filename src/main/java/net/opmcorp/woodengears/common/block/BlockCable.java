@@ -1,5 +1,6 @@
 package net.opmcorp.woodengears.common.block;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockFaceShape;
@@ -33,6 +34,16 @@ public class BlockCable extends BlockBase
                 .withProperty(EAST, false)
                 .withProperty(SOUTH, false)
                 .withProperty(WEST, false));
+    }
+
+    @Override
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block block, BlockPos neighbor)
+    {
+        if (neighbor.offset(EnumFacing.DOWN).equals(pos) && world.getBlockState(pos.offset(EnumFacing.UP))
+                .getBlockFaceShape(world, pos, EnumFacing.DOWN) != BlockFaceShape.SOLID)
+            world.destroyBlock(pos, true);
+
+        super.neighborChanged(state, world, pos, block, neighbor);
     }
 
     @Override
