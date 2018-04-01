@@ -6,6 +6,8 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.opmcorp.woodengears.common.network.NetworkHandler;
+import net.opmcorp.woodengears.common.network.TileSyncRequestPacket;
+import net.opmcorp.woodengears.common.network.WGPacketHandler;
 
 public class WGTileBase extends TileEntity
 {
@@ -27,6 +29,12 @@ public class WGTileBase extends TileEntity
     {
         if (this.world != null)
             NetworkHandler.sendTileToRange(this);
+    }
+
+    public void forceSync()
+    {
+        WGPacketHandler.INSTANCE.sendToServer(new TileSyncRequestPacket(this.world.provider.getDimension(),
+                this.getPos()));
     }
 
     public boolean isServer()
