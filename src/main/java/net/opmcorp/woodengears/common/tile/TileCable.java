@@ -13,7 +13,7 @@ import net.opmcorp.woodengears.common.grid.*;
 
 import java.util.*;
 
-public class TileCable extends WGTileBase implements ITileCable<RailGrid>, ILoadable
+public class TileCable extends WGTileBase implements ITileRail, ILoadable
 {
     protected final EnumSet<EnumFacing>                       renderConnections;
     @Getter
@@ -47,12 +47,18 @@ public class TileCable extends WGTileBase implements ITileCable<RailGrid>, ILoad
     public void connectHandler(EnumFacing facing, IRailConnectable to, TileEntity tile)
     {
         this.adjacentHandler.put(facing, to);
+
+        if (tile instanceof IConnectionAware)
+            ((IConnectionAware) tile).connectTrigger(facing.getOpposite(), this.getGridObject());
         this.updateState();
     }
 
     public void disconnectHandler(EnumFacing facing, TileEntity tile)
     {
         this.adjacentHandler.remove(facing);
+
+        if (tile instanceof IConnectionAware)
+            ((IConnectionAware) tile).disconnectTrigger(facing.getOpposite(), this.getGridObject());
         this.updateState();
     }
 
@@ -122,8 +128,36 @@ public class TileCable extends WGTileBase implements ITileCable<RailGrid>, ILoad
         return tagCompound;
     }
 
-    public void scanHandlers(final BlockPos posNeighbor)
+    public void scanHandlers(BlockPos posNeighbor)
     {
+        TileEntity tile = this.world.getTileEntity(posNeighbor);
+
+        BlockPos substracted = posNeighbor.subtract(this.pos);
+        EnumFacing facing = EnumFacing.getFacingFromVector(substracted.getX(), substracted.getY(), substracted.getZ())
+                .getOpposite();
+
+        if (this.adjacentHandler.containsKey(facing.getOpposite()))
+        {
+            if (!(tile instanceof IRailConnectable))
+            {
+                if (this.hasGrid() && this.adjacentHandler.get(facing.getOpposite()) instanceof TileArmReservoir)
+                    this.getGridObject().removeConnectedReservoir(this,
+                            (TileArmReservoir) this.adjacentHandler.get(facing.getOpposite()));
+                this.disconnectHandler(facing.getOpposite(), tile);
+            }
+        }
+        else
+        {
+            if (tile instanceof IRailConnectable)
+            {
+                this.connectHandler(facing.getOpposite(), (IRailConnectable) tile, tile);
+
+                if (this.hasGrid() &&
+                        this.adjacentHandler.get(facing.getOpposite()) instanceof TileArmReservoir)
+                    this.getGridObject().addConnectedReservoir(this,
+                            (TileArmReservoir) this.adjacentHandler.get(facing.getOpposite()));
+            }
+        }
     }
 
     @Override
