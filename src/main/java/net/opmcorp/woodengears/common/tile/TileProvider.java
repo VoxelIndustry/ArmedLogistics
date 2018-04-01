@@ -5,6 +5,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockHopper;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
@@ -19,18 +20,21 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.opmcorp.woodengears.common.container.BuiltContainer;
+import net.opmcorp.woodengears.common.container.ContainerBuilder;
+import net.opmcorp.woodengears.common.container.IContainerProvider;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class TileLogic extends TileInventoryBase implements ITickable {
+public class TileProvider extends TileInventoryBase implements ITickable, IContainerProvider {
 
     @Getter
     private EnumFacing selectedFacing = EnumFacing.WEST;
     private int transferCooldown = -1;
 
-    public TileLogic() {
-        super("logic", 1);
+    public TileProvider() {
+        super("provider", 1);
         this.getStacks().set(0, new ItemStack(Blocks.LOG, 64));
     }
 
@@ -250,5 +254,12 @@ public class TileLogic extends TileInventoryBase implements ITickable {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public BuiltContainer createContainer(EntityPlayer player) {
+        return new ContainerBuilder("provider", player)
+                .player(player.inventory).inventory(8, 69).hotbar(8, 127)
+                .addInventory().create();
     }
 }

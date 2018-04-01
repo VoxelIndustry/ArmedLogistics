@@ -8,12 +8,12 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.opmcorp.woodengears.WoodenGears;
+import net.opmcorp.woodengears.common.block.BlockProvider;
 import net.opmcorp.woodengears.common.block.BlockArmReservoir;
 import net.opmcorp.woodengears.common.block.BlockCable;
 import net.opmcorp.woodengears.common.block.BlockLogic;
 import net.opmcorp.woodengears.common.tile.TileArmReservoir;
-import net.opmcorp.woodengears.common.tile.TileCable;
-import net.opmcorp.woodengears.common.tile.TileLogic;
+import net.opmcorp.woodengears.common.tile.TileProvider;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class WGBlocks
     {
         BLOCKS = new LinkedHashMap<>();
 
-        registerBlock(new BlockLogic());
+        registerBlock(new BlockProvider());
 
         MinecraftForge.EVENT_BUS.register(new WGBlocks());
 
@@ -45,8 +45,7 @@ public class WGBlocks
         registerBlock(new BlockArmReservoir());
 
         registerTile(TileArmReservoir.class, "armreservoir");
-        registerTile(TileLogic.class, "logic");
-        registerTile(TileCable.class, "cable");
+        registerTile(TileProvider.class, "provider");
     }
 
     @SubscribeEvent
