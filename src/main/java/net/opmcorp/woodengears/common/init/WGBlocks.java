@@ -8,11 +8,11 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.opmcorp.woodengears.WoodenGears;
-import net.opmcorp.woodengears.common.block.BlockProvider;
 import net.opmcorp.woodengears.common.block.BlockArmReservoir;
 import net.opmcorp.woodengears.common.block.BlockCable;
-import net.opmcorp.woodengears.common.block.BlockLogic;
+import net.opmcorp.woodengears.common.block.BlockProvider;
 import net.opmcorp.woodengears.common.tile.TileArmReservoir;
+import net.opmcorp.woodengears.common.tile.TileCable;
 import net.opmcorp.woodengears.common.tile.TileProvider;
 
 import java.util.LinkedHashMap;
@@ -37,14 +37,14 @@ public class WGBlocks
     {
         BLOCKS = new LinkedHashMap<>();
 
-        registerBlock(new BlockProvider());
-
         MinecraftForge.EVENT_BUS.register(new WGBlocks());
 
+        registerBlock(new BlockProvider());
         registerBlock(new BlockCable());
         registerBlock(new BlockArmReservoir());
 
         registerTile(TileArmReservoir.class, "armreservoir");
+        registerTile(TileCable.class, "cable");
         registerTile(TileProvider.class, "provider");
     }
 
@@ -54,12 +54,12 @@ public class WGBlocks
         event.getRegistry().registerAll(BLOCKS.keySet().toArray(new Block[BLOCKS.size()]));
     }
 
-    static <T extends Block> void registerBlock(T block)
+    private static <T extends Block> void registerBlock(T block)
     {
         registerBlock(block, ItemBlock::new);
     }
 
-    static <T extends Block> void registerBlock(T block, Function<T, ItemBlock> supplier)
+    private static <T extends Block> void registerBlock(T block, Function<T, ItemBlock> supplier)
     {
         final ItemBlock supplied = supplier.apply(block);
         supplied.setRegistryName(block.getRegistryName());
@@ -67,7 +67,7 @@ public class WGBlocks
         BLOCKS.put(block, supplied);
     }
 
-    static void registerTile(Class<? extends TileEntity> c, String name)
+    private static void registerTile(Class<? extends TileEntity> c, String name)
     {
         GameRegistry.registerTileEntity(c, WoodenGears.MODID + ":" + name);
     }
