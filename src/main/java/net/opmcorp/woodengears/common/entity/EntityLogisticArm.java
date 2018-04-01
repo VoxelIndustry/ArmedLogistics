@@ -1,6 +1,9 @@
 package net.opmcorp.woodengears.common.entity;
 
+import lombok.Getter;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.MoverType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -18,12 +21,16 @@ import net.minecraft.world.ILockableContainer;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
 import net.opmcorp.woodengears.common.block.BlockCable;
+import net.opmcorp.woodengears.common.block.BlockProvider;
 import net.opmcorp.woodengears.common.init.WGItems;
 
 public class EntityLogisticArm extends Entity implements ILockableContainer
 {
     public static final DataParameter<Float> DAMAGE = EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
     private NonNullList<ItemStack> logisticArmItems = NonNullList.withSize(1, ItemStack.EMPTY);
+
+    private boolean startPickup;
+    @Getter private int pickupCount;
 
     public EntityLogisticArm(World worldIn)
     {
@@ -60,7 +67,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     {
         if(!this.world.isRemote)
         {
-            if(!(this.world.getBlockState(new BlockPos(posX, posY + 1.0D, posZ)).getBlock() instanceof BlockCable))
+            if(!(this.world.getBlockState(new BlockPos(this).up()).getBlock() instanceof BlockCable))
             {
                 this.setDead();
                 if(this.world.getGameRules().getBoolean("doEntityDrops"))
@@ -73,12 +80,38 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
                 }
             }
         }
+
+        if(!startPickup && this.isHoverBlockLogic())
+            this.startPickup = true;
+
+        if(startPickup)
+        {
+            if(pickupCount != 0)
+                pickupCount--;
+            else
+                startPickup = false;
+
+            if(this.posX - (Math.floor(this.posX)) <= 0.5D)
+                this.move(MoverType.SELF, 0.025D, 0, 0);
+            else if(this.posZ - (Math.floor(this.posZ)) <= 0.5D)
+                this.move(MoverType.SELF, 0, 0, 0.025D);
+            else if(this.pickupCount == 0)
+                this.pickupCount = 80;
+        }
+    }
+
+    public boolean isHoverBlockLogic()
+    {
+        Block block = this.world.getBlockState(new BlockPos(this).down(2)).getBlock();
+        return block instanceof BlockProvider;
     }
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound compound)
     {
         ItemStackHelper.saveAllItems(compound, this.logisticArmItems);
+
+        this.pickupCount = compound.getInteger("pickupCount");
     }
 
     @Override
@@ -86,6 +119,8 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     {
         this.logisticArmItems = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
         ItemStackHelper.loadAllItems(compound, this.logisticArmItems);
+
+        compound.setInteger("pickupCount", this.pickupCount);
     }
 
     @Override

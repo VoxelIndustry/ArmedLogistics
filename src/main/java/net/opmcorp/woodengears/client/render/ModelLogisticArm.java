@@ -2,9 +2,11 @@ package net.opmcorp.woodengears.client.render;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.opmcorp.woodengears.common.entity.EntityLogisticArm;
 
 @SideOnly(Side.CLIENT)
 public class ModelLogisticArm extends ModelBase
@@ -111,14 +113,7 @@ public class ModelLogisticArm extends ModelBase
         secondSupportPliers2.setRotationPoint(8F, 17.5F, 2F);
     }
 
-    @Override
-    public void render(Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale)
-    {
-        this.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale, entity);
-    }
-
-    @Override
-    public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entity)
+    public void renderPedestal(float scaleFactor)
     {
         mainPedestal.rotateAngleX = 0F;
         mainPedestal.rotateAngleY = 0F;
@@ -129,7 +124,10 @@ public class ModelLogisticArm extends ModelBase
         secondPedestal.rotateAngleY = mainPedestal.rotateAngleY;
         secondPedestal.rotateAngleZ = mainPedestal.rotateAngleZ;
         secondPedestal.renderWithRotation(scaleFactor);
+    }
 
+    public void renderFirstPiston(float scaleFactor)
+    {
         bodyPiston1.rotateAngleX = secondPedestal.rotateAngleX;
         bodyPiston1.rotateAngleY = secondPedestal.rotateAngleY;
         bodyPiston1.rotateAngleZ = secondPedestal.rotateAngleZ;
@@ -139,17 +137,23 @@ public class ModelLogisticArm extends ModelBase
         bodyPiston2.rotateAngleY = bodyPiston1.rotateAngleY;
         bodyPiston2.rotateAngleZ = bodyPiston1.rotateAngleZ;
         bodyPiston2.renderWithRotation(scaleFactor);
+    }
 
-        piston1.rotateAngleX = bodyPiston1.rotateAngleX;
-        piston1.rotateAngleY = bodyPiston1.rotateAngleY;
-        piston1.rotateAngleZ = bodyPiston1.rotateAngleZ;
+    public void renderSecondPiston(float scaleFactor)
+    {
+        piston1.rotateAngleX = bodyPiston2.rotateAngleX;
+        piston1.rotateAngleY = bodyPiston2.rotateAngleY;
+        piston1.rotateAngleZ = bodyPiston2.rotateAngleZ;
         piston1.renderWithRotation(scaleFactor);
 
         piston2.rotateAngleX = bodyPiston2.rotateAngleX;
         piston2.rotateAngleY = bodyPiston2.rotateAngleY;
         piston2.rotateAngleZ = bodyPiston2.rotateAngleZ;
         piston2.renderWithRotation(scaleFactor);
+    }
 
+    public void renderHead(float scaleFactor)
+    {
         rodPiston1.rotateAngleX = piston1.rotateAngleX;
         rodPiston1.rotateAngleY = piston1.rotateAngleY;
         rodPiston1.rotateAngleZ = piston1.rotateAngleZ;

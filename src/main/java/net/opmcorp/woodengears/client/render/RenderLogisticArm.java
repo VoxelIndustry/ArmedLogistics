@@ -28,7 +28,32 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
         GlStateManager.scale(0.5F, 0.5F, 0.5F);
 
         this.bindEntityTexture(logisticArm);
-        this.modelLogisticArm.render(logisticArm, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F);
+
+        this.modelLogisticArm.renderPedestal(0.0625F);
+        this.modelLogisticArm.renderFirstPiston(0.0625F);
+
+        if(logisticArm.isHoverBlockLogic())
+        {
+            if(logisticArm.getPickupCount() / 40D > 1)
+            {
+                GlStateManager.translate(0, 2.35 * (1 - (logisticArm.getPickupCount() / 40D) / 2D), 0);
+                this.modelLogisticArm.renderSecondPiston(0.0625F);
+                GlStateManager.translate(0, 2 * (1 - (logisticArm.getPickupCount() / 40D) / 2D), 0);
+                this.modelLogisticArm.renderHead(0.0625F);
+            }
+            else
+            {
+                GlStateManager.translate(0, 1.175 * (logisticArm.getPickupCount() / 40D), 0);
+                this.modelLogisticArm.renderSecondPiston(0.0625F);
+                GlStateManager.translate(0, (logisticArm.getPickupCount() / 40D), 0);
+                this.modelLogisticArm.renderHead(0.0625F);
+            }
+        }
+        else
+        {
+            this.modelLogisticArm.renderSecondPiston(0.0625F);
+            this.modelLogisticArm.renderHead(0.0625F);
+        }
 
         GlStateManager.popMatrix();
     }
@@ -37,6 +62,11 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
     @Override
     protected ResourceLocation getEntityTexture(EntityLogisticArm entity)
     {
-        return new ResourceLocation(WoodenGears.MODID,"textures/models/logistic_arm.png");
+        return new ResourceLocation(WoodenGears.MODID, "textures/models/logistic_arm.png");
+    }
+
+    private double interp(double previous, double next, double partialTicks)
+    {
+        return previous + (next - previous) * partialTicks;
     }
 }
