@@ -41,7 +41,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     public EntityLogisticArm(World world, BlockPos pos)
     {
         this(world);
-        this.setPositionAndRotation(pos.getX() + 0.25D, pos.getY() - 1.0D, pos.getZ() + 0.5D, 0.0F, 90.0F);
+        this.setPositionAndRotation(pos.getX() + 0.25D, pos.getY() - 0.0625D, pos.getZ() + 0.5D, 0.0F, 90.0F);
         this.motionX = 0.0D;
         this.motionY = 0.0D;
         this.motionZ = 0.0D;
@@ -67,7 +67,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     {
         if(!this.world.isRemote)
         {
-            if(!(this.world.getBlockState(new BlockPos(this).up()).getBlock() instanceof BlockCable))
+            if(!isBottomBlockCable())
             {
                 this.setDead();
                 if(this.world.getGameRules().getBoolean("doEntityDrops"))
@@ -81,7 +81,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
             }
         }
 
-        if(!startPickup && this.isHoverBlockLogic())
+        if(!startPickup && this.isHoverBlockProvider())
             this.startPickup = true;
 
         if(startPickup)
@@ -100,10 +100,16 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
         }
     }
 
-    public boolean isHoverBlockLogic()
+    public boolean isHoverBlockProvider()
     {
-        Block block = this.world.getBlockState(new BlockPos(this).down(2)).getBlock();
+        Block block = this.world.getBlockState(new BlockPos(this).down()).getBlock();
         return block instanceof BlockProvider;
+    }
+
+    public boolean isBottomBlockCable()
+    {
+        Block block = this.world.getBlockState(new BlockPos(this).up()).getBlock();
+        return block instanceof BlockCable;
     }
 
     @Override

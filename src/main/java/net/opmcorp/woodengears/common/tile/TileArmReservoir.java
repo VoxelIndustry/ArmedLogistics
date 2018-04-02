@@ -1,8 +1,8 @@
 package net.opmcorp.woodengears.common.tile;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemDye;
 import net.minecraft.util.EnumFacing;
+import net.opmcorp.woodengears.common.block.BlockCable;
 import net.opmcorp.woodengears.common.container.BuiltContainer;
 import net.opmcorp.woodengears.common.container.ContainerBuilder;
 import net.opmcorp.woodengears.common.container.IContainerProvider;
@@ -11,6 +11,7 @@ import net.opmcorp.woodengears.common.grid.CableGrid;
 import net.opmcorp.woodengears.common.grid.IConnectionAware;
 import net.opmcorp.woodengears.common.grid.IRailConnectable;
 import net.opmcorp.woodengears.common.grid.RailGrid;
+import net.opmcorp.woodengears.common.item.ItemLogisticArm;
 
 import java.util.Optional;
 
@@ -27,11 +28,10 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
     @Override
     public BuiltContainer createContainer(EntityPlayer player)
     {
-        // TODO : Replace filter with arm item
         return new ContainerBuilder("armreservoir", player)
                 .player(player.inventory).inventory(8, 84).hotbar(8, 142)
                 .addInventory().tile(this)
-                .filterSlotLine(0, 17, 26, 8, EnumFacing.Axis.X, stack -> stack.getItem() instanceof ItemDye)
+                .filterSlotLine(0, 17, 26, 8, EnumFacing.Axis.X, stack -> stack.getItem() instanceof ItemLogisticArm)
                 .fuelSlot(8, 80, 62)
                 .addInventory().create();
     }
@@ -39,6 +39,17 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
     public Optional<EntityLogisticArm> injectArm()
     {
         // TODO : Spawn arm entity on call and return it for futher logic
+        if(this.world.getBlockState(this.pos.north()).getBlock() instanceof BlockCable || this.world.getBlockState(this.pos.south()) instanceof BlockCable || this.world.getBlockState(this.pos.east()).getBlock() instanceof BlockCable || this.world.getBlockState(this.pos.west()) instanceof BlockCable)
+        {
+            if(!world.isRemote)
+            {
+                EntityLogisticArm logisticArm = new EntityLogisticArm(world, pos);
+
+                world.spawnEntity(logisticArm);
+                return Optional.of(logisticArm);
+            }
+
+        }
         return Optional.empty();
     }
 

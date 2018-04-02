@@ -32,7 +32,7 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
         this.modelLogisticArm.renderPedestal(0.0625F);
         this.modelLogisticArm.renderFirstPiston(0.0625F);
 
-        if(logisticArm.isHoverBlockLogic())
+        if(logisticArm.isHoverBlockProvider())
         {
             if(logisticArm.getPickupCount() / 40D > 1)
             {
