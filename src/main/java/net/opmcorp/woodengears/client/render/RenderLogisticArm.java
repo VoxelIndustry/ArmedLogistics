@@ -1,8 +1,13 @@
 package net.opmcorp.woodengears.client.render;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.opmcorp.woodengears.WoodenGears;
 import net.opmcorp.woodengears.common.entity.EntityLogisticArm;
@@ -11,11 +16,13 @@ import javax.annotation.Nullable;
 
 public class RenderLogisticArm extends Render<EntityLogisticArm>
 {
-    protected ModelLogisticArm modelLogisticArm = new ModelLogisticArm();
+    private ModelLogisticArm modelLogisticArm = new ModelLogisticArm();
+    private final RenderItem itemRenderer;
 
     public RenderLogisticArm(RenderManager renderManager)
     {
         super(renderManager);
+        this.itemRenderer = Minecraft.getMinecraft().getRenderItem();
     }
 
     @Override
@@ -34,7 +41,7 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
 
         if(logisticArm.isHoverBlockProvider())
         {
-            if(logisticArm.getPickupCount() / 40D > 1)
+            if(logisticArm.getPickupCount() > 40)
             {
                 GlStateManager.translate(0, 2.35 * (1 - (logisticArm.getPickupCount() / 40D) / 2D), 0);
                 this.modelLogisticArm.renderSecondPiston(0.0625F);
@@ -55,7 +62,29 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
             this.modelLogisticArm.renderHead(0.0625F);
         }
 
+        GlStateManager.translate(0.5D, 1.375D, 0.0D);
+        this.renderItem(logisticArm);
+
         GlStateManager.popMatrix();
+    }
+
+    private void renderItem(EntityLogisticArm logisticArm)
+    {
+        ItemStack itemStack = logisticArm.getStackInSlot(0);
+
+        if(!itemStack.isEmpty())
+        {
+            GlStateManager.pushMatrix();
+            GlStateManager.disableLighting();
+            GlStateManager.scale(0.5F, 0.5F, 0.5F);
+            GlStateManager.pushAttrib();
+            RenderHelper.disableStandardItemLighting();
+            this.itemRenderer.renderItem(itemStack, ItemCameraTransforms.TransformType.FIXED);
+            RenderHelper.enableStandardItemLighting();
+            GlStateManager.popAttrib();
+            GlStateManager.enableLighting();
+            GlStateManager.popMatrix();
+        }
     }
 
     @Nullable

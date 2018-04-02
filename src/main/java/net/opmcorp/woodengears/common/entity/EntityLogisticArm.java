@@ -23,14 +23,15 @@ import net.minecraft.world.World;
 import net.opmcorp.woodengears.common.block.BlockCable;
 import net.opmcorp.woodengears.common.block.BlockProvider;
 import net.opmcorp.woodengears.common.init.WGItems;
+import net.opmcorp.woodengears.common.tile.TileProvider;
 
 public class EntityLogisticArm extends Entity implements ILockableContainer
 {
-    public static final DataParameter<Float> DAMAGE = EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
+    private static final DataParameter<Float> DAMAGE = EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
     private NonNullList<ItemStack> logisticArmItems = NonNullList.withSize(1, ItemStack.EMPTY);
 
     private boolean startPickup;
-    @Getter private int pickupCount;
+    @Getter private int pickupCount = 80;
 
     public EntityLogisticArm(World worldIn)
     {
@@ -81,22 +82,31 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
             }
         }
 
-        if(!startPickup && this.isHoverBlockProvider())
+        if(!startPickup && this.isHoverBlockProvider() && this.isEmpty())
             this.startPickup = true;
 
         if(startPickup)
         {
-            if(pickupCount != 0)
-                pickupCount--;
-            else
-                startPickup = false;
-
             if(this.posX - (Math.floor(this.posX)) <= 0.5D)
                 this.move(MoverType.SELF, 0.025D, 0, 0);
             else if(this.posZ - (Math.floor(this.posZ)) <= 0.5D)
                 this.move(MoverType.SELF, 0, 0, 0.025D);
-            else if(this.pickupCount == 0)
+            else if(this.pickupCount != 0)
+                this.pickupCount--;
+            else
+            {
                 this.pickupCount = 80;
+                this.startPickup = false;
+            }
+        }
+
+        if(this.isHoverBlockProvider() && this.pickupCount == 40 && this.isEmpty())
+        {
+            BlockProvider provider = (BlockProvider)this.world.getBlockState(new BlockPos(this).down()).getBlock();
+            TileProvider tileProvider = (TileProvider)provider.getRawWorldTile(this.world, new BlockPos(this).down());
+            ItemStack stack = tileProvider.getStackInSlot(0);
+            this.setInventorySlotContents(0, stack);
+            tileProvider.removeStackFromSlot(0);
         }
     }
 
