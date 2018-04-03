@@ -90,7 +90,12 @@ public class TileCable extends WGTileBase implements ITileRail, ILoadable
     {
         GridManager.getInstance().connectCable(this);
         for (final EnumFacing facing : EnumFacing.VALUES)
-            this.scanHandlers(this.pos.offset(facing));
+        {
+            if (facing == EnumFacing.DOWN)
+                this.scanHandlers(this.pos.offset(facing, 2));
+            else if (facing != EnumFacing.UP)
+                this.scanHandlers(this.pos.offset(facing));
+        }
     }
 
     @Override
@@ -201,12 +206,14 @@ public class TileCable extends WGTileBase implements ITileRail, ILoadable
 
     private String getVariantKey()
     {
-        StringBuilder rtn = new StringBuilder(12);
+        StringBuilder rtn = new StringBuilder(10);
 
         if (this.isConnected(EnumFacing.EAST))
             rtn.append("x+");
         if (this.isConnected(EnumFacing.WEST))
             rtn.append("x-");
+        if (this.isConnected(EnumFacing.DOWN))
+            rtn.append("y-");
         if (this.isConnected(EnumFacing.SOUTH))
             rtn.append("z+");
         if (this.isConnected(EnumFacing.NORTH))
@@ -217,11 +224,6 @@ public class TileCable extends WGTileBase implements ITileRail, ILoadable
     private WGOBJState buildVisibilityState()
     {
         List<String> parts = new ArrayList<>();
-
-        parts.add("middleX");
-        parts.add("middleZ");
-        parts.add("middleBack");
-
 
         if (!this.isConnected(EnumFacing.WEST))
         {
@@ -253,27 +255,39 @@ public class TileCable extends WGTileBase implements ITileRail, ILoadable
             parts.add("backXNegPos");
         }
 
-        if (this.renderConnections.size() == 1)
+        if (this.isDeadEnd())
         {
             if (this.isConnected(EnumFacing.EAST))
             {
                 parts.add("backXPos");
                 parts.add("barXPos");
+
+                if (this.isConnected(EnumFacing.DOWN))
+                    parts.add("middleZ");
             }
             else if (this.isConnected(EnumFacing.WEST))
             {
                 parts.add("backXNeg");
                 parts.add("barXNeg");
+
+                if (this.isConnected(EnumFacing.DOWN))
+                    parts.add("middleZ");
             }
             else if (this.isConnected(EnumFacing.NORTH))
             {
                 parts.add("backZNeg");
                 parts.add("barZNeg");
+
+                if (this.isConnected(EnumFacing.DOWN))
+                    parts.add("middleX");
             }
             else if (this.isConnected(EnumFacing.SOUTH))
             {
                 parts.add("backZPos");
                 parts.add("barZPos");
+
+                if (this.isConnected(EnumFacing.DOWN))
+                    parts.add("middleX");
             }
         }
 
@@ -285,6 +299,9 @@ public class TileCable extends WGTileBase implements ITileRail, ILoadable
                 parts.add("barZNeg");
                 parts.add("backZPos");
                 parts.add("barZPos");
+
+                if (this.isConnected(EnumFacing.DOWN))
+                    parts.add("middleX");
             }
             else if (this.isConnected(EnumFacing.EAST) || this.isConnected(EnumFacing.WEST))
             {
@@ -292,7 +309,17 @@ public class TileCable extends WGTileBase implements ITileRail, ILoadable
                 parts.add("barXNeg");
                 parts.add("backXPos");
                 parts.add("barXPos");
+
+                if (this.isConnected(EnumFacing.DOWN))
+                    parts.add("middleZ");
             }
+        }
+
+        if (!this.isConnected(EnumFacing.DOWN))
+        {
+            parts.add("middleX");
+            parts.add("middleZ");
+            parts.add("middleBack");
         }
         return new WGOBJState(parts, false);
     }
@@ -308,37 +335,28 @@ public class TileCable extends WGTileBase implements ITileRail, ILoadable
         this.world.markBlockRangeForRenderUpdate(this.getPos(), this.getPos());
     }
 
+    public boolean isDeadEnd()
+    {
+        if (this.renderConnections.size() > 1 &&
+                !(this.renderConnections.size() == 2 && this.isConnected(EnumFacing.DOWN)))
+            return false;
+        return true;
+    }
+
     public boolean isStraight()
     {
-        if (this.renderConnections.size() == 2)
-            return this.isConnected(EnumFacing.NORTH) && this.isConnected(EnumFacing.SOUTH)
-                    || this.isConnected(EnumFacing.WEST) && this.isConnected(EnumFacing.EAST)
-                    || this.isConnected(EnumFacing.UP) && this.isConnected(EnumFacing.DOWN);
-        return false;
+        if (this.renderConnections.size() > 2)
+        {
+            if (this.renderConnections.size() != 3 || !this.isConnected(EnumFacing.DOWN))
+                return false;
+        }
+        return this.isConnected(EnumFacing.NORTH) && this.isConnected(EnumFacing.SOUTH)
+                || this.isConnected(EnumFacing.WEST) && this.isConnected(EnumFacing.EAST);
     }
 
     public boolean isConnected(final EnumFacing facing)
     {
         return this.renderConnections.contains(facing);
-    }
-
-    public NBTTagCompound writeRenderConnections(NBTTagCompound tag)
-    {
-        for (Map.Entry<EnumFacing, ITileCable<RailGrid>> entry : this.connectionsMap.entrySet())
-            tag.setBoolean("connected" + entry.getKey().ordinal(), true);
-        for (Map.Entry<EnumFacing, IRailConnectable> entry : this.adjacentHandler.entrySet())
-            tag.setBoolean("connected" + entry.getKey().ordinal(), true);
-        return tag;
-    }
-
-    public void readRenderConnections(NBTTagCompound tag)
-    {
-        this.renderConnections.clear();
-        for (final EnumFacing facing : EnumFacing.VALUES)
-        {
-            if (tag.hasKey("connected" + facing.ordinal()))
-                this.renderConnections.add(facing);
-        }
     }
 
     @Override

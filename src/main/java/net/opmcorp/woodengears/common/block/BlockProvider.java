@@ -16,25 +16,31 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.opmcorp.woodengears.WoodenGears;
 import net.opmcorp.woodengears.common.gui.GuiType;
+import net.opmcorp.woodengears.common.tile.TileCable;
 import net.opmcorp.woodengears.common.tile.TileProvider;
 
 import javax.annotation.Nullable;
 
-public class BlockProvider extends BlockTileBase {
+public class BlockProvider extends BlockTileBase
+{
     public static final PropertyDirection FACING = BlockDirectional.FACING;
 
-    public BlockProvider() {
+    public BlockProvider()
+    {
         super("provider", Material.PISTON);
         this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
     }
 
     @Override
-    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer)
+    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY,
+                                            float hitZ, int meta, EntityLivingBase placer)
     {
         return this.getDefaultState().withProperty(FACING, getDirectionFromEntityLiving(pos, placer));
     }
 
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack
+            stack)
+    {
         worldIn.setBlockState(pos, state.withProperty(FACING, getDirectionFromEntityLiving(pos, placer)), 2);
     }
 
@@ -46,7 +52,7 @@ public class BlockProvider extends BlockTileBase {
 
     protected BlockStateContainer createBlockState()
     {
-        return new BlockStateContainer(this, new IProperty[] {FACING});
+        return new BlockStateContainer(this, new IProperty[]{FACING});
     }
 
     public IBlockState getStateFromMeta(int meta)
@@ -66,7 +72,8 @@ public class BlockProvider extends BlockTileBase {
     }
 
     @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
+    public TileEntity createNewTileEntity(World worldIn, int meta)
+    {
         return new TileProvider();
     }
 
@@ -80,5 +87,13 @@ public class BlockProvider extends BlockTileBase {
         player.openGui(WoodenGears.instance, GuiType.PROVIDER.ordinal(),
                 world, pos.getX(), pos.getY(), pos.getZ());
         return true;
+    }
+
+    @Override
+    public void breakBlock(World w, BlockPos pos, IBlockState state)
+    {
+        ((TileProvider) w.getTileEntity(pos)).disconnectGrid();
+
+        super.breakBlock(w, pos, state);
     }
 }

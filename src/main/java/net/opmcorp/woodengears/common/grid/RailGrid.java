@@ -3,16 +3,22 @@ package net.opmcorp.woodengears.common.grid;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import net.opmcorp.woodengears.common.tile.TileArmReservoir;
+import net.opmcorp.woodengears.common.tile.TileProvider;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RailGrid extends CableGrid
 {
     private ListMultimap<TileArmReservoir, ITileRail> reservoirMap;
+    private Map<TileProvider, ITileRail>              providerMap;
 
     public RailGrid(int identifier)
     {
         super(identifier);
 
         this.reservoirMap = MultimapBuilder.hashKeys().arrayListValues().build();
+        this.providerMap = new HashMap<>();
     }
 
     @Override

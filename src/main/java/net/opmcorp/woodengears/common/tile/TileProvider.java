@@ -20,18 +20,26 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.opmcorp.woodengears.common.TickHandler;
 import net.opmcorp.woodengears.common.container.BuiltContainer;
 import net.opmcorp.woodengears.common.container.ContainerBuilder;
 import net.opmcorp.woodengears.common.container.IContainerProvider;
+import net.opmcorp.woodengears.common.grid.CableGrid;
+import net.opmcorp.woodengears.common.grid.IConnectionAware;
+import net.opmcorp.woodengears.common.grid.IRailConnectable;
+import net.opmcorp.woodengears.common.grid.RailGrid;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class TileProvider extends TileInventoryBase implements ITickable, IContainerProvider
+public class TileProvider extends TileInventoryBase implements ITickable, IContainerProvider, ILoadable,
+        IConnectionAware, IRailConnectable
 {
     @Getter
     private EnumFacing selectedFacing   = EnumFacing.WEST;
     private int        transferCooldown = -1;
+
+    private TileCable cable;
 
     public TileProvider()
     {
@@ -322,5 +330,41 @@ public class TileProvider extends TileInventoryBase implements ITickable, IConta
         return new ContainerBuilder("provider", player)
                 .player(player.inventory).inventory(8, 69).hotbar(8, 127)
                 .addInventory().create();
+    }
+
+    @Override
+    public void connectTrigger(EnumFacing facing, CableGrid grid)
+    {
+        this.cable = (TileCable) this.world.getTileEntity(pos.offset(EnumFacing.UP, 2));
+    }
+
+    @Override
+    public void disconnectTrigger(EnumFacing facing, CableGrid grid)
+    {
+        this.cable = null;
+    }
+
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        if (!this.world.isRemote && cable == null)
+            TickHandler.loadables.add(this);
+    }
+
+    @Override
+    public void load()
+    {
+        BlockPos railPos = this.getPos().offset(EnumFacing.UP, 2);
+
+        TileEntity rail = this.world.getTileEntity(railPos);
+        if (rail instanceof TileCable)
+            ((TileCable) rail).connectHandler(EnumFacing.DOWN, this, this);
+    }
+
+    public void disconnectGrid()
+    {
+        if (this.cable != null)
+            cable.disconnectHandler(EnumFacing.DOWN, this);
     }
 }
