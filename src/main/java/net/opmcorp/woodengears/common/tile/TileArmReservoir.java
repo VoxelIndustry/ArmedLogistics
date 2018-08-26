@@ -39,9 +39,9 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
     public Optional<EntityLogisticArm> injectArm()
     {
         // TODO : Spawn arm entity on call and return it for futher logic
-        if(this.world.getBlockState(this.pos.north()).getBlock() instanceof BlockCable || this.world.getBlockState(this.pos.south()) instanceof BlockCable || this.world.getBlockState(this.pos.east()).getBlock() instanceof BlockCable || this.world.getBlockState(this.pos.west()) instanceof BlockCable)
+        if (this.world.getBlockState(this.pos.north()).getBlock() instanceof BlockCable || this.world.getBlockState(this.pos.south()) instanceof BlockCable || this.world.getBlockState(this.pos.east()).getBlock() instanceof BlockCable || this.world.getBlockState(this.pos.west()) instanceof BlockCable)
         {
-            if(!world.isRemote)
+            if (!world.isRemote)
             {
                 EntityLogisticArm logisticArm = new EntityLogisticArm(world, pos);
 

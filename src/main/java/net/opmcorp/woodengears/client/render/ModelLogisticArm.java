@@ -2,11 +2,8 @@ package net.opmcorp.woodengears.client.render;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.Entity;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.opmcorp.woodengears.common.entity.EntityLogisticArm;
 
 @SideOnly(Side.CLIENT)
 public class ModelLogisticArm extends ModelBase

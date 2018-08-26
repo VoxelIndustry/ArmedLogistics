@@ -16,8 +16,8 @@ import javax.annotation.Nullable;
 
 public class RenderLogisticArm extends Render<EntityLogisticArm>
 {
-    private ModelLogisticArm modelLogisticArm = new ModelLogisticArm();
-    private final RenderItem itemRenderer;
+    private       ModelLogisticArm modelLogisticArm = new ModelLogisticArm();
+    private final RenderItem       itemRenderer;
 
     public RenderLogisticArm(RenderManager renderManager)
     {
@@ -26,10 +26,11 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
     }
 
     @Override
-    public void doRender(EntityLogisticArm logisticArm, double x, double y, double z, float entityYaw, float partialTicks)
+    public void doRender(EntityLogisticArm logisticArm, double x, double y, double z, float entityYaw,
+                         float partialTicks)
     {
         GlStateManager.pushMatrix();
-        GlStateManager.translate((float)x + 0.25F, (float)y + 0.75F, (float)z);
+        GlStateManager.translate((float) x + 0.25F, (float) y + 0.75F, (float) z);
 
         GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.scale(0.5F, 0.5F, 0.5F);
@@ -39,9 +40,9 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
         this.modelLogisticArm.renderPedestal(0.0625F);
         this.modelLogisticArm.renderFirstPiston(0.0625F);
 
-        if(logisticArm.isHoverBlockProvider())
+        if (logisticArm.isHoverBlockProvider())
         {
-            if(logisticArm.getPickupCount() > 40)
+            if (logisticArm.getPickupCount() > 40)
             {
                 GlStateManager.translate(0, 2.35 * (1 - (logisticArm.getPickupCount() / 40D) / 2D), 0);
                 this.modelLogisticArm.renderSecondPiston(0.0625F);
@@ -72,7 +73,7 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
     {
         ItemStack itemStack = logisticArm.getStackInSlot(0);
 
-        if(!itemStack.isEmpty())
+        if (!itemStack.isEmpty())
         {
             GlStateManager.pushMatrix();
             GlStateManager.disableLighting();

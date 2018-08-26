@@ -16,10 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.opmcorp.woodengears.WoodenGears;
 import net.opmcorp.woodengears.common.gui.GuiType;
-import net.opmcorp.woodengears.common.tile.TileCable;
 import net.opmcorp.woodengears.common.tile.TileProvider;
-
-import javax.annotation.Nullable;
 
 public class BlockProvider extends BlockTileBase
 {

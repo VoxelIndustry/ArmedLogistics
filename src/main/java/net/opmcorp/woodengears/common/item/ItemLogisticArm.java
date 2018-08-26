@@ -1,7 +1,6 @@
 package net.opmcorp.woodengears.common.item;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumActionResult;
@@ -21,17 +20,18 @@ public class ItemLogisticArm extends ItemBase
     }
 
     @Override
-    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand,
+                                      EnumFacing facing, float hitX, float hitY, float hitZ)
     {
         Block block = world.getBlockState(pos).getBlock();
 
-        if(!(block instanceof BlockCable))
+        if (!(block instanceof BlockCable))
             return EnumActionResult.FAIL;
         else
         {
             ItemStack itemStack = player.getHeldItem(hand);
 
-            if(!world.isRemote)
+            if (!world.isRemote)
             {
                 EntityLogisticArm logisticArm = new EntityLogisticArm(world, pos);
 

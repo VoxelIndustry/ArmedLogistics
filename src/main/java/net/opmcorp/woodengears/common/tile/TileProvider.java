@@ -27,7 +27,6 @@ import net.opmcorp.woodengears.common.container.IContainerProvider;
 import net.opmcorp.woodengears.common.grid.CableGrid;
 import net.opmcorp.woodengears.common.grid.IConnectionAware;
 import net.opmcorp.woodengears.common.grid.IRailConnectable;
-import net.opmcorp.woodengears.common.grid.RailGrid;
 
 import javax.annotation.Nullable;
 import java.util.List;

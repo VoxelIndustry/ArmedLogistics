@@ -27,11 +27,13 @@ import net.opmcorp.woodengears.common.tile.TileProvider;
 
 public class EntityLogisticArm extends Entity implements ILockableContainer
 {
-    private static final DataParameter<Float> DAMAGE = EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
-    private NonNullList<ItemStack> logisticArmItems = NonNullList.withSize(1, ItemStack.EMPTY);
+    private static final DataParameter<Float>   DAMAGE           =
+            EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
+    private              NonNullList<ItemStack> logisticArmItems = NonNullList.withSize(1, ItemStack.EMPTY);
 
     private boolean startPickup;
-    @Getter private int pickupCount = 80;
+    @Getter
+    private int     pickupCount = 80;
 
     public EntityLogisticArm(World worldIn)
     {
@@ -66,12 +68,12 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     @Override
     public void onUpdate()
     {
-        if(!this.world.isRemote)
+        if (!this.world.isRemote)
         {
-            if(!isBottomBlockCable())
+            if (!isBottomBlockCable())
             {
                 this.setDead();
-                if(this.world.getGameRules().getBoolean("doEntityDrops"))
+                if (this.world.getGameRules().getBoolean("doEntityDrops"))
                 {
                     ItemStack logistic_arm = new ItemStack(WGItems.logistic_arm);
 
@@ -82,16 +84,16 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
             }
         }
 
-        if(!startPickup && this.isHoverBlockProvider() && this.isEmpty())
+        if (!startPickup && this.isHoverBlockProvider() && this.isEmpty())
             this.startPickup = true;
 
-        if(startPickup)
+        if (startPickup)
         {
-            if(this.posX - (Math.floor(this.posX)) <= 0.5D)
+            if (this.posX - (Math.floor(this.posX)) <= 0.5D)
                 this.move(MoverType.SELF, 0.025D, 0, 0);
-            else if(this.posZ - (Math.floor(this.posZ)) <= 0.5D)
+            else if (this.posZ - (Math.floor(this.posZ)) <= 0.5D)
                 this.move(MoverType.SELF, 0, 0, 0.025D);
-            else if(this.pickupCount != 0)
+            else if (this.pickupCount != 0)
                 this.pickupCount--;
             else
             {
@@ -100,10 +102,10 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
             }
         }
 
-        if(this.isHoverBlockProvider() && this.pickupCount == 40 && this.isEmpty())
+        if (this.isHoverBlockProvider() && this.pickupCount == 40 && this.isEmpty())
         {
-            BlockProvider provider = (BlockProvider)this.world.getBlockState(new BlockPos(this).down()).getBlock();
-            TileProvider tileProvider = (TileProvider)provider.getRawWorldTile(this.world, new BlockPos(this).down());
+            BlockProvider provider = (BlockProvider) this.world.getBlockState(new BlockPos(this).down()).getBlock();
+            TileProvider tileProvider = (TileProvider) provider.getRawWorldTile(this.world, new BlockPos(this).down());
             ItemStack stack = tileProvider.getStackInSlot(0);
             this.setInventorySlotContents(0, stack);
             tileProvider.removeStackFromSlot(0);
@@ -165,9 +167,9 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     @Override
     public boolean isEmpty()
     {
-        for(ItemStack itemStack : this.logisticArmItems)
+        for (ItemStack itemStack : this.logisticArmItems)
         {
-            if(!itemStack.isEmpty())
+            if (!itemStack.isEmpty())
                 return false;
         }
         return true;
@@ -190,7 +192,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     {
         ItemStack itemStack = this.logisticArmItems.get(index);
 
-        if(itemStack.isEmpty())
+        if (itemStack.isEmpty())
             return ItemStack.EMPTY;
         else
         {
@@ -204,7 +206,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     {
         this.logisticArmItems.set(index, stack);
 
-        if(!stack.isEmpty() && stack.getCount() > this.getInventoryStackLimit())
+        if (!stack.isEmpty() && stack.getCount() > this.getInventoryStackLimit())
             stack.setCount(this.getInventoryStackLimit());
     }
 
@@ -222,7 +224,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
     @Override
     public boolean isUsableByPlayer(EntityPlayer player)
     {
-        if(this.isDead)
+        if (this.isDead)
         {
             return false;
         }

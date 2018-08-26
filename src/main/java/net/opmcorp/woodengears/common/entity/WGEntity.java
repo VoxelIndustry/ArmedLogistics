@@ -13,7 +13,9 @@ public class WGEntity
     @SubscribeEvent
     public static void registerEntity(RegistryEvent.Register<EntityEntry> event)
     {
-        EntityEntry logistic_arm = EntityEntryBuilder.create().entity(EntityLogisticArm.class).name("logistic_arm").id("logistic_arm", 0).tracker(64, 3, true).build();
+        EntityEntry logistic_arm =
+                EntityEntryBuilder.create().entity(EntityLogisticArm.class).name("logistic_arm").id("logistic_arm",
+                        0).tracker(64, 3, true).build();
 
         event.getRegistry().registerAll(logistic_arm);
     }
