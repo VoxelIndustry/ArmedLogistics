@@ -140,3 +140,6 @@ fabric.properties
 *.ipr
 
 *.ase
+
+*.aseprite
+*.ase

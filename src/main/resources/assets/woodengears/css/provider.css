@@ -1,0 +1,44 @@
+text {
+    -shadow: false;
+    -color: #404040;
+}
+
+#main-panel {
+    -background-texture: url("woodengears:textures/gui/provider.png");
+}
+
+#stacks-panel {
+    -background-color: #9C9C9C;
+}
+
+.box-line-top {
+    -color: #8B8B8B;
+}
+
+.box-line-bottom {
+    -color: #555555;
+}
+
+#status-label {
+    -background-texture: url("woodengears:textures/gui/text-bar.png");
+}
+
+.status-invalid text {
+    -color: #C51162;
+}
+
+.status-valid text {
+    -color: #087F23;
+}
+
+#more-button {
+    -background-texture: url("woodengears:textures/gui/more-bar.png");
+}
+
+#more-button:hover {
+    -background-texture: url("woodengears:textures/gui/more-bar-hover.png");
+}
+
+#more-button text {
+    -color: #1976D2;
+}
