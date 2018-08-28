@@ -8,8 +8,11 @@ import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.client.GuiProvider;
 import org.yggard.brokkgui.data.RelativeBindingHelper;
 import org.yggard.brokkgui.element.GuiButton;
+import org.yggard.brokkgui.gui.SubGuiScreen;
 import org.yggard.brokkgui.panel.GuiAbsolutePane;
 import org.yggard.brokkgui.panel.GuiRelativePane;
+import org.yggard.brokkgui.panel.ScrollPane;
+import org.yggard.brokkgui.policy.EOverflowPolicy;
 import org.yggard.brokkgui.shape.Rectangle;
 import org.yggard.brokkgui.wrapper.elements.ItemStackView;
 
@@ -18,16 +21,21 @@ import java.util.List;
 
 public class InventoryView extends GuiRelativePane
 {
+    private final List<ItemStack>     rawStacks;
     private final List<ItemStackView> stacks;
     private final GuiAbsolutePane     stacksPane;
     private final GuiButton           moreButton;
+
+    private final FullStacksView fullStackView;
 
     public InventoryView(GuiProvider guiProvider)
     {
         this.setHeight(67);
         this.setWidthRatio(1);
+        this.rawStacks = new ArrayList<>();
         this.stacks = new ArrayList<>();
         this.stacksPane = new GuiAbsolutePane();
+        this.fullStackView = new FullStacksView();
         stacksPane.setID("stacks-panel");
         this.addChild(stacksPane, 0.5f, 0f);
 
@@ -67,6 +75,12 @@ public class InventoryView extends GuiRelativePane
         moreButton.setxTranslate(7);
         RelativeBindingHelper.bindToPos(moreButton, stacksPane, null,
                 BaseExpression.transform(stacksPane.getHeightProperty(), height -> height + 1));
+
+        moreButton.setOnActionEvent(e ->
+        {
+            guiProvider.addSubGui(fullStackView);
+            fullStackView.refreshStacks(this.rawStacks);
+        });
 
         guiProvider.getListeners().attach(guiProvider.getProvider().getCachedInventoryProperty(),
                 obs -> refreshStacks(guiProvider.getProvider().getCachedInventoryProperty().getValue()));
@@ -130,6 +144,8 @@ public class InventoryView extends GuiRelativePane
 
             if (rawStacks.size() > 27)
             {
+                this.rawStacks.clear();
+                this.rawStacks.addAll(rawStacks);
                 this.moreButton.setVisible(true);
                 this.moreButton.setText(I18n.format(WoodenGears.MODID + ".gui.inventory.more", rawStacks.size() - 27));
             }
@@ -137,5 +153,64 @@ public class InventoryView extends GuiRelativePane
 
         for (int slot = 0; slot < Math.min(stacks.size(), 27); slot++)
             stacks.get(slot).setItemStack(rawStacks.get(slot));
+    }
+
+    private static class FullStacksView extends SubGuiScreen
+    {
+        private List<ItemStackView> views;
+        private GuiAbsolutePane     mainPanel;
+
+        public FullStacksView()
+        {
+            super(0.5f, 0.45f);
+            this.setSize(180, 110);
+            this.setzLevel(300);
+            this.setID("inv-window");
+
+            views = new ArrayList<>();
+            mainPanel = new GuiAbsolutePane();
+            mainPanel.setWidth(20 * 8);
+            mainPanel.setxTranslate(11);
+            mainPanel.setStyle("-border-color: red; -border-thin: 1;");
+
+            ScrollPane scrollPane = new ScrollPane();
+            this.addChild(scrollPane);
+            RelativeBindingHelper.bindToPos(scrollPane, this, 1, 1);
+            scrollPane.setWidth(178);
+            scrollPane.setHeight(108);
+            scrollPane.setOverflowPolicy(EOverflowPolicy.TRIM);
+            scrollPane.setChild(mainPanel);
+            scrollPane.setStyle("-border-color: red; -border-thin: 1;");
+
+            this.setCloseOnClick(true);
+        }
+
+        public void refreshStacks(List<ItemStack> stacks)
+        {
+            int diff = this.views.size() - stacks.size();
+            if (diff > 0)
+            {
+                for (int slot = 0; slot < diff; slot++)
+                    mainPanel.removeChild(this.views.remove(this.views.size() - 1 - slot));
+            }
+            else if (diff < 0)
+            {
+                for (int slot = 0; slot < -diff; slot++)
+                {
+                    ItemStackView view = new ItemStackView();
+                    view.setSize(18, 18);
+                    view.setItemTooltip(true);
+                    view.setzLevel(301);
+
+                    mainPanel.addChild(view, 20 * (views.size() % 8), 20 * (views.size() / 8));
+                    views.add(view);
+                }
+            }
+
+            for (int slot = 0; slot < views.size(); slot++)
+                views.get(slot).setItemStack(stacks.get(slot));
+
+            mainPanel.setHeight((float) (20 * Math.ceil(stacks.size() / 8f)));
+        }
     }
 }

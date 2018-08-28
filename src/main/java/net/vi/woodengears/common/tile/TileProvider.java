@@ -138,7 +138,7 @@ public class TileProvider extends TileInventoryBase implements ITickable, IConta
                 .player(player).inventory(8, 103).hotbar(8, 161)
                 .addInventory()
                 .syncBooleanValue(connectedInventoryProperty::getValue, connectedInventoryProperty::setValue)
-                .syncInventory(this::getConnectedInventory, this.cachedInventoryProperty::setValue)
+                .syncInventory(this::getConnectedInventory, this.cachedInventoryProperty::setValue, 10)
                 .create();
     }
 

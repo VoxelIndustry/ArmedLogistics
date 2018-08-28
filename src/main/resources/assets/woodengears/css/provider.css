@@ -42,3 +42,15 @@ text {
 #more-button text {
     -color: #1976D2;
 }
+
+#inv-window {
+    -background-texture: url("woodengears:textures/gui/inv-window.png");
+}
+
+#inv-window-top {
+    -background-texture: url("woodengears:textures/gui/inv-window-top.png");
+}
+
+#inv-window-bottom {
+    -background-texture: url("woodengears:textures/gui/inv-window-bottom.png");
+}
