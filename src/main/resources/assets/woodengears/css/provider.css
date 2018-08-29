@@ -54,3 +54,8 @@ text {
 #inv-window-bottom {
     -background-texture: url("woodengears:textures/gui/inv-window-bottom.png");
 }
+
+scrollpane .grip-y {
+    -texture: url("woodengears:textures/gui/inv-window-scroll.png");
+    -color: rgba(0, 0, 0, 0);
+}

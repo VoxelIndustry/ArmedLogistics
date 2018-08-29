@@ -13,6 +13,7 @@ import org.yggard.brokkgui.panel.GuiAbsolutePane;
 import org.yggard.brokkgui.panel.GuiRelativePane;
 import org.yggard.brokkgui.panel.ScrollPane;
 import org.yggard.brokkgui.policy.EOverflowPolicy;
+import org.yggard.brokkgui.policy.EScrollbarPolicy;
 import org.yggard.brokkgui.shape.Rectangle;
 import org.yggard.brokkgui.wrapper.elements.ItemStackView;
 
@@ -179,8 +180,12 @@ public class InventoryView extends GuiRelativePane
             scrollPane.setWidth(178);
             scrollPane.setHeight(108);
             scrollPane.setOverflowPolicy(EOverflowPolicy.TRIM);
+            scrollPane.setScrollYPolicy(EScrollbarPolicy.ALWAYS);
             scrollPane.setChild(mainPanel);
             scrollPane.setStyle("-border-color: red; -border-thin: 1;");
+            scrollPane.setGripYWidth(8);
+            scrollPane.setGripYHeight(11);
+            scrollPane.setzLevel(310);
 
             this.setCloseOnClick(true);
         }
