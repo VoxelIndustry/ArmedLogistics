@@ -172,20 +172,18 @@ public class InventoryView extends GuiRelativePane
             mainPanel = new GuiAbsolutePane();
             mainPanel.setWidth(20 * 8);
             mainPanel.setxTranslate(11);
-            mainPanel.setStyle("-border-color: red; -border-thin: 1;");
 
             ScrollPane scrollPane = new ScrollPane();
-            this.addChild(scrollPane);
             RelativeBindingHelper.bindToPos(scrollPane, this, 1, 1);
             scrollPane.setWidth(178);
             scrollPane.setHeight(108);
             scrollPane.setOverflowPolicy(EOverflowPolicy.TRIM);
             scrollPane.setScrollYPolicy(EScrollbarPolicy.ALWAYS);
             scrollPane.setChild(mainPanel);
-            scrollPane.setStyle("-border-color: red; -border-thin: 1;");
             scrollPane.setGripYWidth(8);
-            scrollPane.setGripYHeight(11);
+            scrollPane.setGripYHeight(22);
             scrollPane.setzLevel(310);
+            this.addChild(scrollPane);
 
             this.setCloseOnClick(true);
         }
