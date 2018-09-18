@@ -8,6 +8,7 @@ import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.client.GuiProvider;
 import org.yggard.brokkgui.data.RelativeBindingHelper;
 import org.yggard.brokkgui.element.GuiButton;
+import org.yggard.brokkgui.element.GuiLabel;
 import org.yggard.brokkgui.gui.SubGuiScreen;
 import org.yggard.brokkgui.panel.GuiAbsolutePane;
 import org.yggard.brokkgui.panel.GuiRelativePane;
@@ -26,6 +27,7 @@ public class InventoryView extends GuiRelativePane
     private final List<ItemStackView> stacks;
     private final GuiAbsolutePane     stacksPane;
     private final GuiButton           moreButton;
+    private final GuiLabel            emptyLabel;
 
     private final FullStacksView fullStackView;
 
@@ -83,6 +85,15 @@ public class InventoryView extends GuiRelativePane
             fullStackView.refreshStacks(this.rawStacks);
         });
 
+        this.emptyLabel = new GuiLabel(I18n.format(WoodenGears.MODID + ".gui.inventory.empty"));
+        emptyLabel.setSize(148, 11);
+        emptyLabel.setVisible(false);
+        emptyLabel.setID("empty-label");
+        this.addChild(emptyLabel);
+        emptyLabel.setxTranslate(7);
+        RelativeBindingHelper.bindToPos(emptyLabel, stacksPane, null,
+                BaseExpression.transform(stacksPane.getHeightProperty(), height -> height + 1));
+
         guiProvider.getListeners().attach(guiProvider.getProvider().getCachedInventoryProperty(),
                 obs -> refreshStacks(guiProvider.getProvider().getCachedInventoryProperty().getValue()));
         this.refreshStacks(guiProvider.getProvider().getCachedInventoryProperty().getValue());
@@ -106,7 +117,11 @@ public class InventoryView extends GuiRelativePane
         if (diff > 0)
         {
             for (int slot = 0; slot < diff; slot++)
+            {
+                if (this.stacks.size() - 1 - slot < 0)
+                    break;
                 stacksPane.removeChild(this.stacks.remove(this.stacks.size() - 1 - slot));
+            }
         }
         else if (diff < 0 && stacks.size() < 27)
         {
@@ -126,10 +141,12 @@ public class InventoryView extends GuiRelativePane
         }
 
         this.moreButton.setVisible(false);
+        this.emptyLabel.setVisible(false);
         if (this.stacks.isEmpty())
         {
             this.stacksPane.setWidth(18 * 9);
             this.stacksPane.setHeight(1);
+            this.emptyLabel.setVisible(true);
         }
         else if (this.stacks.size() < 9)
         {

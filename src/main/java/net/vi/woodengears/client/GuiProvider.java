@@ -3,16 +3,20 @@ package net.vi.woodengears.client;
 import lombok.Getter;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextFormatting;
+import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.gui.InventoryView;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import org.yggard.brokkgui.data.RectOffset;
 import org.yggard.brokkgui.element.GuiLabel;
+import org.yggard.brokkgui.paint.Texture;
 import org.yggard.brokkgui.panel.GuiAbsolutePane;
 import org.yggard.brokkgui.wrapper.container.BrokkGuiContainer;
 
 public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
 {
+    private static final Texture BACKGROUND = new Texture(WoodenGears.MODID + ":textures/gui/provider.png",0,0,1, 185 / 192f);
+
     @Getter
     private final TileProvider        provider;
 
@@ -23,12 +27,12 @@ public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
         this.setyRelativePos(0.5f);
 
         this.setWidth(176);
-        this.setHeight(186);
+        this.setHeight(185);
 
         this.provider = provider;
 
         GuiAbsolutePane mainPanel = new GuiAbsolutePane();
-        mainPanel.setID("main-panel");
+        mainPanel.setBackgroundTexture(BACKGROUND);
         this.setMainPanel(mainPanel);
 
         GuiLabel title = new GuiLabel(provider.getDisplayName().getFormattedText());
