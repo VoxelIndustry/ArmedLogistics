@@ -5,13 +5,16 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.items.ItemStackHandler;
 import net.vi.woodengears.WoodenGears;
+import net.vi.woodengears.common.tile.TileInventoryBase;
 import net.voxelindustry.steamlayer.tile.TileBase;
 
 public abstract class BlockTileBase<T extends TileBase> extends BlockContainer
@@ -33,9 +36,9 @@ public abstract class BlockTileBase<T extends TileBase> extends BlockContainer
     {
         final TileEntity tile = world.getTileEntity(pos);
 
-        if (tile instanceof IInventory)
+        if (tile instanceof TileInventoryBase)
         {
-            InventoryHelper.dropInventoryItems(world, pos, (IInventory) tile);
+            ((TileInventoryBase) tile).dropInventory();
             world.updateComparatorOutputLevel(pos, this);
         }
 

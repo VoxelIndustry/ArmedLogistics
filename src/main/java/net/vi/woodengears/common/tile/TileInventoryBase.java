@@ -1,6 +1,7 @@
 package net.vi.woodengears.common.tile;
 
 import lombok.Getter;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -40,5 +41,21 @@ public abstract class TileInventoryBase extends TileBase
     public ITextComponent getDisplayName()
     {
         return new TextComponentTranslation(WoodenGears.MODID + ".gui." + this.getName() + ".name");
+    }
+
+    public void dropInventory()
+    {
+        for (int slot = 0; slot < this.inventory.getSlots(); slot++)
+        {
+            if (!canDropSlot(slot))
+                continue;
+            InventoryHelper.spawnItemStack(this.world, this.getPos().getX(), this.getPos().getY(),
+                    this.getPos().getZ(), inventory.getStackInSlot(slot));
+        }
+    }
+
+    public boolean canDropSlot(int slot)
+    {
+        return true;
     }
 }

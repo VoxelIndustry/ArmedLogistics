@@ -20,23 +20,17 @@ import net.voxelindustry.steamlayer.container.IContainerProvider;
 import net.voxelindustry.steamlayer.tile.ILoadable;
 import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
-public class TileProvider extends TileInventoryBase implements ITickable, IContainerProvider, ILoadable,
-        IConnectionAware, IRailConnectable
+public class TileProvider extends TileLogicisticNode implements ITickable
 {
-    @Getter
-    private BaseProperty<Boolean> connectedInventoryProperty;
-    private int                   transferCooldown = -1;
+    private int transferCooldown = -1;
 
     @Getter
     private BaseProperty<IItemHandler> cachedInventoryProperty;
-
-    private TileCable cable;
 
     public TileProvider()
     {
         super("provider", 0);
 
-        this.connectedInventoryProperty = new BaseProperty<>(false, "connectedInventoryProperty");
         this.cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
     }
 
@@ -83,77 +77,13 @@ public class TileProvider extends TileInventoryBase implements ITickable, IConta
     }
 
     @Override
-    public void connectTrigger(EnumFacing facing, CableGrid grid)
-    {
-        this.cable = (TileCable) this.world.getTileEntity(pos.offset(EnumFacing.UP, 2));
-    }
-
-    @Override
-    public void disconnectTrigger(EnumFacing facing, CableGrid grid)
-    {
-        this.cable = null;
-    }
-
-    @Override
-    public void onLoad()
-    {
-        super.onLoad();
-        if (!this.world.isRemote && cable == null)
-            TileTickHandler.loadables.add(this);
-    }
-
-    @Override
-    public void load()
-    {
-        BlockPos railPos = this.getPos().offset(EnumFacing.UP, 2);
-
-        TileEntity rail = this.world.getTileEntity(railPos);
-        if (rail instanceof TileCable)
-            ((TileCable) rail).connectHandler(EnumFacing.DOWN, this, this);
-
-        checkInventory();
-    }
-
-    public void disconnectGrid()
-    {
-        if (this.cable != null)
-            cable.disconnectHandler(EnumFacing.DOWN, this);
-    }
-
-    public void checkInventory()
-    {
-        TileEntity tile = this.world.getTileEntity(this.pos.offset(this.getFacing()));
-
-        if (tile != null && tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
-                this.getFacing().getOpposite()))
-            this.connectedInventoryProperty.setValue(true);
-        else
-            this.connectedInventoryProperty.setValue(false);
-    }
-
-    @Override
     public BuiltContainer createContainer(EntityPlayer player)
     {
         return new ContainerBuilder("provider", player)
                 .player(player).inventory(8, 103).hotbar(8, 161)
                 .addInventory()
-                .syncBooleanValue(connectedInventoryProperty::getValue, connectedInventoryProperty::setValue)
-                .syncInventory(this::getConnectedInventory, this.cachedInventoryProperty::setValue, 10)
+                .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
+                .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
                 .create();
-    }
-
-    public IItemHandler getConnectedInventory()
-    {
-        TileEntity tile = this.world.getTileEntity(pos.offset(getFacing()));
-
-        if (tile != null && tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
-                getFacing().getOpposite()))
-            return tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
-        return null;
-    }
-
-    public EnumFacing getFacing()
-    {
-        return this.world.getBlockState(pos).getValue(BlockDirectional.FACING);
     }
 }
