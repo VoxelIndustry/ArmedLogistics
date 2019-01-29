@@ -2,23 +2,12 @@ package net.vi.woodengears.common.tile;
 
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
-import net.minecraft.block.BlockDirectional;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.vi.woodengears.common.grid.CableGrid;
-import net.vi.woodengears.common.grid.IConnectionAware;
-import net.vi.woodengears.common.grid.IRailConnectable;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
-import net.voxelindustry.steamlayer.container.IContainerProvider;
-import net.voxelindustry.steamlayer.tile.ILoadable;
-import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
 public class TileProvider extends TileLogicisticNode implements ITickable
 {

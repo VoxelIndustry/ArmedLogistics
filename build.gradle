@@ -20,10 +20,10 @@ compileJava {
 }
 
 minecraft {
-    version = "1.12.2-14.23.4.2758"
+    version = "1.12.2-14.23.5.2808"
     runDir = "run"
 
-    mappings = "snapshot_20171003"
+    mappings = "stable_39"
 }
 
 repositories {
@@ -36,10 +36,6 @@ repositories {
         name = 'progwml6 maven'
         url = "http://dvs1.progwml6.com/files/maven"
     }
-    maven { // Concrete
-        name = 'elytradev'
-        url = "http://repo.elytradev.com"
-    }
     maven {
         name = 'ourten'
         url = 'http://maven.ferenyr.info/artifactory/libs-release'
@@ -47,18 +43,20 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.2'
+    compileOnly 'org.projectlombok:lombok:1.18.4'
 
     deobfCompile 'mcjty.theoneprobe:TheOneProbe-1.12:1.12-1.4.23-16'
-    deobfCompile 'mezz.jei:jei_1.12.2:4.9.2.196'
+    deobfCompile 'mezz.jei:jei_1.12.2:4.14.4.264'
 
     compile 'net.voxelindustry:steamlayer-core:0.1.0'
-    compile 'org.yggard:brokkgui-binding-mc1.12:1.0.0-31-SNAPSHOT'
+    compile 'net.voxelindustry:brokkgui-binding-mc1.12:1.0.0-32-SNAPSHOT'
     compile 'fr.ourten:teabeans:0.7.0'
 
-    compile 'com.elytradev.concrete:concrete-common:0.5.40'
-    compile 'com.elytradev.concrete:concrete-reflect:0.5.40'
-    compile 'com.elytradev.concrete:concrete-network:0.5.40'
+    testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+    testCompile('org.mockito:mockito-core:2.20.1')
+    testCompile('org.assertj:assertj-core:3.10.0')
+
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
 }
 
 processResources {

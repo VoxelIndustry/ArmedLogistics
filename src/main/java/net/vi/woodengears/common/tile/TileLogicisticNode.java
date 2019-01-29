@@ -91,11 +91,16 @@ public abstract class TileLogicisticNode extends TileInventoryBase implements IC
     @Override
     public boolean canDropSlot(int slot)
     {
-        return slot != 0 && slot != 1 &&super.canDropSlot(slot);
+        return slot != 0 && slot != 1 && super.canDropSlot(slot);
     }
 
     public EnumFacing getFacing()
     {
         return this.world.getBlockState(pos).getValue(BlockDirectional.FACING);
+    }
+
+    public BlockPos getRailPos()
+    {
+        return pos.up(2);
     }
 }

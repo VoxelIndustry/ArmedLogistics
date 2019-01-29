@@ -27,6 +27,7 @@ public abstract class TileInventoryBase extends TileBase
         super.writeToNBT(tag);
 
         tag.setTag("inv", this.inventory.serializeNBT());
+
         return tag;
     }
 
@@ -38,6 +39,7 @@ public abstract class TileInventoryBase extends TileBase
         this.inventory.deserializeNBT(tag.getCompoundTag("inv"));
     }
 
+    @Override
     public ITextComponent getDisplayName()
     {
         return new TextComponentTranslation(WoodenGears.MODID + ".gui." + this.getName() + ".name");
