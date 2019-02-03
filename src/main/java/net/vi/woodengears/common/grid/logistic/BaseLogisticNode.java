@@ -2,7 +2,7 @@ package net.vi.woodengears.common.grid.logistic;
 
 import lombok.Getter;
 
-public class BaseLogisticNode implements LogisticNode
+public abstract class BaseLogisticNode implements LogisticNode
 {
     @Getter
     private boolean isAwake;

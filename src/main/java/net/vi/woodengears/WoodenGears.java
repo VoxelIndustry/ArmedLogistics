@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.vi.woodengears.common.CommonProxy;
 import net.vi.woodengears.common.CustomCreativeTab;
+import net.voxelindustry.brokkgui.BrokkGuiPlatform;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = WoodenGears.MODID, name = WoodenGears.NAME, version = WoodenGears.VERSION)
@@ -47,5 +48,7 @@ public class WoodenGears
     public void postInit(FMLPostInitializationEvent event)
     {
         proxy.postInit(event);
+
+        BrokkGuiPlatform.getInstance().enableRenderDebug(true);
     }
 }

@@ -3,16 +3,12 @@ package net.vi.woodengears.common.block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.items.ItemStackHandler;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.tile.TileInventoryBase;
 import net.voxelindustry.steamlayer.tile.TileBase;
@@ -25,7 +21,7 @@ public abstract class BlockTileBase<T extends TileBase> extends BlockContainer
     {
         super(material);
         this.setRegistryName(WoodenGears.MODID, name);
-        this.setUnlocalizedName(name);
+        this.setTranslationKey(name);
         this.setCreativeTab(WoodenGears.TAB_ALL);
 
         this.tileClass = tileClass;

@@ -6,12 +6,12 @@ import net.minecraft.util.text.TextFormatting;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.gui.InventoryView;
 import net.vi.woodengears.common.tile.TileProvider;
+import net.voxelindustry.brokkgui.data.RectOffset;
+import net.voxelindustry.brokkgui.element.GuiLabel;
+import net.voxelindustry.brokkgui.paint.Texture;
+import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
+import net.voxelindustry.brokkgui.wrapper.container.BrokkGuiContainer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
-import org.yggard.brokkgui.data.RectOffset;
-import org.yggard.brokkgui.element.GuiLabel;
-import org.yggard.brokkgui.paint.Texture;
-import org.yggard.brokkgui.panel.GuiAbsolutePane;
-import org.yggard.brokkgui.wrapper.container.BrokkGuiContainer;
 
 public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
 {

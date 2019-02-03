@@ -9,8 +9,8 @@ import net.vi.woodengears.client.GuiArmReservoir;
 import net.vi.woodengears.client.GuiProvider;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
+import net.voxelindustry.brokkgui.wrapper.impl.BrokkGuiManager;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
-import org.yggard.brokkgui.wrapper.impl.BrokkGuiManager;
 
 import javax.annotation.Nullable;
 

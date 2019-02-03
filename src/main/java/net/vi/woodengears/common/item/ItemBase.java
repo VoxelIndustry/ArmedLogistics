@@ -15,7 +15,7 @@ public class ItemBase extends Item implements IItemModelProvider
     public ItemBase(String name)
     {
         this.setRegistryName(WoodenGears.MODID, name);
-        this.setUnlocalizedName(name);
+        this.setTranslationKey(name);
         this.setCreativeTab(WoodenGears.TAB_ALL);
 
         this.variants = new HashMap<>();
