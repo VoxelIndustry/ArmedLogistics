@@ -1,4 +1,4 @@
-package net.vi.woodengears.common.grid.logistic;
+package net.vi.woodengears.common.grid.logistic.node;
 
 import lombok.Getter;
 

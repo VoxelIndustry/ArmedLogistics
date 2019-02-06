@@ -3,6 +3,7 @@ package net.vi.woodengears.common.init;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -69,6 +70,6 @@ public class WGBlocks
 
     private static void registerTile(Class<? extends TileEntity> c, String name)
     {
-        GameRegistry.registerTileEntity(c, WoodenGears.MODID + ":" + name);
+        GameRegistry.registerTileEntity(c, new ResourceLocation(WoodenGears.MODID, name));
     }
 }

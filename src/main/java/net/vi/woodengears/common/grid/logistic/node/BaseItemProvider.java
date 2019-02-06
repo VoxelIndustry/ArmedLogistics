@@ -1,4 +1,4 @@
-package net.vi.woodengears.common.grid.logistic;
+package net.vi.woodengears.common.grid.logistic.node;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
@@ -15,15 +15,17 @@ import java.util.function.Predicate;
 public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemStack>
 {
     private InventoryHandler       handler;
+    private InventoryBuffer        buffer;
     private NonNullList<ItemStack> handlerMirror;
     private NonNullList<ItemStack> compressedStacks;
 
     private TileLogicisticNode tile;
 
-    public BaseItemProvider(TileLogicisticNode tile, InventoryHandler handler)
+    public BaseItemProvider(TileLogicisticNode tile, InventoryHandler handler, InventoryBuffer buffer)
     {
         this.tile = tile;
         this.handler = handler;
+        this.buffer = buffer;
 
         handlerMirror = NonNullList.withSize(handler.getSlots(), ItemStack.EMPTY);
         compressedStacks = NonNullList.create();
@@ -72,6 +74,31 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
         }
 
         super.wake();
+    }
+
+    @Override
+    public int containedPart(ItemStack value)
+    {
+        if (value.isEmpty())
+            return 0;
+
+        this.wake();
+
+        int quantity = 0;
+        for (ItemStack stack : this.compressedStacks)
+        {
+            if (stack.isEmpty())
+                continue;
+            if (ItemUtils.deepEquals(stack, value))
+            {
+                quantity += stack.getCount();
+
+                if (quantity >= value.getCount())
+                    return value.getCount();
+            }
+        }
+
+        return quantity;
     }
 
     @Override
@@ -137,10 +164,10 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Override
     public ItemStack extract(ItemStack value)
     {
-        ItemStack stack =
-                this.firstMatching(candidate -> ItemUtils.deepEquals(candidate, value) && candidate.getCount() >= value.getCount());
+        if (buffer.isFull())
+            return ItemStack.EMPTY;
 
-        if (stack.isEmpty())
+        if (this.containedPart(value) == 0)
             return ItemStack.EMPTY;
 
         this.sleep();
@@ -149,28 +176,59 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
 
         for (int i = 0; i < this.handler.getSlots(); i++)
         {
-            ItemStack current = this.handler.getStackInSlot(i);
+            ItemStack stack = this.handler.getStackInSlot(i);
 
-            if (ItemUtils.deepEquals(current, stack))
+            if (ItemUtils.deepEquals(stack, value))
             {
-                int toExtract = Math.min(stack.getCount() - extracted, current.getCount());
+                int toExtract = Math.min(value.getCount() - extracted, stack.getCount());
 
-                current.shrink(toExtract);
+                stack.shrink(toExtract);
                 extracted += toExtract;
 
-                handler.setStackInSlot(i, current);
+                handler.setStackInSlot(i, stack);
 
-                if (extracted == stack.getCount())
+                if (extracted == value.getCount())
                     break;
             }
         }
 
-        return stack;
+        ItemStack copy = value.copy();
+        copy.setCount(extracted);
+        return buffer.add(copy);
+    }
+
+    @Override
+    public ItemStack fromBuffer(ItemStack value)
+    {
+        buffer.remove(value);
+        return value;
+    }
+
+    @Override
+    public boolean isBufferFull()
+    {
+        return buffer.isFull();
     }
 
     @Override
     public NonNullList<ItemStack> getCompressedContents()
     {
         return this.compressedStacks;
+    }
+
+    @Override
+    public boolean isColored()
+    {
+        return false;
+    }
+
+    protected InventoryHandler getHandler()
+    {
+        return this.handler;
+    }
+
+    protected InventoryBuffer getBuffer()
+    {
+        return this.buffer;
     }
 }
