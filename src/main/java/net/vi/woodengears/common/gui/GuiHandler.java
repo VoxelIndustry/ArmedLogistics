@@ -37,7 +37,8 @@ public class GuiHandler implements IGuiHandler
         switch (GuiType.values()[ID])
         {
             case ARM_RESERVOIR:
-                return new GuiArmReservoir(player, (TileArmReservoir) world.getTileEntity(new BlockPos(x, y, z)));
+                return BrokkGuiManager.getBrokkGuiContainer(WoodenGears.MODID, new GuiArmReservoir(player,
+                        (TileArmReservoir) world.getTileEntity(new BlockPos(x, y, z))));
             case PROVIDER:
                 return BrokkGuiManager.getBrokkGuiContainer(WoodenGears.MODID, new GuiProvider(player,
                         (TileProvider) world.getTileEntity(new BlockPos(x, y, z))));

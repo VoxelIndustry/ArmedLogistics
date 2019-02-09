@@ -75,7 +75,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
                 this.setDead();
                 if (this.world.getGameRules().getBoolean("doEntityDrops"))
                 {
-                    ItemStack logistic_arm = new ItemStack(WGItems.logistic_arm);
+                    ItemStack logistic_arm = new ItemStack(WGItems.LOGISTIC_ARM);
 
                     InventoryHelper.dropInventoryItems(this.world, this, this);
 

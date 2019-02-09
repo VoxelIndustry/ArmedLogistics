@@ -9,7 +9,7 @@ import net.vi.woodengears.common.grid.CableGrid;
 import net.vi.woodengears.common.grid.IConnectionAware;
 import net.vi.woodengears.common.grid.IRailConnectable;
 import net.vi.woodengears.common.grid.RailGrid;
-import net.vi.woodengears.common.item.ItemLogisticArm;
+import net.vi.woodengears.common.init.WGItems;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
@@ -24,7 +24,7 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
 
     public TileArmReservoir()
     {
-        super("armreservoir", 9);
+        super("armreservoir", 6);
     }
 
     @Override
@@ -40,10 +40,11 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
     public BuiltContainer createContainer(EntityPlayer player)
     {
         return new ContainerBuilder("armreservoir", player)
-                .player(player).inventory(8, 84).hotbar(8, 142)
+                .player(player).inventory(8, 96).hotbar(8, 154)
                 .addInventory().tile(this.getInventory())
-                .filterSlotLine(0, 17, 26, 8, EnumFacing.Axis.X, stack -> stack.getItem() instanceof ItemLogisticArm)
-                .fuelSlot(8, 80, 62)
+                .filterSlotLine(0, 54, 52, 4, EnumFacing.Axis.X, stack -> stack.getItem() == WGItems.LOGISTIC_ARM)
+                .fuelSlot(4, 72, 74)
+                .fuelSlot(5, 90, 74)
                 .addInventory().create();
     }
 

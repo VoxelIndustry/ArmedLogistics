@@ -45,7 +45,11 @@ public class TileProvider extends TileLogicisticNode implements ITickable
         super.addInfo(list);
 
         list.addText("Buffer:");
-        this.buffer.getStacks().forEach(list::addItem);
+        this.buffer.getStacks().forEach(stack ->
+        {
+            if (!stack.isEmpty())
+                list.addItem(stack);
+        });
     }
 
     @Override

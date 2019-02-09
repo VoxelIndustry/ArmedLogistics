@@ -1,46 +1,64 @@
 package net.vi.woodengears.client;
 
-import net.minecraft.client.gui.inventory.GuiContainer;
+import lombok.Getter;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.tile.TileArmReservoir;
+import net.voxelindustry.brokkgui.data.RectAlignment;
+import net.voxelindustry.brokkgui.element.GuiLabel;
+import net.voxelindustry.brokkgui.paint.Texture;
+import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
+import net.voxelindustry.brokkgui.wrapper.container.BrokkGuiContainer;
+import net.voxelindustry.steamlayer.container.BuiltContainer;
 
-public class GuiArmReservoir extends GuiContainer
+public class GuiArmReservoir extends BrokkGuiContainer<BuiltContainer>
 {
-    private static ResourceLocation BACKGROUND = new ResourceLocation(WoodenGears.MODID,
-            "textures/gui/arm_reservoir.png");
+    private static final Texture BACKGROUND = new Texture(WoodenGears.MODID + ":textures/gui/arm_reservoir.png",
+            0, 0, 1, 178 / 192f);
 
+    @Getter
     private final TileArmReservoir armReservoir;
 
     public GuiArmReservoir(EntityPlayer player, TileArmReservoir armReservoir)
     {
         super(armReservoir.createContainer(player));
 
+        this.setxRelativePos(0.5f);
+        this.setyRelativePos(0.5f);
+
+        this.setWidth(176);
+        this.setHeight(178);
+
         this.armReservoir = armReservoir;
-    }
 
-    @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks)
-    {
-        this.drawDefaultBackground();
-        super.drawScreen(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX, mouseY);
-    }
+        GuiAbsolutePane mainPanel = new GuiAbsolutePane();
+        mainPanel.setBackgroundTexture(BACKGROUND);
+        this.setMainPanel(mainPanel);
 
-    @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
-    {
-        this.fontRenderer.drawString(this.armReservoir.getDisplayName().getUnformattedText(), 8, 6, 4210752);
-    }
+        GuiLabel title = new GuiLabel(armReservoir.getDisplayName().getFormattedText());
+        mainPanel.addChild(title, 6, 6);
 
-    @Override
-    protected void drawGuiContainerBackgroundLayer(final float partialTicks, final int mouseX, final int mouseY)
-    {
-        final int x = (this.width - this.xSize) / 2;
-        final int y = (this.height - this.ySize) / 2;
+        // TODO : link labels with grid info
 
-        this.mc.renderEngine.bindTexture(BACKGROUND);
-        this.drawTexturedModalRect(x, y, 0, 0, this.xSize, this.ySize);
+        GuiLabel busyLabel = new GuiLabel(I18n.format(WoodenGears.MODID + ".gui.armreservoir.busy", 2));
+        busyLabel.setID("busy-label");
+        busyLabel.setSize(110, 11);
+        busyLabel.setTextAlignment(RectAlignment.MIDDLE_CENTER);
+        mainPanel.addChild(busyLabel, 176 / 2 - 55, 9 + 4.5f);
+
+        GuiLabel returningLabel = new GuiLabel(I18n.format(WoodenGears.MODID + ".gui.armreservoir.returning", 2));
+        returningLabel.setID("returning-label");
+        returningLabel.setSize(110, 11);
+        returningLabel.setTextAlignment(RectAlignment.MIDDLE_CENTER);
+        mainPanel.addChild(returningLabel, 176 / 2 - 55, 9 + 9 + 4 + 4.5f);
+
+        GuiLabel blockedLabel = new GuiLabel(I18n.format(WoodenGears.MODID + ".gui.armreservoir.blocked", 2));
+        blockedLabel.setID("blocked-label");
+        blockedLabel.setSize(110, 11);
+        blockedLabel.setTextAlignment(RectAlignment.MIDDLE_CENTER);
+        mainPanel.addChild(blockedLabel, 176 / 2 - 55, 9 + 9 + 4 + 9 + 4 + 4.5f);
+
+        this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/armreservoir.css");
     }
 }

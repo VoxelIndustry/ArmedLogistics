@@ -7,7 +7,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.item.ItemBase;
-import net.vi.woodengears.common.item.ItemLogisticArm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +17,7 @@ public class WGItems
     public static List<Item> ITEMS;
 
     @GameRegistry.ObjectHolder("logistic_arm")
-    public static Item logistic_arm;
+    public static Item LOGISTIC_ARM;
 
     public static void init()
     {
@@ -27,16 +26,16 @@ public class WGItems
 
         MinecraftForge.EVENT_BUS.register(new WGItems());
 
-        registerItem(new ItemLogisticArm());
+        registerItem(new ItemBase("logistic_arm").setMaxStackSize(4));
     }
 
     @SubscribeEvent
     public void onItemRegister(RegistryEvent.Register<Item> event)
     {
-        event.getRegistry().registerAll(ITEMS.toArray(new Item[ITEMS.size()]));
+        event.getRegistry().registerAll(ITEMS.toArray(new Item[0]));
     }
 
-    static void registerItem(ItemBase item)
+    static void registerItem(Item item)
     {
         ITEMS.add(item);
     }

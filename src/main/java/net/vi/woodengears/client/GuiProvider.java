@@ -1,8 +1,8 @@
 package net.vi.woodengears.client;
 
 import lombok.Getter;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.text.TextFormatting;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.gui.InventoryView;
 import net.vi.woodengears.common.tile.TileProvider;
@@ -15,10 +15,11 @@ import net.voxelindustry.steamlayer.container.BuiltContainer;
 
 public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
 {
-    private static final Texture BACKGROUND = new Texture(WoodenGears.MODID + ":textures/gui/provider.png",0,0,1, 185 / 192f);
+    private static final Texture BACKGROUND = new Texture(WoodenGears.MODID + ":textures/gui/provider.png",
+            0, 0, 1, 185 / 192f);
 
     @Getter
-    private final TileProvider        provider;
+    private final TileProvider provider;
 
     public GuiProvider(EntityPlayer player, TileProvider provider)
     {
@@ -49,7 +50,7 @@ public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
 
         mainPanel.addChild(new InventoryView(this), 0, 32);
 
-        this.addStylesheet("/assets/woodengears/css/provider.css");
+        this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/provider.css");
     }
 
     private void updateStatusStyle(GuiLabel status)
@@ -58,13 +59,14 @@ public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
         {
             status.addStyleClass("status-valid");
             status.removeStyleClass("status-invalid");
-            status.setText("Inventory at " + TextFormatting.ITALIC + provider.getFacing());
+            status.setText(I18n.format("woodengears.gui.inventory.where",
+                    I18n.format("woodengears.gui.facing." + provider.getFacing())));
         }
         else
         {
             status.addStyleClass("status-invalid");
             status.removeStyleClass("status-valid");
-            status.setText("No inventory at " + TextFormatting.ITALIC + provider.getFacing());
-        }
+            status.setText(I18n.format("woodengears.gui.inventory.notwhere",
+                    I18n.format("woodengears.gui.facing." + provider.getFacing())));        }
     }
 }

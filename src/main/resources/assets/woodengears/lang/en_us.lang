@@ -1,4 +1,18 @@
 woodengears.gui.provider.name=Provider
+woodengears.gui.armreservoir.name=Arm Reservoir
 
+woodengears.gui.inventory.where=Inventory at §o%s
+woodengears.gui.inventory.notwhere=No Inventory at §o%s
 woodengears.gui.inventory.more=Show §o%d§r more
 woodengears.gui.inventory.empty=Empty inventory
+
+woodengears.gui.armreservoir.busy=§o%d§r busy arms
+woodengears.gui.armreservoir.returning=§o%d§r returning arms
+woodengears.gui.armreservoir.blocked=§o%d§r blocked arms
+
+woodengears.gui.facing.north=NORTH
+woodengears.gui.facing.south=SOUTH
+woodengears.gui.facing.east=EAST
+woodengears.gui.facing.west=WEST
+woodengears.gui.facing.up=UP
+woodengears.gui.facing.down=DOWN

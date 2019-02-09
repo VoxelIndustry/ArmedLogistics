@@ -44,7 +44,11 @@ public class TileRequester extends TileLogicisticNode
         super.addInfo(list);
 
         list.addText("Buffer:");
-        this.buffer.getStacks().forEach(list::addItem);
+        this.buffer.getStacks().forEach(stack ->
+        {
+            if (!stack.isEmpty())
+                list.addItem(stack);
+        });
     }
 
     @Override

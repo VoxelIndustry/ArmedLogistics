@@ -1,0 +1,11 @@
+#busy-label > text {
+    color: #17a2b8
+}
+
+#returning-label > text {
+    color: #28a745
+}
+
+#blocked-label > text {
+    color: #ffc107
+}
