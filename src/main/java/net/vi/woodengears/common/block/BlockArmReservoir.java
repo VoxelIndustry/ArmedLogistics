@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 
 public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
 {
-    private static final PropertyDirection FACING = BlockDirectional.FACING;
+    public static final PropertyDirection FACING = BlockDirectional.FACING;
 
     public BlockArmReservoir()
     {

@@ -11,6 +11,7 @@ import net.vi.woodengears.common.grid.logistic.node.BaseItemRequester;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
+import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
 public class TileRequester extends TileLogicisticNode
 {
@@ -35,6 +36,15 @@ public class TileRequester extends TileLogicisticNode
         this.requester = new BaseItemRequester(this, this.buffer);
 
         this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
+    }
+
+    @Override
+    public void addInfo(ITileInfoList list)
+    {
+        super.addInfo(list);
+
+        list.addText("Buffer:");
+        this.buffer.getStacks().forEach(list::addItem);
     }
 
     @Override

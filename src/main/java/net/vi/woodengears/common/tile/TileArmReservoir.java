@@ -2,6 +2,7 @@ package net.vi.woodengears.common.tile;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
+import net.vi.woodengears.common.block.BlockArmReservoir;
 import net.vi.woodengears.common.block.BlockCable;
 import net.vi.woodengears.common.entity.EntityLogisticArm;
 import net.vi.woodengears.common.grid.CableGrid;
@@ -12,6 +13,7 @@ import net.vi.woodengears.common.item.ItemLogisticArm;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
+import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
 import java.util.Optional;
 
@@ -23,6 +25,15 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
     public TileArmReservoir()
     {
         super("armreservoir", 9);
+    }
+
+    @Override
+    public void addInfo(ITileInfoList list)
+    {
+        super.addInfo(list);
+
+        if (this.grid != null)
+            list.addText("Grid: " + grid.getIdentifier());
     }
 
     @Override
@@ -63,5 +74,16 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
     public void disconnectTrigger(EnumFacing facing, CableGrid grid)
     {
         this.grid = null;
+    }
+
+    @Override
+    public boolean canConnect(TileCable cable, EnumFacing from)
+    {
+        return from == this.getFacing();
+    }
+
+    public EnumFacing getFacing()
+    {
+        return this.world.getBlockState(pos).getValue(BlockArmReservoir.FACING);
     }
 }

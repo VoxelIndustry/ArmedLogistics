@@ -95,7 +95,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         {
             if (facing == EnumFacing.DOWN)
                 this.scanHandlers(this.pos.offset(facing, 2));
-            else if (facing != EnumFacing.UP)
+            else if (facing.getAxis().isHorizontal())
                 this.scanHandlers(this.pos.offset(facing));
         }
     }
@@ -145,7 +145,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
 
         if (this.adjacentHandler.containsKey(facing.getOpposite()))
         {
-            if (!(tile instanceof IRailConnectable))
+            if (!(tile instanceof IRailConnectable) || !((IRailConnectable) tile).canConnect(this, facing))
             {
                 if (this.hasGrid() && this.adjacentHandler.get(facing.getOpposite()) instanceof TileArmReservoir)
                     this.getGridObject().removeReservoir(this);
@@ -158,7 +158,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         }
         else
         {
-            if (tile instanceof IRailConnectable)
+            if (tile instanceof IRailConnectable && ((IRailConnectable) tile).canConnect(this, facing))
             {
                 this.connectHandler(facing.getOpposite(), (IRailConnectable) tile, tile);
 

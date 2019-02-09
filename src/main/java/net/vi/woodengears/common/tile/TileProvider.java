@@ -13,6 +13,7 @@ import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
+import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
 public class TileProvider extends TileLogicisticNode implements ITickable
 {
@@ -36,6 +37,15 @@ public class TileProvider extends TileLogicisticNode implements ITickable
         this.provider = new BaseItemProvider(this, ProviderType.PASSIVE_PROVIDER, this.wrappedInventory, this.buffer);
 
         this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
+    }
+
+    @Override
+    public void addInfo(ITileInfoList list)
+    {
+        super.addInfo(list);
+
+        list.addText("Buffer:");
+        this.buffer.getStacks().forEach(list::addItem);
     }
 
     @Override
