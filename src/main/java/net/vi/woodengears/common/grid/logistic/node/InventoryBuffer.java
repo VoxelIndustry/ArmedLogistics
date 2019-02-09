@@ -11,6 +11,7 @@ import java.util.List;
 
 public class InventoryBuffer
 {
+    @Getter
     private NonNullList<ItemStack> stacks;
 
     @Getter
@@ -67,7 +68,7 @@ public class InventoryBuffer
         }
 
         if (stacks.get(freeSlot).isEmpty())
-            stacks.set(freeSlot, added);
+            stacks.set(freeSlot, added.copy());
         else
             stacks.get(freeSlot).grow(quantity);
 

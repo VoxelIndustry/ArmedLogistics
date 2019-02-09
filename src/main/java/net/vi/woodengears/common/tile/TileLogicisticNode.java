@@ -6,27 +6,49 @@ import net.minecraft.block.BlockDirectional;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.grid.CableGrid;
 import net.vi.woodengears.common.grid.IConnectionAware;
 import net.vi.woodengears.common.grid.IRailConnectable;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
 import net.voxelindustry.steamlayer.tile.ILoadable;
+import net.voxelindustry.steamlayer.tile.ITileInfoList;
+import net.voxelindustry.steamlayer.tile.TileBase;
 import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
-public abstract class TileLogicisticNode extends TileInventoryBase implements IContainerProvider, ILoadable,
+public abstract class TileLogicisticNode extends TileBase implements IContainerProvider, ILoadable,
         IConnectionAware, IRailConnectable
 {
     @Getter
     private BaseProperty<Boolean> connectedInventoryProperty;
 
+    @Getter
     private TileCable cable;
 
-    public TileLogicisticNode(String name, int invSize)
+    @Getter
+    private String name;
+
+    public TileLogicisticNode(String name)
     {
-        super(name, invSize);
+        this.name = name;
+
         this.connectedInventoryProperty = new BaseProperty<>(false, "connectedInventoryProperty");
+    }
+
+    @Override
+    public void addInfo(ITileInfoList list)
+    {
+        super.addInfo(list);
+
+        if (this.cable != null)
+            list.addText("Grid: " + cable.getGrid());
+
+        if (this.connectedInventoryProperty.getValue())
+            list.addText("Inventory Connected");
     }
 
     @Override
@@ -88,12 +110,6 @@ public abstract class TileLogicisticNode extends TileInventoryBase implements IC
         return null;
     }
 
-    @Override
-    public boolean canDropSlot(int slot)
-    {
-        return slot != 0 && slot != 1 && super.canDropSlot(slot);
-    }
-
     public EnumFacing getFacing()
     {
         return this.world.getBlockState(pos).getValue(BlockDirectional.FACING);
@@ -102,5 +118,11 @@ public abstract class TileLogicisticNode extends TileInventoryBase implements IC
     public BlockPos getRailPos()
     {
         return pos.up(2);
+    }
+
+    @Override
+    public ITextComponent getDisplayName()
+    {
+        return new TextComponentTranslation(WoodenGears.MODID + ".gui." + this.getName() + ".name");
     }
 }

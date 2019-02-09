@@ -6,6 +6,7 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
+import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.grid.logistic.node.ColoredItemProvider;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.inventory.InventoryHandler;
@@ -18,10 +19,10 @@ public class TestColoredItemProvider extends ColoredItemProvider
 {
     private BlockPos pos;
 
-    public TestColoredItemProvider(BlockPos pos, InventoryHandler handler, InventoryBuffer buffer,
+    public TestColoredItemProvider(BlockPos pos, ProviderType type, InventoryHandler handler, InventoryBuffer buffer,
                                    ListMultimap<EnumDyeColor, ItemStack> colors)
     {
-        super(null, handler, buffer);
+        super(null, type, handler, buffer);
 
         this.pos = pos;
 
@@ -34,7 +35,7 @@ public class TestColoredItemProvider extends ColoredItemProvider
     public TestColoredItemProvider(InventoryHandler handler, InventoryBuffer buffer,
                                    ListMultimap<EnumDyeColor, ItemStack> colors)
     {
-        this(BlockPos.ORIGIN, handler, buffer, colors);
+        this(BlockPos.ORIGIN, ProviderType.ACTIVE_PROVIDER, handler, buffer, colors);
     }
 
     @Override
@@ -54,12 +55,14 @@ public class TestColoredItemProvider extends ColoredItemProvider
         private BlockPos                              pos;
         private InventoryBuffer                       buffer;
         private ListMultimap<EnumDyeColor, ItemStack> colors;
+        private ProviderType                          type;
 
         private Builder()
         {
             this.stacks = new ArrayList<>();
             this.pos = BlockPos.ORIGIN;
             this.colors = MultimapBuilder.enumKeys(EnumDyeColor.class).arrayListValues().build();
+            this.type = ProviderType.ACTIVE_PROVIDER;
         }
 
         public Builder stacks(ItemStack... stacks)
@@ -86,12 +89,18 @@ public class TestColoredItemProvider extends ColoredItemProvider
             return this;
         }
 
+        public Builder type(ProviderType type)
+        {
+            this.type = type;
+            return this;
+        }
+
         public TestColoredItemProvider create()
         {
             if (buffer == null)
                 this.buffer = new InventoryBuffer(this.stacks.size(), this.stacks.size() * 128);
 
-            return new TestColoredItemProvider(pos, new InventoryHandler(NonNullList.from(ItemStack.EMPTY,
+            return new TestColoredItemProvider(pos, type, new InventoryHandler(NonNullList.from(ItemStack.EMPTY,
                     stacks.toArray(new ItemStack[0]))), buffer, colors);
         }
     }

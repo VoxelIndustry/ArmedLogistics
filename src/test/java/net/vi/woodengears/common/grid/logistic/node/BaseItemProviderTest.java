@@ -37,8 +37,7 @@ class BaseItemProviderTest
         TestItemProvider provider = TestItemProvider.build().stacks(new ItemStack(Items.APPLE, 4)).create();
 
         ItemStack toExtract = new ItemStack(Items.APPLE);
-        assertThat(provider.extract(toExtract))
-                .matches(extracted -> ItemUtils.deepEqualsWithAmount(extracted, toExtract));
+        ItemStackMatcher.assertEqualsStrict(provider.extract(toExtract), toExtract);
     }
 
     @Test
@@ -69,5 +68,17 @@ class BaseItemProviderTest
         assertThat(provider.allMatching(stack -> stack.getItem() == Items.APPLE)).hasSize(1);
         assertThat(provider.allMatching(stack -> true)).hasSize(2);
         assertThat(provider.allMatching(stack -> stack.getItem() == Items.DIAMOND)).isEmpty();
+    }
+
+    @Test
+    void extractThenBuffer()
+    {
+        TestItemProvider provider = TestItemProvider.build().stacks(new ItemStack(Items.APPLE),
+                new ItemStack(Items.APPLE), new ItemStack(Items.POTATO)).buffer(2, 128).create();
+
+        provider.extract(new ItemStack(Items.APPLE));
+
+        ItemStackMatcher.assertEqualsStrict(provider.fromBuffer(new ItemStack(Items.APPLE)),
+                new ItemStack(Items.APPLE));
     }
 }

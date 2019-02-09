@@ -3,6 +3,7 @@ package net.vi.woodengears.common.grid;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -86,5 +87,10 @@ public abstract class CableGrid
     public boolean hasCable(final ITileNode<?> cable)
     {
         return this.cables.contains(cable);
+    }
+
+    public ITileNode<?> getFromPos(BlockPos pos)
+    {
+        return this.cables.stream().filter(node -> node.getBlockPos().equals(pos)).findFirst().orElse(null);
     }
 }

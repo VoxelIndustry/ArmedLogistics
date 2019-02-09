@@ -1,10 +1,13 @@
 package net.vi.woodengears.common.grid.logistic.node;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.items.IItemHandler;
+import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
-import net.voxelindustry.steamlayer.inventory.InventoryHandler;
 import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.ArrayList;
@@ -14,18 +17,25 @@ import java.util.function.Predicate;
 
 public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemStack>
 {
-    private InventoryHandler       handler;
+    @Getter(AccessLevel.PROTECTED)
+    private IItemHandler           handler;
+    @Getter(AccessLevel.PROTECTED)
     private InventoryBuffer        buffer;
     private NonNullList<ItemStack> handlerMirror;
     private NonNullList<ItemStack> compressedStacks;
 
+    @Getter
+    private ProviderType       providerType;
     private TileLogicisticNode tile;
 
-    public BaseItemProvider(TileLogicisticNode tile, InventoryHandler handler, InventoryBuffer buffer)
+    public BaseItemProvider(TileLogicisticNode tile, ProviderType type, IItemHandler handler,
+                            InventoryBuffer buffer)
     {
         this.tile = tile;
         this.handler = handler;
         this.buffer = buffer;
+
+        this.providerType = type;
 
         handlerMirror = NonNullList.withSize(handler.getSlots(), ItemStack.EMPTY);
         compressedStacks = NonNullList.create();
@@ -44,6 +54,12 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
             return;
 
         boolean isDirty = false;
+
+        if (handlerMirror.size() != handler.getSlots())
+        {
+            isDirty = true;
+            handlerMirror = NonNullList.withSize(handler.getSlots(), ItemStack.EMPTY);
+        }
 
         for (int i = 0; i < handler.getSlots(); i++)
         {
@@ -180,12 +196,14 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
 
             if (ItemUtils.deepEquals(stack, value))
             {
-                int toExtract = Math.min(value.getCount() - extracted, stack.getCount());
+                ItemStack extractedStack = stack.copy();
+                extractedStack.setCount(value.getCount() - extracted);
 
-                stack.shrink(toExtract);
-                extracted += toExtract;
+                extractedStack = handler.extractItem(i, extractedStack.getCount(), true);
 
-                handler.setStackInSlot(i, stack);
+                extracted += extractedStack.getCount();
+
+                handler.extractItem(i, extractedStack.getCount(), false);
 
                 if (extracted == value.getCount())
                     break;
@@ -220,15 +238,5 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     public boolean isColored()
     {
         return false;
-    }
-
-    protected InventoryHandler getHandler()
-    {
-        return this.handler;
-    }
-
-    protected InventoryBuffer getBuffer()
-    {
-        return this.buffer;
     }
 }

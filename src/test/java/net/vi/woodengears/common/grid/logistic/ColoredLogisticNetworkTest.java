@@ -17,12 +17,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(WGTestExt.class)
-class ColoredLogisticGridTest
+class ColoredLogisticNetworkTest
 {
     @Test
     void simpleShipping()
     {
-        LogisticGrid<ItemStack> grid = new LogisticGrid<>(ItemStack.class, ItemStackMethods.getInstance());
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
 
         ItemStack apple2 = new ItemStack(Items.APPLE, 2);
 
@@ -47,7 +47,7 @@ class ColoredLogisticGridTest
     @Test
     void mixedShipping()
     {
-        LogisticGrid<ItemStack> grid = new LogisticGrid<>(ItemStack.class, ItemStackMethods.getInstance());
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
 
         ItemStack apple2 = new ItemStack(Items.APPLE, 2);
         ItemStack potato3 = new ItemStack(Items.POTATO, 3);
@@ -79,7 +79,7 @@ class ColoredLogisticGridTest
     @Test
     void mixedShippingMultiProvider()
     {
-        LogisticGrid<ItemStack> grid = new LogisticGrid<>(ItemStack.class, ItemStackMethods.getInstance());
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
 
         ItemStack apple2 = new ItemStack(Items.APPLE, 2);
         ItemStack potato3 = new ItemStack(Items.POTATO, 3);

@@ -3,6 +3,7 @@ package net.vi.woodengears.common.test;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
+import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.inventory.InventoryHandler;
@@ -15,9 +16,9 @@ public class TestItemProvider extends BaseItemProvider
 {
     private BlockPos pos;
 
-    public TestItemProvider(BlockPos pos, InventoryHandler handler, InventoryBuffer buffer)
+    public TestItemProvider(BlockPos pos, ProviderType type, InventoryHandler handler, InventoryBuffer buffer)
     {
-        super(null, handler, buffer);
+        super(null, type, handler, buffer);
 
         this.pos = pos;
 
@@ -27,7 +28,7 @@ public class TestItemProvider extends BaseItemProvider
 
     public TestItemProvider(InventoryHandler handler, InventoryBuffer buffer)
     {
-        this(BlockPos.ORIGIN, handler, buffer);
+        this(BlockPos.ORIGIN, ProviderType.ACTIVE_PROVIDER, handler, buffer);
     }
 
     @Override
@@ -46,11 +47,13 @@ public class TestItemProvider extends BaseItemProvider
         private List<ItemStack> stacks;
         private BlockPos        pos;
         private InventoryBuffer buffer;
+        private ProviderType    type;
 
         private Builder()
         {
             this.stacks = new ArrayList<>();
             this.pos = BlockPos.ORIGIN;
+            this.type = ProviderType.ACTIVE_PROVIDER;
         }
 
         public Builder stacks(ItemStack... stacks)
@@ -71,12 +74,18 @@ public class TestItemProvider extends BaseItemProvider
             return this;
         }
 
+        public Builder type(ProviderType type)
+        {
+            this.type = type;
+            return this;
+        }
+
         public TestItemProvider create()
         {
             if (buffer == null)
                 this.buffer = new InventoryBuffer(this.stacks.size(), this.stacks.size() * 128);
 
-            return new TestItemProvider(pos, new InventoryHandler(NonNullList.from(ItemStack.EMPTY,
+            return new TestItemProvider(pos, type, new InventoryHandler(NonNullList.from(ItemStack.EMPTY,
                     stacks.toArray(new ItemStack[0]))), buffer);
         }
     }

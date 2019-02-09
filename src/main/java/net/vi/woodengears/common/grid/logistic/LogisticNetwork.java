@@ -1,10 +1,13 @@
 package net.vi.woodengears.common.grid.logistic;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
+import net.vi.woodengears.common.grid.RailGrid;
 import net.vi.woodengears.common.grid.logistic.node.ColoredProvider;
 import net.vi.woodengears.common.grid.logistic.node.Provider;
 import net.vi.woodengears.common.grid.logistic.node.Requester;
@@ -13,16 +16,19 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.stream.Collectors;
 
-public class LogisticGrid<T>
+public class LogisticNetwork<T>
 {
-    private List<Provider<T>>  providers;
-    private List<Requester<T>> requesters;
-    private List<T>            compressedStacks;
+    private ListMultimap<ProviderType, Provider<T>> providers;
+    private List<Requester<T>>                      requesters;
+    private List<T>                                 compressedStacks;
 
     private PriorityQueue<LogisticOrder<T>>            stackOrders;
     private PriorityQueue<LogisticOrder<ColoredStack>> coloredOrders;
+    @Getter
     private List<LogisticShipment<T>>                  shipments;
+    @Getter
     private List<ColoredShipment<T>>                   coloredShipments;
 
     @Getter
@@ -33,12 +39,20 @@ public class LogisticGrid<T>
     private Class<T>                 typeClass;
     private LogisticGridFunctions<T> functions;
 
-    public LogisticGrid(Class<T> typeClass, LogisticGridFunctions<T> functions)
+    @Getter
+    @Setter
+    private RailGrid grid;
+
+    public LogisticNetwork(RailGrid grid, Class<T> typeClass, LogisticGridFunctions<T> functions)
     {
+        this.grid = grid;
+
         this.typeClass = typeClass;
         this.functions = functions;
 
-        this.providers = new ArrayList<>();
+        this.providers = MultimapBuilder.enumKeys(ProviderType.class).arrayListValues().build();
+        this.requesters = new ArrayList<>();
+
         this.compressedStacks = NonNullList.create();
 
         this.stackOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
@@ -53,6 +67,23 @@ public class LogisticGrid<T>
         if (providers.isEmpty())
             return;
 
+        this.processOrders();
+        this.processColoredOrders();
+    }
+
+    private List<Provider<T>> getSortedProviders(ProviderType type, LogisticOrder order)
+    {
+        if (this.getGrid() == null)
+            return this.providers.get(type);
+        else
+            return this.providers.get(type).stream()
+                    .filter(provider -> !provider.isBufferFull())
+                    .sorted(Comparator.comparingInt(provider -> grid.getDistanceBetween(provider.getRailPos(),
+                            order.getDestination()))).collect(Collectors.toList());
+    }
+
+    private void processOrders()
+    {
         for (LogisticOrder<T> stackOrder : stackOrders)
         {
             if (stackOrder.getState() != OrderState.SUBMITTED && stackOrder.getState() != OrderState.SHORTAGE)
@@ -60,22 +91,27 @@ public class LogisticGrid<T>
 
             int toExtract = functions.getQuantity(stackOrder.getOrdered());
 
-            for (Provider<T> provider : this.providers)
+            for (ProviderType type : ProviderType.VALUES)
             {
-                if (provider.isBufferFull())
-                    continue;
+                for (Provider<T> provider : getSortedProviders(type, stackOrder))
+                {
+                    if (provider.isBufferFull())
+                        continue;
 
-                int part = provider.containedPart(stackOrder.getOrdered());
+                    int part = provider.containedPart(stackOrder.getOrdered());
 
-                if (part == 0)
-                    continue;
+                    if (part == 0)
+                        continue;
 
-                T extracted = provider.extract(functions.changeQuantity(stackOrder.getOrdered(), toExtract));
+                    T extracted = provider.extract(functions.changeQuantity(stackOrder.getOrdered(), toExtract));
 
-                stackOrder.getShippedParts().add(createShipment(extracted, provider.getRailPos(),
-                        stackOrder.getDestination()));
-                toExtract -= functions.getQuantity(extracted);
+                    stackOrder.getShippedParts().add(createShipment(extracted, provider.getRailPos(),
+                            stackOrder.getDestination()));
+                    toExtract -= functions.getQuantity(extracted);
 
+                    if (toExtract == 0)
+                        break;
+                }
                 if (toExtract == 0)
                     break;
             }
@@ -86,7 +122,10 @@ public class LogisticGrid<T>
             if (toExtract > 0 && stackOrder.getState() == OrderState.SUBMITTED)
                 stackOrder.setState(OrderState.SHORTAGE);
         }
+    }
 
+    private void processColoredOrders()
+    {
         for (LogisticOrder<ColoredStack> coloredOrder : coloredOrders)
         {
             if (coloredOrder.getState() != OrderState.SUBMITTED && coloredOrder.getState() != OrderState.SHORTAGE)
@@ -94,27 +133,32 @@ public class LogisticGrid<T>
 
             int toExtract = coloredOrder.getOrdered().getQuantity();
 
-            for (Provider<T> provider : this.providers)
+            for (ProviderType type : ProviderType.VALUES)
             {
-                if (!provider.isColored() || provider.isBufferFull())
-                    continue;
-
-                ColoredProvider<T> coloredProvider = (ColoredProvider<T>) provider;
-                int part = coloredProvider.containedPart(coloredOrder.getOrdered());
-
-                if (part == 0)
-                    continue;
-
-                ColoredStack stack = new ColoredStack(coloredOrder.getOrdered().getColor(), toExtract);
-                List<T> extracted = coloredProvider.extract(stack);
-
-                for (T value : extracted)
+                for (Provider<T> provider : getSortedProviders(type, coloredOrder))
                 {
-                    coloredOrder.getShippedParts().add(createColoredShipment(value, coloredOrder.getOrdered(),
-                            provider.getRailPos(), coloredOrder.getDestination()));
-                }
-                toExtract -= extracted.stream().mapToInt(functions::getQuantity).sum();
+                    if (!provider.isColored() || provider.isBufferFull())
+                        continue;
 
+                    ColoredProvider<T> coloredProvider = (ColoredProvider<T>) provider;
+                    int part = coloredProvider.containedPart(coloredOrder.getOrdered());
+
+                    if (part == 0)
+                        continue;
+
+                    ColoredStack stack = new ColoredStack(coloredOrder.getOrdered().getColor(), toExtract);
+                    List<T> extracted = coloredProvider.extract(stack);
+
+                    for (T value : extracted)
+                    {
+                        coloredOrder.getShippedParts().add(createColoredShipment(value, coloredOrder.getOrdered(),
+                                provider.getRailPos(), coloredOrder.getDestination()));
+                    }
+                    toExtract -= extracted.stream().mapToInt(functions::getQuantity).sum();
+
+                    if (toExtract == 0)
+                        break;
+                }
                 if (toExtract == 0)
                     break;
             }
@@ -166,7 +210,7 @@ public class LogisticGrid<T>
     {
         if (this.needContentsRefresh)
         {
-            this.compressedStacks = providers.stream().map(Provider::getCompressedContents)
+            this.compressedStacks = providers.values().stream().map(Provider::getCompressedContents)
                     .reduce(new ArrayList<>(), functions::accumulateList);
             this.needContentsRefresh = false;
         }
@@ -176,16 +220,19 @@ public class LogisticGrid<T>
 
     public boolean containsProvider(Provider<T> provider)
     {
-        return providers.contains(provider);
+        if (provider == null)
+            return false;
+
+        return providers.get(provider.getProviderType()).contains(provider);
     }
 
     public boolean addProvider(Provider<T> provider)
     {
-        return providers.add(provider);
+        return providers.put(provider.getProviderType(), provider);
     }
 
     public boolean removeProvider(Provider<T> provider)
     {
-        return providers.remove(provider);
+        return providers.remove(provider.getProviderType(), provider);
     }
 }

@@ -148,8 +148,11 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
             if (!(tile instanceof IRailConnectable))
             {
                 if (this.hasGrid() && this.adjacentHandler.get(facing.getOpposite()) instanceof TileArmReservoir)
-                    this.getGridObject().removeConnectedReservoir(this,
-                            (TileArmReservoir) this.adjacentHandler.get(facing.getOpposite()));
+                    this.getGridObject().removeReservoir(this);
+                if (this.hasGrid() && this.adjacentHandler.get(facing.getOpposite()) instanceof TileProvider)
+                    this.getGridObject().removeProvider(this);
+                if (this.hasGrid() && this.adjacentHandler.get(facing.getOpposite()) instanceof TileRequester)
+                    this.getGridObject().removeRequester(this);
                 this.disconnectHandler(facing.getOpposite(), tile);
             }
         }
@@ -161,8 +164,16 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
 
                 if (this.hasGrid() &&
                         this.adjacentHandler.get(facing.getOpposite()) instanceof TileArmReservoir)
-                    this.getGridObject().addConnectedReservoir(this,
+                    this.getGridObject().addReservoir(this,
                             (TileArmReservoir) this.adjacentHandler.get(facing.getOpposite()));
+                if (this.hasGrid() &&
+                        this.adjacentHandler.get(facing.getOpposite()) instanceof TileProvider)
+                    this.getGridObject().addProvider(this,
+                            (TileProvider) this.adjacentHandler.get(facing.getOpposite()));
+                if (this.hasGrid() &&
+                        this.adjacentHandler.get(facing.getOpposite()) instanceof TileRequester)
+                    this.getGridObject().addRequester(this,
+                            (TileRequester) this.adjacentHandler.get(facing.getOpposite()));
             }
         }
     }

@@ -1,5 +1,7 @@
 package net.vi.woodengears.common.grid.logistic.node;
 
+import net.vi.woodengears.common.grid.logistic.ProviderType;
+
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -38,4 +40,6 @@ public interface Provider<T> extends LogisticNode
     List<T> getCompressedContents();
 
     boolean isColored();
+
+    ProviderType getProviderType();
 }

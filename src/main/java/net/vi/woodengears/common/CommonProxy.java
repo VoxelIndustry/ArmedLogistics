@@ -10,6 +10,7 @@ import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.gui.GuiHandler;
 import net.vi.woodengears.common.init.WGBlocks;
 import net.vi.woodengears.common.init.WGItems;
+import net.vi.woodengears.compat.CompatManager;
 
 public class CommonProxy
 {
@@ -21,16 +22,19 @@ public class CommonProxy
 
         NetworkRegistry.INSTANCE.registerGuiHandler(WoodenGears.instance, new GuiHandler());
         MinecraftForge.EVENT_BUS.register(new TickHandler());
+
+        CompatManager.preInit(e);
     }
 
     public void init(FMLInitializationEvent e)
     {
+        CompatManager.init(e);
 
     }
 
     public void postInit(FMLPostInitializationEvent e)
     {
-
+        CompatManager.postInit(e);
     }
 
     public void registerItemRenderer(Item item, int meta)

@@ -106,9 +106,8 @@ public class EntityLogisticArm extends Entity implements ILockableContainer
         {
             BlockProvider provider = (BlockProvider) this.world.getBlockState(new BlockPos(this).down()).getBlock();
             TileProvider tileProvider = (TileProvider) provider.getRawWorldTile(this.world, new BlockPos(this).down());
-            ItemStack stack = tileProvider.getInventory().getStackInSlot(0);
-            this.setInventorySlotContents(0, stack);
-            tileProvider.getInventory().setStackInSlot(0, ItemStack.EMPTY);
+
+            // TODO : Impl extraction
         }
     }
 

@@ -23,6 +23,7 @@ public class ItemStackMethods implements LogisticGridFunctions<ItemStack>
 
     }
 
+    @Override
     public List<ItemStack> accumulateList(List<ItemStack> first, List<ItemStack> second)
     {
         List<ItemStack> newList = new ArrayList<>();
@@ -30,16 +31,19 @@ public class ItemStackMethods implements LogisticGridFunctions<ItemStack>
         first.forEach(stack -> newList.add(stack.copy()));
 
         second.forEach(stack ->
-        {
-            Optional<ItemStack> found =
-                    newList.stream().filter(candidate -> ItemUtils.deepEquals(candidate, stack)).findFirst();
-            if (found.isPresent())
-                found.get().grow(stack.getCount());
-            else
-                newList.add(stack);
-        });
+                this.pushStackToList(newList, stack, stack));
 
         return newList;
+    }
+
+    public void pushStackToList(List<ItemStack> stacks, ItemStack stack, ItemStack toAdd)
+    {
+        Optional<ItemStack> alreadyExtracted =
+                stacks.stream().filter(candidate -> ItemUtils.deepEquals(candidate, stack)).findFirst();
+        if (alreadyExtracted.isPresent())
+            alreadyExtracted.get().grow(toAdd.getCount());
+        else
+            stacks.add(toAdd);
     }
 
     @Override

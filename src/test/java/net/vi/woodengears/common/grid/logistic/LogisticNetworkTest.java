@@ -16,12 +16,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(WGTestExt.class)
-class LogisticGridTest
+class LogisticNetworkTest
 {
+    @Test
+    void containsProvider()
+    {
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
+        BaseItemProvider provider = TestItemProvider.build().create();
+
+        grid.addProvider(provider);
+
+        assertThat(grid.containsProvider(provider)).isTrue();
+
+        grid.removeProvider(provider);
+
+        assertThat(grid.containsProvider(provider)).isFalse();
+    }
+
     @Test
     void compressedStacks()
     {
-        LogisticGrid<ItemStack> grid = new LogisticGrid<>(ItemStack.class, ItemStackMethods.getInstance());
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
 
         ItemStack apple2 = new ItemStack(Items.APPLE, 2);
         ItemStack potato1 = new ItemStack(Items.POTATO, 1);
@@ -41,7 +56,7 @@ class LogisticGridTest
     @Test
     void simpleShipping()
     {
-        LogisticGrid<ItemStack> grid = new LogisticGrid<>(ItemStack.class, ItemStackMethods.getInstance());
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
 
         ItemStack apple2 = new ItemStack(Items.APPLE, 2);
 
@@ -63,7 +78,7 @@ class LogisticGridTest
     @Test
     void multiProviderShipping()
     {
-        LogisticGrid<ItemStack> grid = new LogisticGrid<>(ItemStack.class, ItemStackMethods.getInstance());
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
 
         ItemStack apple2 = new ItemStack(Items.APPLE, 2);
         ItemStack apple4 = new ItemStack(Items.APPLE, 4);
@@ -92,14 +107,14 @@ class LogisticGridTest
     @Test
     void shortageShipping()
     {
-        LogisticGrid<ItemStack> grid = new LogisticGrid<>(ItemStack.class, ItemStackMethods.getInstance());
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
 
         ItemStack apple2 = new ItemStack(Items.APPLE, 2);
-        ItemStack potato1 = new ItemStack(Items.POTATO, 1);
+        ItemStack potato2 = new ItemStack(Items.POTATO, 2);
         ItemStack apple4 = new ItemStack(Items.APPLE, 4);
 
-        BaseItemProvider provider1 = TestItemProvider.build().stacks(apple2, potato1).create();
-        BaseItemProvider provider2 = TestItemProvider.build().stacks(apple4, potato1.copy()).create();
+        BaseItemProvider provider1 = TestItemProvider.build().stacks(apple2, potato2).create();
+        BaseItemProvider provider2 = TestItemProvider.build().stacks(apple4).create();
 
         BaseItemRequester requester = new TestItemRequester();
 
@@ -113,5 +128,27 @@ class LogisticGridTest
         grid.tick();
 
         assertThat(order.getState()).isEqualTo(OrderState.SHORTAGE);
+    }
+
+    @Test
+    void bufferFullShipping()
+    {
+        LogisticNetwork<ItemStack> grid = new LogisticNetwork<>(null, ItemStack.class, ItemStackMethods.getInstance());
+
+        ItemStack apple4 = new ItemStack(Items.APPLE, 4);
+
+        BaseItemProvider provider = TestItemProvider.build().stacks(apple4).buffer(1, 1).create();
+        grid.addProvider(provider);
+
+        BaseItemRequester requester = new TestItemRequester();
+        LogisticOrder<ItemStack> order = grid.makeOrder(requester, new ItemStack(Items.APPLE));
+        grid.tick();
+
+        assertThat(order.getState()).isEqualTo(OrderState.SHIPPING);
+
+        LogisticOrder<ItemStack> order2 = grid.makeOrder(requester, new ItemStack(Items.APPLE));
+        grid.tick();
+
+        assertThat(order2.getState()).isEqualTo(OrderState.SHORTAGE);
     }
 }

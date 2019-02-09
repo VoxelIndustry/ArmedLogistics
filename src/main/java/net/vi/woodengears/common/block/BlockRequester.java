@@ -8,6 +8,8 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -17,15 +19,15 @@ import net.minecraft.world.World;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.gui.GuiType;
 import net.vi.woodengears.common.tile.TileProvider;
+import net.vi.woodengears.common.tile.TileRequester;
 
-public class BlockProvider extends BlockTileBase<TileProvider>
+public class BlockRequester extends BlockTileBase<TileRequester>
 {
     public static final PropertyDirection FACING = BlockDirectional.FACING;
 
-    public BlockProvider()
+    public BlockRequester()
     {
-        super("provider", Material.PISTON, TileProvider.class);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+        super("requester", Material.PISTON, TileRequester.class);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class BlockProvider extends BlockTileBase<TileProvider>
     @Override
     public TileEntity createNewTileEntity(World w, int meta)
     {
-        return new TileProvider();
+        return new TileRequester();
     }
 
     @Override
@@ -75,9 +77,18 @@ public class BlockProvider extends BlockTileBase<TileProvider>
                                     EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
         if (player.isSneaking())
-            return false;
+        {
+            if (world.isRemote)
+                return false;
 
-        player.openGui(WoodenGears.instance, GuiType.PROVIDER.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
+            TileRequester requester = (TileRequester) world.getTileEntity(pos);
+
+            requester.getCable().getGridObject().getStackNetwork().makeOrder(requester.getRequester(),
+                    new ItemStack(Items.APPLE));
+            return false;
+        }
+
+        player.openGui(WoodenGears.instance, GuiType.REQUESTER.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
         return true;
     }
 

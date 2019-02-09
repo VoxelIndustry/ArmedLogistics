@@ -12,9 +12,11 @@ import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.block.BlockArmReservoir;
 import net.vi.woodengears.common.block.BlockCable;
 import net.vi.woodengears.common.block.BlockProvider;
+import net.vi.woodengears.common.block.BlockRequester;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileCable;
 import net.vi.woodengears.common.tile.TileProvider;
+import net.vi.woodengears.common.tile.TileRequester;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,18 +43,20 @@ public class WGBlocks
         MinecraftForge.EVENT_BUS.register(new WGBlocks());
 
         registerBlock(new BlockProvider());
+        registerBlock(new BlockRequester());
         registerBlock(new BlockCable());
         registerBlock(new BlockArmReservoir());
 
         registerTile(TileArmReservoir.class, "armreservoir");
         registerTile(TileCable.class, "cable");
         registerTile(TileProvider.class, "provider");
+        registerTile(TileRequester.class, "requester");
     }
 
     @SubscribeEvent
     public void onBlockRegister(RegistryEvent.Register<Block> event)
     {
-        event.getRegistry().registerAll(BLOCKS.keySet().toArray(new Block[BLOCKS.size()]));
+        event.getRegistry().registerAll(BLOCKS.keySet().toArray(new Block[0]));
     }
 
     private static <T extends Block> void registerBlock(T block)
@@ -62,7 +66,7 @@ public class WGBlocks
 
     private static <T extends Block> void registerBlock(T block, Function<T, ItemBlock> supplier)
     {
-        final ItemBlock supplied = supplier.apply(block);
+        ItemBlock supplied = supplier.apply(block);
         supplied.setRegistryName(block.getRegistryName());
 
         BLOCKS.put(block, supplied);

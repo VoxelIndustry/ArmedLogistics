@@ -7,6 +7,8 @@ import lombok.Getter;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.vi.woodengears.common.grid.logistic.ColoredStack;
+import net.vi.woodengears.common.grid.logistic.ItemStackMethods;
+import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.steamlayer.inventory.InventoryHandler;
 import net.voxelindustry.steamlayer.utils.ItemUtils;
@@ -14,16 +16,16 @@ import net.voxelindustry.steamlayer.utils.ItemUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public class ColoredItemProvider extends BaseItemProvider implements ColoredProvider<ItemStack>
 {
     @Getter(AccessLevel.PROTECTED)
     private ListMultimap<EnumDyeColor, ItemStack> colors;
 
-    public ColoredItemProvider(TileLogicisticNode tile, InventoryHandler handler, InventoryBuffer buffer)
+    public ColoredItemProvider(TileLogicisticNode tile, ProviderType type, InventoryHandler handler,
+                               InventoryBuffer buffer)
     {
-        super(tile, handler, buffer);
+        super(tile, type, handler, buffer);
 
         this.colors = MultimapBuilder.enumKeys(EnumDyeColor.class).arrayListValues().build();
     }
@@ -111,23 +113,16 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
 
             if (values.stream().anyMatch(value -> ItemUtils.deepEquals(value, stack)))
             {
-                int toExtract = Math.min(coloredStack.getQuantity() - extracted, stack.getCount());
+                ItemStack extractedStack = stack.copy();
+                extractedStack.setCount(coloredStack.getQuantity() - extracted);
 
-                Optional<ItemStack> alreadyExtracted =
-                        extractedStacks.stream().filter(candidate -> ItemUtils.deepEquals(candidate, stack)).findFirst();
-                if (alreadyExtracted.isPresent())
-                    alreadyExtracted.get().grow(toExtract);
-                else
-                {
-                    ItemStack copy = stack.copy();
-                    copy.setCount(toExtract);
-                    extractedStacks.add(copy);
-                }
+                extractedStack = getHandler().extractItem(i, extractedStack.getCount(), true);
 
-                stack.shrink(toExtract);
-                extracted += toExtract;
+                extracted += extractedStack.getCount();
 
-                getHandler().setStackInSlot(i, stack);
+                ItemStackMethods.getInstance().pushStackToList(extractedStacks, stack, extractedStack);
+
+                getHandler().extractItem(i, extractedStack.getCount(), false);
 
                 if (extracted == coloredStack.getQuantity())
                     break;
