@@ -42,6 +42,8 @@ public class ClientProxy extends CommonProxy
     @Override
     public void postInit(FMLPostInitializationEvent e)
     {
+        super.postInit(e);
+
         StylesheetManager.getInstance().addUserAgent(WoodenGears.MODID, "/assets/" + WoodenGears.MODID +
                 "/css/theme.css");
     }

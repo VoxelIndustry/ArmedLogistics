@@ -19,12 +19,6 @@ public class InventoryBuffer
     @Getter
     private int countCapacity;
 
-    @Getter
-    private int currentCount;
-
-    @Getter
-    private boolean isFull;
-
     /**
      * @param typeCapacity  how many different stacks this buffer will store.
      * @param countCapacity maximum sum of all contained stacks.
@@ -72,11 +66,6 @@ public class InventoryBuffer
         else
             stacks.get(freeSlot).grow(quantity);
 
-        this.currentCount += quantity;
-
-        if (this.getCurrentCount() >= this.getCountCapacity())
-            this.isFull = true;
-
         return added;
     }
 
@@ -88,7 +77,7 @@ public class InventoryBuffer
         {
             added.add(this.add(stack));
 
-            if (this.isFull)
+            if (this.isFull())
                 break;
         }
 
@@ -111,14 +100,26 @@ public class InventoryBuffer
             throw new RuntimeException("Invalid stack retrieval from Buffer!");
 
         stacks.get(matchedSlot).shrink(stack.getCount());
-
-        this.currentCount -= stack.getCount();
-        this.isFull = false;
     }
 
     public void removeAll(List<ItemStack> stacks)
     {
         stacks.forEach(this::remove);
+    }
+
+    public boolean isEmpty()
+    {
+        return this.stacks.stream().allMatch(ItemStack::isEmpty);
+    }
+
+    public int getCurrentCount()
+    {
+        return this.stacks.stream().mapToInt(ItemStack::getCount).sum();
+    }
+
+    public boolean isFull()
+    {
+        return this.getCurrentCount() >= this.getCountCapacity();
     }
 
     public NBTTagCompound writeNBT(NBTTagCompound tag)
@@ -129,9 +130,6 @@ public class InventoryBuffer
 
             tag.setTag("stack" + i, stack.writeToNBT(new NBTTagCompound()));
         }
-        tag.setInteger("count", this.currentCount);
-        tag.setBoolean("isFull", this.isFull);
-
         return tag;
     }
 
@@ -139,8 +137,5 @@ public class InventoryBuffer
     {
         for (int i = 0; i < this.typeCapacity; i++)
             stacks.set(i, new ItemStack(tag.getCompoundTag("stack" + i)));
-
-        this.currentCount = tag.getInteger("count");
-        this.isFull = tag.getBoolean("isFull");
     }
 }

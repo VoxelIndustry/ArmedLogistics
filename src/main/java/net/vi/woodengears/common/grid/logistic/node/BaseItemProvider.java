@@ -68,7 +68,10 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
             if (!ItemUtils.deepEqualsWithAmount(stack, handlerMirror.get(i)))
             {
                 isDirty = true;
-                handlerMirror.set(i, stack);
+                if (stack.isEmpty())
+                    handlerMirror.set(i, ItemStack.EMPTY);
+                else
+                    handlerMirror.set(i, stack.copy());
             }
         }
 

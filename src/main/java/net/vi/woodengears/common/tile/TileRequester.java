@@ -6,14 +6,16 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ITickable;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.common.grid.logistic.node.BaseItemRequester;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
+import net.vi.woodengears.common.grid.logistic.node.RequesterMode;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
-public class TileRequester extends TileLogicisticNode
+public class TileRequester extends TileLogicisticNode implements ITickable
 {
     @Getter
     private BaseItemRequester requester;
@@ -34,8 +36,20 @@ public class TileRequester extends TileLogicisticNode
         this.wrappedInventory = new WrappedInventory();
 
         this.requester = new BaseItemRequester(this, this.buffer);
+        this.requester.setMode(RequesterMode.CONTINUOUS);
 
         this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
+    }
+
+    @Override
+    public void update()
+    {
+        if (this.isClient())
+            return;
+
+        if (this.world.getTotalWorldTime() % 32 != ((this.pos.getX() ^ this.pos.getZ()) & 31))
+            return;
+        this.randomTick();
     }
 
     @Override
@@ -57,6 +71,8 @@ public class TileRequester extends TileLogicisticNode
         super.writeToNBT(tag);
 
         this.buffer.writeNBT(tag);
+
+        tag.setInteger("requesterMode", this.requester.getMode().ordinal());
         return tag;
     }
 
@@ -66,6 +82,8 @@ public class TileRequester extends TileLogicisticNode
         super.readFromNBT(tag);
 
         this.buffer.readNBT(tag);
+
+        this.requester.setMode(RequesterMode.values()[tag.getInteger("requesterMode")]);
     }
 
     @Override
@@ -83,5 +101,61 @@ public class TileRequester extends TileLogicisticNode
     {
         for (ItemStack stack : this.buffer.getStacks())
             InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
+    }
+
+    public void makeOrder(ItemStack stack)
+    {
+        if (this.getCable() == null || this.getCable().getGrid() == -1 || this.getConnectedInventory() == null)
+            return;
+
+        System.out.println("Order made " + stack);
+        this.makeOrder(stack, true);
+    }
+
+    private void makeOrder(ItemStack stack, boolean addRequest)
+    {
+        if (addRequest)
+            this.getRequester().addRequest(stack);
+        this.getCable().getGridObject().getStackNetwork().makeOrder(this.getRequester(), stack);
+    }
+
+    public void randomTick()
+    {
+        if (this.requester.getMode() == RequesterMode.ONCE || !this.requester.getCurrentOrders().isEmpty())
+            return;
+
+        IItemHandler inventory = this.getConnectedInventory();
+        if (inventory == null)
+            return;
+
+        if (this.requester.getMode() == RequesterMode.CONTINUOUS)
+        {
+            for (ItemStack stack : this.requester.getRequests())
+            {
+                int mayInsert = this.getRequester().inventoryAccept(stack);
+
+                if (mayInsert == 0)
+                    continue;
+
+                ItemStack order = stack.copy();
+                order.setCount(Math.min(stack.getMaxStackSize(), mayInsert));
+                this.makeOrder(order, false);
+            }
+        }
+        else if (this.requester.getMode() == RequesterMode.KEEP)
+        {
+            for (ItemStack stack : this.requester.getRequests())
+            {
+                int contained = this.getRequester().inventoryContains(stack);
+                int mayInsert = this.getRequester().inventoryAccept(stack);
+
+                if (contained >= stack.getCount() || mayInsert == 0)
+                    continue;
+
+                ItemStack order = stack.copy();
+                order.setCount(Math.min(stack.getCount() - contained, mayInsert));
+                this.makeOrder(order, false);
+            }
+        }
     }
 }

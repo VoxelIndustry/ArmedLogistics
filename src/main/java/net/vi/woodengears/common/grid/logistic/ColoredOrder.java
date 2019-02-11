@@ -8,15 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class LogisticOrder<T>
+public class ColoredOrder<T>
 {
-    private T                         ordered;
+    private ColoredStack             ordered;
     @Setter
-    private OrderState                state;
-    private Requester<T>                 destination;
-    private List<LogisticShipment<T>> shippedParts;
+    private OrderState               state;
+    private Requester<T>             destination;
+    private List<ColoredShipment<T>> shippedParts;
 
-    protected LogisticOrder(T ordered, Requester<T> destination)
+    protected ColoredOrder(ColoredStack ordered, Requester<T> destination)
     {
         this.ordered = ordered;
         this.destination = destination;

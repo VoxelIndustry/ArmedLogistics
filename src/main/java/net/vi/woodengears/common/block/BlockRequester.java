@@ -18,7 +18,6 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.gui.GuiType;
-import net.vi.woodengears.common.tile.TileProvider;
 import net.vi.woodengears.common.tile.TileRequester;
 
 public class BlockRequester extends BlockTileBase<TileRequester>
@@ -77,25 +76,23 @@ public class BlockRequester extends BlockTileBase<TileRequester>
                                     EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
         if (player.isSneaking())
-        {
-            if (world.isRemote)
-                return false;
-
-            TileRequester requester = (TileRequester) world.getTileEntity(pos);
-
-            requester.getCable().getGridObject().getStackNetwork().makeOrder(requester.getRequester(),
-                    new ItemStack(Items.APPLE));
             return false;
-        }
 
         player.openGui(WoodenGears.instance, GuiType.REQUESTER.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
+
+        if (world.isRemote)
+            return true;
+        TileRequester requester = (TileRequester) world.getTileEntity(pos);
+
+        requester.makeOrder(new ItemStack(Items.APPLE));
+
         return true;
     }
 
     @Override
     public void breakBlock(World w, BlockPos pos, IBlockState state)
     {
-        TileProvider tile = (TileProvider) w.getTileEntity(pos);
+        TileRequester tile = (TileRequester) w.getTileEntity(pos);
         tile.disconnectGrid();
         tile.dropBuffer();
 

@@ -24,12 +24,12 @@ public class LogisticNetwork<T>
     private List<Requester<T>>                      requesters;
     private List<T>                                 compressedStacks;
 
-    private PriorityQueue<LogisticOrder<T>>            stackOrders;
-    private PriorityQueue<LogisticOrder<ColoredStack>> coloredOrders;
+    private PriorityQueue<LogisticOrder<T>> stackOrders;
+    private PriorityQueue<ColoredOrder<T>>  coloredOrders;
     @Getter
-    private List<LogisticShipment<T>>                  shipments;
+    private List<LogisticShipment<T>>       shipments;
     @Getter
-    private List<ColoredShipment<T>>                   coloredShipments;
+    private List<ColoredShipment<T>>        coloredShipments;
 
     @Getter
     @Setter
@@ -67,11 +67,13 @@ public class LogisticNetwork<T>
         if (providers.isEmpty())
             return;
 
+        this.providers.values().forEach(Provider::networkTick);
+        
         this.processOrders();
         this.processColoredOrders();
     }
 
-    private List<Provider<T>> getSortedProviders(ProviderType type, LogisticOrder order)
+    private List<Provider<T>> getSortedProviders(ProviderType type, BlockPos destination)
     {
         if (this.getGrid() == null)
             return this.providers.get(type);
@@ -79,11 +81,13 @@ public class LogisticNetwork<T>
             return this.providers.get(type).stream()
                     .filter(provider -> !provider.isBufferFull())
                     .sorted(Comparator.comparingInt(provider -> grid.getDistanceBetween(provider.getRailPos(),
-                            order.getDestination()))).collect(Collectors.toList());
+                            destination))).collect(Collectors.toList());
     }
 
     private void processOrders()
     {
+        stackOrders.removeIf(order -> order.getState() == OrderState.COMPLETED);
+
         for (LogisticOrder<T> stackOrder : stackOrders)
         {
             if (stackOrder.getState() != OrderState.SUBMITTED && stackOrder.getState() != OrderState.SHORTAGE)
@@ -93,7 +97,7 @@ public class LogisticNetwork<T>
 
             for (ProviderType type : ProviderType.VALUES)
             {
-                for (Provider<T> provider : getSortedProviders(type, stackOrder))
+                for (Provider<T> provider : getSortedProviders(type, stackOrder.getDestination().getRailPos()))
                 {
                     if (provider.isBufferFull())
                         continue;
@@ -106,7 +110,7 @@ public class LogisticNetwork<T>
                     T extracted = provider.extract(functions.changeQuantity(stackOrder.getOrdered(), toExtract));
 
                     stackOrder.getShippedParts().add(createShipment(extracted, provider.getRailPos(),
-                            stackOrder.getDestination()));
+                            stackOrder.getDestination().getRailPos()));
                     toExtract -= functions.getQuantity(extracted);
 
                     if (toExtract == 0)
@@ -126,7 +130,9 @@ public class LogisticNetwork<T>
 
     private void processColoredOrders()
     {
-        for (LogisticOrder<ColoredStack> coloredOrder : coloredOrders)
+        coloredOrders.removeIf(order -> order.getState() == OrderState.COMPLETED);
+
+        for (ColoredOrder<T> coloredOrder : coloredOrders)
         {
             if (coloredOrder.getState() != OrderState.SUBMITTED && coloredOrder.getState() != OrderState.SHORTAGE)
                 continue;
@@ -135,7 +141,7 @@ public class LogisticNetwork<T>
 
             for (ProviderType type : ProviderType.VALUES)
             {
-                for (Provider<T> provider : getSortedProviders(type, coloredOrder))
+                for (Provider<T> provider : getSortedProviders(type, coloredOrder.getDestination().getRailPos()))
                 {
                     if (!provider.isColored() || provider.isBufferFull())
                         continue;
@@ -152,7 +158,7 @@ public class LogisticNetwork<T>
                     for (T value : extracted)
                     {
                         coloredOrder.getShippedParts().add(createColoredShipment(value, coloredOrder.getOrdered(),
-                                provider.getRailPos(), coloredOrder.getDestination()));
+                                provider.getRailPos(), coloredOrder.getDestination().getRailPos()));
                     }
                     toExtract -= extracted.stream().mapToInt(functions::getQuantity).sum();
 
@@ -189,18 +195,21 @@ public class LogisticNetwork<T>
 
     public LogisticOrder<T> makeOrder(Requester<T> requester, T stack)
     {
-        LogisticOrder<T> order = new LogisticOrder<>(stack, requester.getRailPos());
+        LogisticOrder<T> order = new LogisticOrder<>(stack, requester);
         order.setState(OrderState.SUBMITTED);
+        order.getDestination().addOrder(order);
 
         this.stackOrders.add(order);
         return order;
     }
 
-    public LogisticOrder<ColoredStack> makeOrder(Requester<T> requester, EnumDyeColor color, int quantity)
+    public ColoredOrder<T> makeOrder(Requester<T> requester, EnumDyeColor color, int quantity)
     {
-        LogisticOrder<ColoredStack> order = new LogisticOrder<>(new ColoredStack(color, quantity),
-                requester.getRailPos());
+        ColoredOrder<T> order = new ColoredOrder<>(new ColoredStack(color, quantity),
+                requester);
         order.setState(OrderState.SUBMITTED);
+        // TODO : Colored requesters
+        //order.getDestination().addOrder(order);
 
         this.coloredOrders.add(order);
         return order;
@@ -234,5 +243,21 @@ public class LogisticNetwork<T>
     public boolean removeProvider(Provider<T> provider)
     {
         return providers.remove(provider.getProviderType(), provider);
+    }
+
+    public void completeShipment(LogisticShipment<T> shipment)
+    {
+        this.shipments.remove(shipment);
+
+        this.stackOrders.forEach(order ->
+        {
+            order.getShippedParts().remove(shipment);
+
+            if (order.getShippedParts().isEmpty() && order.getState() == OrderState.SHIPPING)
+            {
+                order.setState(OrderState.COMPLETED);
+                order.getDestination().removeOrder(order);
+            }
+        });
     }
 }

@@ -17,6 +17,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 public class RailGrid extends CableGrid
 {
@@ -72,8 +73,10 @@ public class RailGrid extends CableGrid
                 // TODO : Use requester buffer
                 ItemStack shipped = provider.getProvider().fromBuffer(shipment.getContent());
 
-                requester.getConnectedInventory().insertItem(0, shipped, false);
+                System.out.println("Insert shipment: "+shipped);
+                requester.getRequester().insert(shipped);
             }
+            Stream.of(stackNetwork.getShipments().toArray(new LogisticShipment[0])).forEach(this.stackNetwork::completeShipment);
             this.stackNetwork.getShipments().clear();
         }
     }

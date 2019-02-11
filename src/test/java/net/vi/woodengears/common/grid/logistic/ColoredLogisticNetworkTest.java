@@ -32,7 +32,7 @@ class ColoredLogisticNetworkTest
 
         grid.addProvider(provider1);
 
-        LogisticOrder<ColoredStack> order = grid.makeOrder(requester, EnumDyeColor.RED, 1);
+        ColoredOrder<ItemStack> order = grid.makeOrder(requester, EnumDyeColor.RED, 1);
 
         assertThat(order.getState()).isEqualTo(OrderState.SUBMITTED);
 
@@ -40,7 +40,7 @@ class ColoredLogisticNetworkTest
 
         assertThat(order.getState()).isEqualTo(OrderState.SHIPPING);
         assertThat(order.getShippedParts().get(0)).isInstanceOf(ColoredShipment.class);
-        ItemStackMatcher.assertEqualsStrict(((ColoredShipment<ItemStack>) order.getShippedParts().get(0)).getRawContent(),
+        ItemStackMatcher.assertEqualsStrict(order.getShippedParts().get(0).getRawContent(),
                 new ItemStack(Items.APPLE, 1));
     }
 
@@ -58,7 +58,7 @@ class ColoredLogisticNetworkTest
 
         grid.addProvider(provider1);
 
-        LogisticOrder<ColoredStack> order = grid.makeOrder(requester, EnumDyeColor.RED, 4);
+        ColoredOrder<ItemStack> order = grid.makeOrder(requester, EnumDyeColor.RED, 4);
 
         assertThat(order.getState()).isEqualTo(OrderState.SUBMITTED);
 
@@ -70,9 +70,9 @@ class ColoredLogisticNetworkTest
         assertThat(order.getShippedParts().get(0)).isInstanceOf(ColoredShipment.class);
         assertThat(order.getShippedParts().get(1)).isInstanceOf(ColoredShipment.class);
 
-        ItemStackMatcher.assertEqualsStrict(((ColoredShipment<ItemStack>) order.getShippedParts().get(0)).getRawContent(),
+        ItemStackMatcher.assertEqualsStrict(order.getShippedParts().get(0).getRawContent(),
                 new ItemStack(Items.APPLE, 2));
-        ItemStackMatcher.assertEqualsStrict(((ColoredShipment<ItemStack>) order.getShippedParts().get(1)).getRawContent(),
+        ItemStackMatcher.assertEqualsStrict(order.getShippedParts().get(1).getRawContent(),
                 new ItemStack(Items.POTATO, 2));
     }
 
@@ -94,7 +94,7 @@ class ColoredLogisticNetworkTest
         grid.addProvider(provider1);
         grid.addProvider(provider2);
 
-        LogisticOrder<ColoredStack> order = grid.makeOrder(requester, EnumDyeColor.RED, 6);
+        ColoredOrder<ItemStack> order = grid.makeOrder(requester, EnumDyeColor.RED, 6);
 
         assertThat(order.getState()).isEqualTo(OrderState.SUBMITTED);
 
@@ -107,11 +107,11 @@ class ColoredLogisticNetworkTest
         assertThat(order.getShippedParts().get(1)).isInstanceOf(ColoredShipment.class);
         assertThat(order.getShippedParts().get(2)).isInstanceOf(ColoredShipment.class);
 
-        ItemStackMatcher.assertEqualsStrict(((ColoredShipment<ItemStack>) order.getShippedParts().get(0)).getRawContent(),
+        ItemStackMatcher.assertEqualsStrict(order.getShippedParts().get(0).getRawContent(),
                 new ItemStack(Items.APPLE, 2));
-        ItemStackMatcher.assertEqualsStrict(((ColoredShipment<ItemStack>) order.getShippedParts().get(1)).getRawContent(),
+        ItemStackMatcher.assertEqualsStrict(order.getShippedParts().get(1).getRawContent(),
                 new ItemStack(Items.POTATO, 3));
-        ItemStackMatcher.assertEqualsStrict(((ColoredShipment<ItemStack>) order.getShippedParts().get(2)).getRawContent(),
+        ItemStackMatcher.assertEqualsStrict(order.getShippedParts().get(2).getRawContent(),
                 new ItemStack(Items.APPLE, 1));
     }
 }
