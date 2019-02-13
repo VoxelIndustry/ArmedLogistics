@@ -5,14 +5,14 @@ import net.minecraft.util.EnumFacing;
 import net.vi.woodengears.common.block.BlockArmReservoir;
 import net.vi.woodengears.common.block.BlockCable;
 import net.vi.woodengears.common.entity.EntityLogisticArm;
-import net.vi.woodengears.common.grid.CableGrid;
-import net.vi.woodengears.common.grid.IConnectionAware;
 import net.vi.woodengears.common.grid.IRailConnectable;
 import net.vi.woodengears.common.grid.RailGrid;
 import net.vi.woodengears.common.init.WGItems;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
+import net.voxelindustry.steamlayer.grid.CableGrid;
+import net.voxelindustry.steamlayer.grid.IConnectionAware;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
 import java.util.Optional;

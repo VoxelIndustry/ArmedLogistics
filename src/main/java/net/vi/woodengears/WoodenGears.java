@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.vi.woodengears.common.CommonProxy;
 import net.vi.woodengears.common.CustomCreativeTab;
 import net.voxelindustry.brokkgui.BrokkGuiPlatform;
+import net.voxelindustry.steamlayer.grid.GridManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = WoodenGears.MODID, name = WoodenGears.NAME, version = WoodenGears.VERSION)
@@ -29,6 +30,8 @@ public class WoodenGears
     @SidedProxy(clientSide = "net.vi.woodengears.client.ClientProxy",
             serverSide = "net.vi.woodengears.common.CommonProxy")
     public static CommonProxy proxy;
+
+    private GridManager gridManager;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
@@ -50,5 +53,12 @@ public class WoodenGears
         proxy.postInit(event);
 
         BrokkGuiPlatform.getInstance().enableRenderDebug(true);
+    }
+
+    public GridManager getGridManager()
+    {
+        if (gridManager == null)
+            this.gridManager = GridManager.createGetInstance(WoodenGears.MODID);
+        return this.gridManager;
     }
 }

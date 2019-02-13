@@ -11,10 +11,10 @@ import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.WoodenGears;
-import net.vi.woodengears.common.grid.CableGrid;
-import net.vi.woodengears.common.grid.IConnectionAware;
 import net.vi.woodengears.common.grid.IRailConnectable;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
+import net.voxelindustry.steamlayer.grid.CableGrid;
+import net.voxelindustry.steamlayer.grid.IConnectionAware;
 import net.voxelindustry.steamlayer.tile.ILoadable;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
 import net.voxelindustry.steamlayer.tile.TileBase;
@@ -69,7 +69,7 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         BlockPos railPos = this.getPos().offset(EnumFacing.UP, 2);
 
         TileEntity rail = this.world.getTileEntity(railPos);
-        if (rail instanceof TileCable)
+        if (rail instanceof TileCable && ((TileCable) rail).hasGrid())
             ((TileCable) rail).connectHandler(EnumFacing.DOWN, this, this);
 
         checkInventory();

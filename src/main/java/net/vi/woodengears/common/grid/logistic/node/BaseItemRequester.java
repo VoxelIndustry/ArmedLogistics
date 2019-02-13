@@ -57,6 +57,7 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
 
         this.removeRequest(value, added);
 
+        this.emptyBuffer();
         return added;
     }
 

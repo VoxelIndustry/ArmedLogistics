@@ -7,13 +7,21 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.client.render.WGOBJState;
-import net.vi.woodengears.common.grid.*;
+import net.vi.woodengears.common.grid.IRailConnectable;
+import net.vi.woodengears.common.grid.ITileRail;
+import net.vi.woodengears.common.grid.RailGrid;
+import net.voxelindustry.steamlayer.grid.IConnectionAware;
+import net.voxelindustry.steamlayer.grid.ITileCable;
+import net.voxelindustry.steamlayer.grid.ITileNode;
 import net.voxelindustry.steamlayer.tile.ILoadable;
+import net.voxelindustry.steamlayer.tile.ITileInfoList;
 import net.voxelindustry.steamlayer.tile.TileBase;
 import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TileCable extends TileBase implements ITileRail, ILoadable
 {
@@ -34,105 +42,125 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         this.renderConnections = EnumSet.noneOf(EnumFacing.class);
     }
 
+    @Override
     public Collection<IRailConnectable> getConnectedHandlers()
     {
         return this.adjacentHandler.values();
     }
 
     @Override
-    public void disconnect(EnumFacing facing)
+    public void addInfo(ITileInfoList list)
     {
-        this.connectionsMap.remove(facing);
-        this.updateState();
+        super.addInfo(list);
+
+        list.addText("Grid: " + this.grid);
+        list.addText("Connected: " + this.connectionsMap.keySet().stream().map(EnumFacing::getName).collect(Collectors.joining(" ")));
+        list.addText("Handlers: " + this.adjacentHandler.keySet().stream().map(EnumFacing::getName).collect(Collectors.joining(" ")));
     }
 
     public void connectHandler(EnumFacing facing, IRailConnectable to, TileEntity tile)
     {
         this.adjacentHandler.put(facing, to);
+        this.updateState();
+
+        if (this.hasGrid() &&
+                this.adjacentHandler.get(facing) instanceof TileArmReservoir)
+            this.getGridObject().addReservoir(this,
+                    (TileArmReservoir) this.adjacentHandler.get(facing));
+        if (this.hasGrid() &&
+                this.adjacentHandler.get(facing) instanceof TileProvider)
+            this.getGridObject().addProvider(this,
+                    (TileProvider) this.adjacentHandler.get(facing));
+        if (this.hasGrid() &&
+                this.adjacentHandler.get(facing) instanceof TileRequester)
+            this.getGridObject().addRequester(this,
+                    (TileRequester) this.adjacentHandler.get(facing));
 
         if (tile instanceof IConnectionAware)
             ((IConnectionAware) tile).connectTrigger(facing.getOpposite(), this.getGridObject());
-        this.updateState();
     }
 
     public void disconnectHandler(EnumFacing facing, TileEntity tile)
     {
+        if (this.hasGrid() && this.adjacentHandler.get(facing) instanceof TileArmReservoir)
+            this.getGridObject().removeReservoir(this);
+        if (this.hasGrid() && this.adjacentHandler.get(facing) instanceof TileProvider)
+            this.getGridObject().removeProvider(this);
+        if (this.hasGrid() && this.adjacentHandler.get(facing) instanceof TileRequester)
+            this.getGridObject().removeRequester(this);
+
         this.adjacentHandler.remove(facing);
+        this.updateState();
 
         if (tile instanceof IConnectionAware)
             ((IConnectionAware) tile).disconnectTrigger(facing.getOpposite(), this.getGridObject());
-        this.updateState();
     }
 
     public void disconnectItself()
     {
-        GridManager.getInstance().disconnectCable(this);
+        WoodenGears.instance.getGridManager().disconnectCable(this);
+
+        this.adjacentHandler.keySet().forEach(facing ->
+        {
+            TileEntity handler = this.getBlockWorld().getTileEntity(this.getBlockPos().offset(facing));
+            if (handler instanceof IConnectionAware)
+                ((IConnectionAware) handler).disconnectTrigger(facing.getOpposite(), this.getGridObject());
+        });
     }
 
     @Override
     public void onChunkUnload()
     {
-        this.disconnectItself();
+        if (this.isServer())
+            this.disconnectItself();
     }
 
     @Override
     public void onLoad()
     {
         super.onLoad();
-        if (!this.world.isRemote && this.getGrid() == -1)
+        if (this.isServer() && this.getGrid() == -1)
             TileTickHandler.loadables.add(this);
         else if (this.isClient())
         {
-            this.forceSync();
+            this.askServerSync();
         }
     }
 
     @Override
     public void load()
     {
-        GridManager.getInstance().connectCable(this);
+        WoodenGears.instance.getGridManager().connectCable(this);
         for (final EnumFacing facing : EnumFacing.VALUES)
         {
             if (facing == EnumFacing.DOWN)
-                this.scanHandlers(this.pos.offset(facing, 2));
-            else if (facing.getAxis().isHorizontal())
+                this.scanHandlers(this.pos.down(2));
+            if (facing.getAxis().isHorizontal())
                 this.scanHandlers(this.pos.offset(facing));
         }
     }
 
     @Override
-    public void readFromNBT(final NBTTagCompound tagCompound)
+    public void readFromNBT(NBTTagCompound tag)
     {
-        super.readFromNBT(tagCompound);
-
-        final int previousConnections = this.renderConnections.size();
+        super.readFromNBT(tag);
 
         if (this.isClient())
         {
-            this.renderConnections.clear();
-            for (final EnumFacing facing : EnumFacing.VALUES)
-            {
-                if (tagCompound.hasKey("connected" + facing.ordinal()))
-                    this.renderConnections.add(facing);
-            }
-            if (this.renderConnections.size() != previousConnections)
+            if (this.readRenderConnections(tag))
                 this.updateState();
         }
     }
 
     @Override
-    public NBTTagCompound writeToNBT(final NBTTagCompound tagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
-        super.writeToNBT(tagCompound);
+        super.writeToNBT(tag);
 
         if (this.isServer())
-        {
-            for (final Map.Entry<EnumFacing, ITileCable<RailGrid>> entry : this.connectionsMap.entrySet())
-                tagCompound.setBoolean("connected" + entry.getKey().ordinal(), true);
-            for (final Map.Entry<EnumFacing, IRailConnectable> entry : this.adjacentHandler.entrySet())
-                tagCompound.setBoolean("connected" + entry.getKey().ordinal(), true);
-        }
-        return tagCompound;
+            this.writeRenderConnections(tag);
+
+        return tag;
     }
 
     public void scanHandlers(BlockPos posNeighbor)
@@ -146,35 +174,12 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         if (this.adjacentHandler.containsKey(facing.getOpposite()))
         {
             if (!(tile instanceof IRailConnectable) || !((IRailConnectable) tile).canConnect(this, facing))
-            {
-                if (this.hasGrid() && this.adjacentHandler.get(facing.getOpposite()) instanceof TileArmReservoir)
-                    this.getGridObject().removeReservoir(this);
-                if (this.hasGrid() && this.adjacentHandler.get(facing.getOpposite()) instanceof TileProvider)
-                    this.getGridObject().removeProvider(this);
-                if (this.hasGrid() && this.adjacentHandler.get(facing.getOpposite()) instanceof TileRequester)
-                    this.getGridObject().removeRequester(this);
                 this.disconnectHandler(facing.getOpposite(), tile);
-            }
         }
         else
         {
             if (tile instanceof IRailConnectable && ((IRailConnectable) tile).canConnect(this, facing))
-            {
                 this.connectHandler(facing.getOpposite(), (IRailConnectable) tile, tile);
-
-                if (this.hasGrid() &&
-                        this.adjacentHandler.get(facing.getOpposite()) instanceof TileArmReservoir)
-                    this.getGridObject().addReservoir(this,
-                            (TileArmReservoir) this.adjacentHandler.get(facing.getOpposite()));
-                if (this.hasGrid() &&
-                        this.adjacentHandler.get(facing.getOpposite()) instanceof TileProvider)
-                    this.getGridObject().addProvider(this,
-                            (TileProvider) this.adjacentHandler.get(facing.getOpposite()));
-                if (this.hasGrid() &&
-                        this.adjacentHandler.get(facing.getOpposite()) instanceof TileRequester)
-                    this.getGridObject().addRequester(this,
-                            (TileRequester) this.adjacentHandler.get(facing.getOpposite()));
-            }
         }
     }
 
@@ -185,7 +190,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     }
 
     @Override
-    public boolean canConnect(ITileNode<?> to)
+    public boolean canConnect(EnumFacing facing, ITileNode<?> to)
     {
         return to instanceof TileCable;
     }
@@ -337,6 +342,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         return new WGOBJState(parts, false);
     }
 
+    @Override
     public void updateState()
     {
         if (this.isServer())
@@ -350,10 +356,8 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
 
     public boolean isDeadEnd()
     {
-        if (this.renderConnections.size() > 1 &&
-                !(this.renderConnections.size() == 2 && this.isConnected(EnumFacing.DOWN)))
-            return false;
-        return true;
+        return this.renderConnections.size() <= 1 ||
+                this.renderConnections.size() == 2 && this.isConnected(EnumFacing.DOWN);
     }
 
     public boolean isStraight()
@@ -372,20 +376,25 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         return this.renderConnections.contains(facing);
     }
 
-    @Override
-    public void adjacentConnect()
+    public NBTTagCompound writeRenderConnections(NBTTagCompound tag)
     {
-        List<TileCable> adjacents = new ArrayList<>(6);
-        for (EnumFacing facing : EnumFacing.HORIZONTALS)
+        for (Map.Entry<EnumFacing, ITileCable<RailGrid>> entry : this.connectionsMap.entrySet())
+            tag.setBoolean("connected" + entry.getKey().ordinal(), true);
+        for (Map.Entry<EnumFacing, IRailConnectable> entry : this.adjacentHandler.entrySet())
+            tag.setBoolean("connected" + entry.getKey().ordinal(), true);
+        return tag;
+    }
+
+    public boolean readRenderConnections(NBTTagCompound tag)
+    {
+        int previousConnections = this.renderConnections.size();
+
+        this.renderConnections.clear();
+        for (EnumFacing facing : EnumFacing.VALUES)
         {
-            final TileEntity adjacent = this.getBlockWorld().getTileEntity(this.getAdjacentPos(facing));
-            if (adjacent instanceof TileCable && this.canConnect((ITileCable<?>) adjacent)
-                    && ((ITileCable<?>) adjacent).canConnect(this))
-            {
-                this.connect(facing, (TileCable) adjacent);
-                ((TileCable) adjacent).connect(facing.getOpposite(), this);
-                adjacents.add((TileCable) adjacent);
-            }
+            if (tag.hasKey("connected" + facing.ordinal()))
+                this.renderConnections.add(facing);
         }
+        return this.renderConnections.size() != previousConnections;
     }
 }

@@ -2,6 +2,9 @@ package net.vi.woodengears.common.grid;
 
 import net.minecraft.util.math.BlockPos;
 import net.vi.woodengears.common.test.GridTestBuilder;
+import net.voxelindustry.steamlayer.grid.GridManager;
+import net.voxelindustry.steamlayer.grid.ITileCable;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -10,10 +13,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RailGridTest
 {
+    private GridManager instance;
+    
+    @BeforeAll
+    void setup()
+    {
+        this.instance = GridManager.createGetInstance("woodengears:test");
+    }
+    
     @Test
     void straightPath()
     {
-        RailGrid grid = new RailGrid(GridManager.getInstance().getNextID());
+        RailGrid grid = new RailGrid(instance.getNextID());
 
         GridTestBuilder builder = GridTestBuilder.build(grid);
         builder.origin(BlockPos.ORIGIN);
@@ -41,7 +52,7 @@ class RailGridTest
     @Test
     void intersectionPath()
     {
-        RailGrid grid = new RailGrid(GridManager.getInstance().getNextID());
+        RailGrid grid = new RailGrid(instance.getNextID());
 
         GridTestBuilder builder = GridTestBuilder.build(grid);
         builder.origin(BlockPos.ORIGIN);
@@ -72,7 +83,7 @@ class RailGridTest
     @Test
     void neighborsPath()
     {
-        RailGrid grid = new RailGrid(GridManager.getInstance().getNextID());
+        RailGrid grid = new RailGrid(instance.getNextID());
 
         GridTestBuilder builder = GridTestBuilder.build(grid);
         builder.origin(BlockPos.ORIGIN);

@@ -63,6 +63,13 @@ public class TileRequester extends TileLogicisticNode implements ITickable
             if (!stack.isEmpty())
                 list.addItem(stack);
         });
+
+        list.addText("Requests:");
+        this.getRequester().getRequests().forEach(stack ->
+        {
+            if (!stack.isEmpty())
+                list.addItem(stack);
+        });
     }
 
     @Override

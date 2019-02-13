@@ -2,13 +2,14 @@ package net.vi.woodengears.common.grid;
 
 import lombok.Data;
 import net.minecraft.util.math.BlockPos;
+import net.voxelindustry.steamlayer.grid.ITileNode;
 
 @Data
 public class PathNode
 {
-    private PathNode previous;
-    private int cost;
-    private BlockPos pos;
+    private PathNode  previous;
+    private int       cost;
+    private BlockPos  pos;
     private ITileNode tile;
 
     public PathNode(PathNode previous, BlockPos pos, ITileNode tile)

@@ -5,9 +5,10 @@ import lombok.Setter;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.vi.woodengears.common.grid.CableGrid;
-import net.vi.woodengears.common.grid.ITileCable;
-import net.vi.woodengears.common.grid.ITileNode;
+import net.voxelindustry.steamlayer.grid.CableGrid;
+import net.voxelindustry.steamlayer.grid.GridManager;
+import net.voxelindustry.steamlayer.grid.ITileCable;
+import net.voxelindustry.steamlayer.grid.ITileNode;
 
 import java.util.EnumMap;
 
@@ -162,7 +163,13 @@ public class GridTestBuilder
         }
 
         @Override
-        public boolean canConnect(ITileNode to)
+        public GridManager getGridManager()
+        {
+            return null;
+        }
+
+        @Override
+        public boolean canConnect(EnumFacing facing, ITileNode to)
         {
             return true;
         }

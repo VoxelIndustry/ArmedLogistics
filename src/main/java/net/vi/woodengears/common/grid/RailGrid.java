@@ -12,6 +12,8 @@ import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.vi.woodengears.common.tile.TileRequester;
+import net.voxelindustry.steamlayer.grid.CableGrid;
+import net.voxelindustry.steamlayer.grid.ITileNode;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
@@ -73,7 +75,6 @@ public class RailGrid extends CableGrid
                 // TODO : Use requester buffer
                 ItemStack shipped = provider.getProvider().fromBuffer(shipment.getContent());
 
-                System.out.println("Insert shipment: "+shipped);
                 requester.getRequester().insert(shipped);
             }
             Stream.of(stackNetwork.getShipments().toArray(new LogisticShipment[0])).forEach(this.stackNetwork::completeShipment);
