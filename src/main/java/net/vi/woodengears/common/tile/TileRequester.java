@@ -36,7 +36,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable
         this.wrappedInventory = new WrappedInventory();
 
         this.requester = new BaseItemRequester(this, this.buffer);
-        this.requester.setMode(RequesterMode.CONTINUOUS);
+        this.requester.setMode(RequesterMode.KEEP);
 
         this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
     }
@@ -57,19 +57,26 @@ public class TileRequester extends TileLogicisticNode implements ITickable
     {
         super.addInfo(list);
 
-        list.addText("Buffer:");
-        this.buffer.getStacks().forEach(stack ->
+        list.addText("Mode: " + this.getRequester().getMode());
+        if (!this.buffer.isEmpty())
         {
-            if (!stack.isEmpty())
-                list.addItem(stack);
-        });
+            list.addText("Buffer:");
+            this.buffer.getStacks().forEach(stack ->
+            {
+                if (!stack.isEmpty())
+                    list.addItem(stack);
+            });
+        }
 
-        list.addText("Requests:");
-        this.getRequester().getRequests().forEach(stack ->
+        if (!this.getRequester().getRequests().isEmpty())
         {
-            if (!stack.isEmpty())
-                list.addItem(stack);
-        });
+            list.addText("Requests:");
+            this.getRequester().getRequests().forEach(stack ->
+            {
+                if (!stack.isEmpty())
+                    list.addItem(stack);
+            });
+        }
     }
 
     @Override

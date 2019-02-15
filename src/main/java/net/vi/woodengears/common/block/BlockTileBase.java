@@ -4,6 +4,7 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
@@ -21,10 +22,16 @@ public abstract class BlockTileBase<T extends TileBase> extends BlockContainer
     {
         super(material);
         this.setRegistryName(WoodenGears.MODID, name);
-        this.setTranslationKey(name);
+        this.setTranslationKey(WoodenGears.MODID + "." + name);
         this.setCreativeTab(WoodenGears.TAB_ALL);
 
         this.tileClass = tileClass;
+    }
+
+    @Override
+    public EnumBlockRenderType getRenderType(IBlockState state)
+    {
+        return EnumBlockRenderType.MODEL;
     }
 
     @Override

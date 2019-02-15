@@ -4,5 +4,6 @@ public enum GuiType
 {
     ARM_RESERVOIR,
     PROVIDER,
-    REQUESTER
+    REQUESTER,
+    STORAGE
 }

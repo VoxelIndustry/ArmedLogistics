@@ -1,6 +1,5 @@
 package net.vi.woodengears.common.block;
 
-import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -22,7 +21,7 @@ import net.vi.woodengears.common.tile.TileRequester;
 
 public class BlockRequester extends BlockTileBase<TileRequester>
 {
-    public static final PropertyDirection FACING = BlockDirectional.FACING;
+    public static final PropertyDirection FACING = BlockProvider.FACING;
 
     public BlockRequester()
     {
@@ -84,7 +83,7 @@ public class BlockRequester extends BlockTileBase<TileRequester>
             return true;
         TileRequester requester = (TileRequester) world.getTileEntity(pos);
 
-        requester.makeOrder(new ItemStack(Items.APPLE));
+        requester.getRequester().addRequest(new ItemStack(Items.APPLE, 16));
 
         return true;
     }

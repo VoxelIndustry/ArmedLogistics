@@ -15,17 +15,15 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.gui.GuiType;
-import net.vi.woodengears.common.tile.TileProvider;
+import net.vi.woodengears.common.tile.TileStorage;
 
-public class BlockProvider extends BlockTileBase<TileProvider>
+public class BlockStorage extends BlockTileBase<TileStorage>
 {
-    public static final PropertyDirection FACING = PropertyDirection.create("facing",
-            facing -> facing != EnumFacing.UP);
+    public static final PropertyDirection FACING = BlockProvider.FACING;
 
-    public BlockProvider(boolean isActive)
+    public BlockStorage()
     {
-        super("provider_" + (isActive ? "active" : "passive"), Material.PISTON, TileProvider.class);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+        super("storage", Material.PISTON, TileStorage.class);
     }
 
     @Override
@@ -67,7 +65,7 @@ public class BlockProvider extends BlockTileBase<TileProvider>
     @Override
     public TileEntity createNewTileEntity(World w, int meta)
     {
-        return new TileProvider();
+        return new TileStorage();
     }
 
     @Override
@@ -77,14 +75,14 @@ public class BlockProvider extends BlockTileBase<TileProvider>
         if (player.isSneaking())
             return false;
 
-        player.openGui(WoodenGears.instance, GuiType.PROVIDER.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
+        player.openGui(WoodenGears.instance, GuiType.STORAGE.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
         return true;
     }
 
     @Override
     public void breakBlock(World w, BlockPos pos, IBlockState state)
     {
-        TileProvider tile = (TileProvider) w.getTileEntity(pos);
+        TileStorage tile = (TileStorage) w.getTileEntity(pos);
         tile.disconnectGrid();
         tile.dropBuffer();
 

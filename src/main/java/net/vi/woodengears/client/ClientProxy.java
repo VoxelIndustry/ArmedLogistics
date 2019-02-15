@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.ModelBakeEvent;
+import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
 import net.minecraftforge.common.MinecraftForge;
@@ -58,14 +59,6 @@ public class ClientProxy extends CommonProxy
     @SubscribeEvent
     public void onModelBake(ModelBakeEvent e)
     {
-        for (Item item : WGItems.ITEMS)
-        {
-            if (item instanceof IItemModelProvider && ((IItemModelProvider) item).hasSpecialModel())
-                ((IItemModelProvider) item).registerModels();
-            else
-                WoodenGears.proxy.registerItemRenderer(item, 0);
-        }
-
         WGBlocks.BLOCKS.keySet().stream().filter(IModelProvider.class::isInstance).forEach(block ->
         {
             IModelProvider modelProvider = (IModelProvider) block;
@@ -74,5 +67,17 @@ public class ClientProxy extends CommonProxy
             for (int i = 0; i < modelProvider.getItemModelCount(); i++)
                 modelRegister.accept(i, block);
         });
+    }
+
+    @SubscribeEvent
+    public void onModelRegistry(ModelRegistryEvent e)
+    {
+        for (Item item : WGItems.ITEMS)
+        {
+            if (item instanceof IItemModelProvider && ((IItemModelProvider) item).hasSpecialModel())
+                ((IItemModelProvider) item).registerModels();
+            else
+                WoodenGears.proxy.registerItemRenderer(item, 0);
+        }
     }
 }

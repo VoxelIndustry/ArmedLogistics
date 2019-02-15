@@ -92,7 +92,7 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
     @Override
     protected ResourceLocation getEntityTexture(EntityLogisticArm entity)
     {
-        return new ResourceLocation(WoodenGears.MODID, "textures/models/logistic_arm.png");
+        return new ResourceLocation(WoodenGears.MODID, "textures/models/logisticarm.png");
     }
 
     private double interp(double previous, double next, double partialTicks)

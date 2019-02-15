@@ -16,7 +16,7 @@ public class WGItems
 {
     public static List<Item> ITEMS;
 
-    @GameRegistry.ObjectHolder("logistic_arm")
+    @GameRegistry.ObjectHolder("logisticarm")
     public static Item LOGISTIC_ARM;
 
     public static void init()
@@ -26,7 +26,7 @@ public class WGItems
 
         MinecraftForge.EVENT_BUS.register(new WGItems());
 
-        registerItem(new ItemBase("logistic_arm").setMaxStackSize(4));
+        registerItem(new ItemBase("logisticarm").setMaxStackSize(4));
     }
 
     @SubscribeEvent

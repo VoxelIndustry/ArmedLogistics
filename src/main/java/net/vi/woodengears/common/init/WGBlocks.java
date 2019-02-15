@@ -9,14 +9,8 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.vi.woodengears.WoodenGears;
-import net.vi.woodengears.common.block.BlockArmReservoir;
-import net.vi.woodengears.common.block.BlockCable;
-import net.vi.woodengears.common.block.BlockProvider;
-import net.vi.woodengears.common.block.BlockRequester;
-import net.vi.woodengears.common.tile.TileArmReservoir;
-import net.vi.woodengears.common.tile.TileCable;
-import net.vi.woodengears.common.tile.TileProvider;
-import net.vi.woodengears.common.tile.TileRequester;
+import net.vi.woodengears.common.block.*;
+import net.vi.woodengears.common.tile.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,11 +24,8 @@ public class WGBlocks
     @GameRegistry.ObjectHolder("blockcable")
     public static BlockCable CABLE;
 
-    @GameRegistry.ObjectHolder("blockarmreservoir")
+    @GameRegistry.ObjectHolder("armreservoir")
     public static BlockArmReservoir ARM_RESERVOIR;
-
-    @GameRegistry.ObjectHolder("logic")
-    public static Block LOGIC;
 
     public static void init()
     {
@@ -42,8 +33,10 @@ public class WGBlocks
 
         MinecraftForge.EVENT_BUS.register(new WGBlocks());
 
-        registerBlock(new BlockProvider());
+        registerBlock(new BlockProvider(true));
+        registerBlock(new BlockProvider(false));
         registerBlock(new BlockRequester());
+        registerBlock(new BlockStorage());
         registerBlock(new BlockCable());
         registerBlock(new BlockArmReservoir());
 
@@ -51,6 +44,7 @@ public class WGBlocks
         registerTile(TileCable.class, "cable");
         registerTile(TileProvider.class, "provider");
         registerTile(TileRequester.class, "requester");
+        registerTile(TileStorage.class, "storage");
     }
 
     @SubscribeEvent

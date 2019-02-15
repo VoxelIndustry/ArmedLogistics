@@ -32,6 +32,7 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
     {
         super.addInfo(list);
 
+        list.addText("Facing:" + this.getFacing());
         if (this.grid != null)
             list.addText("Grid: " + grid.getIdentifier());
     }

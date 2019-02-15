@@ -1,3 +1,5 @@
+# Guis
+
 woodengears.gui.provider.name=Provider
 woodengears.gui.armreservoir.name=Arm Reservoir
 
@@ -16,3 +18,14 @@ woodengears.gui.facing.east=EAST
 woodengears.gui.facing.west=WEST
 woodengears.gui.facing.up=UP
 woodengears.gui.facing.down=DOWN
+
+# Blocks
+tile.woodengears.provider_active.name=Active Provider
+tile.woodengears.provider_passive.name=Passive Provider
+tile.woodengears.storage.name=Storage
+tile.woodengears.requester.name=Requester
+tile.woodengears.armreservoir.name=Arm Reservoir
+tile.woodengears.blockcable.name=Rail
+
+# Items
+item.woodengears.logisticarm.name=Logistic Arm

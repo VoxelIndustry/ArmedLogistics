@@ -15,7 +15,7 @@ public class ItemBase extends Item implements IItemModelProvider
     public ItemBase(String name)
     {
         this.setRegistryName(WoodenGears.MODID, name);
-        this.setTranslationKey(name);
+        this.setTranslationKey(WoodenGears.MODID + "." + name);
         this.setCreativeTab(WoodenGears.TAB_ALL);
 
         this.variants = new HashMap<>();
@@ -35,6 +35,6 @@ public class ItemBase extends Item implements IItemModelProvider
     public void registerVariants()
     {
         ModelBakery.registerItemVariants(this,
-                variants.values().toArray(new ModelResourceLocation[variants.size()]));
+                variants.values().toArray(new ModelResourceLocation[0]));
     }
 }

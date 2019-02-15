@@ -10,7 +10,7 @@ public class BlockBase extends Block
     {
         super(material);
         this.setRegistryName(WoodenGears.MODID, name);
-        this.setTranslationKey(name);
+        this.setTranslationKey(WoodenGears.MODID + "." + name);
         this.setCreativeTab(WoodenGears.TAB_ALL);
     }
 }

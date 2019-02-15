@@ -2,7 +2,6 @@ package net.vi.woodengears.common.tile;
 
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
-import net.minecraft.block.BlockDirectional;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -11,6 +10,7 @@ import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.WoodenGears;
+import net.vi.woodengears.common.block.BlockProvider;
 import net.vi.woodengears.common.grid.IRailConnectable;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
 import net.voxelindustry.steamlayer.grid.CableGrid;
@@ -112,7 +112,7 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
 
     public EnumFacing getFacing()
     {
-        return this.world.getBlockState(pos).getValue(BlockDirectional.FACING);
+        return this.world.getBlockState(pos).getValue(BlockProvider.FACING);
     }
 
     public BlockPos getRailPos()

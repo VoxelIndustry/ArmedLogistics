@@ -1,6 +1,5 @@
 package net.vi.woodengears.common.block;
 
-import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
@@ -22,11 +21,12 @@ import javax.annotation.Nullable;
 
 public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
 {
-    public static final PropertyDirection FACING = BlockDirectional.FACING;
+    public static final PropertyDirection FACING = PropertyDirection.create("facing",
+            facing -> facing.getAxis().isHorizontal());
 
     public BlockArmReservoir()
     {
-        super("blockarmreservoir", Material.WOOD, TileArmReservoir.class);
+        super("armreservoir", Material.WOOD, TileArmReservoir.class);
 
         this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
     }

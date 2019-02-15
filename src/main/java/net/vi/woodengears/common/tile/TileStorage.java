@@ -6,35 +6,28 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ITickable;
 import net.minecraftforge.items.IItemHandler;
-import net.vi.woodengears.common.grid.logistic.ProviderType;
-import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
-public class TileProvider extends TileLogicisticNode implements ITickable
+public class TileStorage extends TileLogicisticNode
 {
     @Getter
-    private BaseItemProvider provider;
-
-    @Getter
     private BaseProperty<IItemHandler> cachedInventoryProperty;
-    private WrappedInventory           wrappedInventory;
-    private InventoryBuffer            buffer;
 
-    public TileProvider()
+    private WrappedInventory wrappedInventory;
+    private InventoryBuffer  buffer;
+
+    public TileStorage()
     {
-        super("provider");
+        super("storage");
 
         this.cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
 
-        this.wrappedInventory = new WrappedInventory();
         this.buffer = new InventoryBuffer(8, 8 * 64);
-
-        this.provider = new BaseItemProvider(this, ProviderType.PASSIVE_PROVIDER, this.wrappedInventory, this.buffer);
+        this.wrappedInventory = new WrappedInventory();
 
         this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
     }
@@ -56,18 +49,12 @@ public class TileProvider extends TileLogicisticNode implements ITickable
     }
 
     @Override
-    public void update()
-    {
-        if (this.isClient())
-            return;
-    }
-
-    @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
         super.writeToNBT(tag);
 
         this.buffer.writeNBT(tag);
+
         return tag;
     }
 
@@ -82,7 +69,7 @@ public class TileProvider extends TileLogicisticNode implements ITickable
     @Override
     public BuiltContainer createContainer(EntityPlayer player)
     {
-        return new ContainerBuilder("provider", player)
+        return new ContainerBuilder("storage", player)
                 .player(player).inventory(8, 103).hotbar(8, 161)
                 .addInventory()
                 .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
