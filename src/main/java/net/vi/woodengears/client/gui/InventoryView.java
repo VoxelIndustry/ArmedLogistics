@@ -5,6 +5,8 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.WoodenGears;
+import net.voxelindustry.brokkgui.data.RectAlignment;
+import net.voxelindustry.brokkgui.data.RectOffset;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
 import net.voxelindustry.brokkgui.element.GuiButton;
 import net.voxelindustry.brokkgui.element.GuiLabel;
@@ -13,6 +15,7 @@ import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
 import net.voxelindustry.brokkgui.panel.ScrollPane;
 import net.voxelindustry.brokkgui.policy.GuiOverflowPolicy;
 import net.voxelindustry.brokkgui.policy.GuiScrollbarPolicy;
+import net.voxelindustry.brokkgui.shape.Rectangle;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
 
 import java.util.ArrayList;
@@ -25,13 +28,14 @@ public class InventoryView extends GuiAbsolutePane
     private final GuiAbsolutePane     stacksPane;
     private final GuiButton           moreButton;
     private final GuiLabel            emptyLabel;
+    private final GuiLabel            invLabel;
 
     private final FullStacksView fullStackView;
 
     public InventoryView(GuiProvider guiProvider)
     {
         this.setWidth(164);
-        this.setHeight(67);
+        this.setHeight(74);
         this.rawStacks = new ArrayList<>();
         this.stacks = new ArrayList<>();
         this.stacksPane = new GuiAbsolutePane();
@@ -61,9 +65,57 @@ public class InventoryView extends GuiAbsolutePane
         emptyLabel.setID("empty-label");
         this.addChild(emptyLabel, 8, 37 - 6.5f);
 
+        this.invLabel = new GuiLabel("");
+        invLabel.setHeight(9);
+        invLabel.setExpandToText(true);
+        invLabel.setTextAlignment(RectAlignment.LEFT_CENTER);
+        invLabel.setID("inv-label");
+        invLabel.setTextPadding(RectOffset.build().left(2).right(2).top(1).create());
+        this.addChild(invLabel, 1, 1);
+
+        Rectangle invLabelLeftLine = new Rectangle();
+        this.addChild(invLabelLeftLine);
+        RelativeBindingHelper.bindToPos(invLabelLeftLine, invLabel, -1, 0);
+        invLabelLeftLine.setWidth(1);
+        invLabelLeftLine.getHeightProperty().bind(invLabel.getHeightProperty());
+        invLabelLeftLine.addStyleClass("box-line");
+
+        Rectangle invLabelTopLine = new Rectangle();
+        this.addChild(invLabelTopLine);
+        RelativeBindingHelper.bindToPos(invLabelTopLine, invLabel, 0, -1);
+        invLabelTopLine.getWidthProperty().bind(invLabel.getWidthProperty());
+        invLabelTopLine.setHeight(1);
+        invLabelTopLine.addStyleClass("box-line");
+
+        Rectangle invLabelRightLine = new Rectangle();
+        this.addChild(invLabelRightLine);
+        RelativeBindingHelper.bindToPos(invLabelRightLine, invLabel, invLabel.getWidthProperty(), null);
+        invLabelRightLine.setWidth(1);
+        invLabelRightLine.getHeightProperty().bind(invLabel.getHeightProperty());
+        invLabelRightLine.addStyleClass("box-line");
+
         guiProvider.getListeners().attach(guiProvider.getProvider().getCachedInventoryProperty(),
                 obs -> refreshStacks(guiProvider.getProvider().getCachedInventoryProperty().getValue()));
         this.refreshStacks(guiProvider.getProvider().getCachedInventoryProperty().getValue());
+    }
+
+    public void setInvStatus(String status)
+    {
+        this.invLabel.setText(status);
+    }
+
+    public void setInvValid(boolean valid)
+    {
+        if (valid)
+        {
+            this.invLabel.addStyleClass("status-valid");
+            this.invLabel.removeStyleClass("status-invalid");
+        }
+        else
+        {
+            this.invLabel.addStyleClass("status-invalid");
+            this.invLabel.removeStyleClass("status-valid");
+        }
     }
 
     private void refreshStacks(IItemHandler inventory)

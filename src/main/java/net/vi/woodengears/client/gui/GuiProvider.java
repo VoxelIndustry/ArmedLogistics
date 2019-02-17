@@ -1,8 +1,10 @@
 package net.vi.woodengears.client.gui;
 
 import lombok.Getter;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.tileentity.TileEntity;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.voxelindustry.brokkgui.data.RectOffset;
@@ -14,11 +16,11 @@ import net.voxelindustry.steamlayer.container.BuiltContainer;
 
 public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
 {
-    private static final Texture BACKGROUND = new Texture(WoodenGears.MODID + ":textures/gui/provider.png",
-            0, 0, 1, 185 / 192f);
+    private static final Texture BACKGROUND = new Texture(WoodenGears.MODID + ":textures/gui/provider.png");
 
     @Getter
-    private final TileProvider provider;
+    private final TileProvider  provider;
+    private final InventoryView inventoryView;
 
     public GuiProvider(EntityPlayer player, TileProvider provider)
     {
@@ -27,7 +29,7 @@ public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
         this.setyRelativePos(0.5f);
 
         this.setWidth(176);
-        this.setHeight(185);
+        this.setHeight(176);
 
         this.provider = provider;
 
@@ -38,35 +40,34 @@ public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
         GuiLabel title = new GuiLabel(provider.getDisplayName().getFormattedText());
         mainPanel.addChild(title, 6, 6);
 
-        GuiLabel status = new GuiLabel();
-        status.setTextPadding(new RectOffset(1, 0, 0, 0));
-        status.setSize(110, 11);
-        status.setID("status-label");
-        this.updateStatusStyle(status);
-        this.getListeners().attach(provider.getConnectedInventoryProperty(), obs -> updateStatusStyle(status));
+        inventoryView = new InventoryView(this);
+        mainPanel.addChild(inventoryView, 6, 17);
 
-        mainPanel.addChild(status, 88 - 55, 16);
-
-        mainPanel.addChild(new InventoryView(this), 6, 32);
+        this.updateStatusStyle();
+        this.getListeners().attach(provider.getConnectedInventoryProperty(), obs -> updateStatusStyle());
 
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/provider.css");
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/inventoryview.css");
     }
 
-    private void updateStatusStyle(GuiLabel status)
+    private void updateStatusStyle()
     {
         if (provider.getConnectedInventoryProperty().getValue())
         {
-            status.addStyleClass("status-valid");
-            status.removeStyleClass("status-invalid");
-            status.setText(I18n.format("woodengears.gui.inventory.where",
+            TileEntity tile =
+                    Minecraft.getMinecraft().world.getTileEntity(provider.getPos().offset(provider.getFacing()));
+            String name = tile.getDisplayName() != null ? tile.getDisplayName().getFormattedText() :
+                    I18n.format("woodengears.gui.inventory.genericname");
+
+            inventoryView.setInvStatus(I18n.format("woodengears.gui.inventory.where", name,
                     I18n.format("woodengears.gui.facing." + provider.getFacing())));
+            inventoryView.setInvValid(true);
         }
         else
         {
-            status.addStyleClass("status-invalid");
-            status.removeStyleClass("status-valid");
-            status.setText(I18n.format("woodengears.gui.inventory.notwhere",
-                    I18n.format("woodengears.gui.facing." + provider.getFacing())));        }
+            inventoryView.setInvStatus(I18n.format("woodengears.gui.inventory.notwhere",
+                    I18n.format("woodengears.gui.facing." + provider.getFacing())));
+            inventoryView.setInvValid(false);
+        }
     }
 }

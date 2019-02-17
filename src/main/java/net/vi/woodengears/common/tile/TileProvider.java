@@ -83,7 +83,7 @@ public class TileProvider extends TileLogicisticNode implements ITickable
     public BuiltContainer createContainer(EntityPlayer player)
     {
         return new ContainerBuilder("provider", player)
-                .player(player).inventory(8, 103).hotbar(8, 161)
+                .player(player).inventory(8, 94).hotbar(8, 152)
                 .addInventory()
                 .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)

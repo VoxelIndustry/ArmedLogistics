@@ -6,24 +6,16 @@
     background-color: #000000 25%;
 }
 
-.box-line-top {
-    color: #8B8B8B;
+.box-line {
+    color: #23405c;
 }
 
-.box-line-bottom {
-    color: #555555;
+#inv-label {
+    background-color: #71a3d6;
 }
 
-#status-label {
-    background-texture: url("woodengears:textures/gui/text-bar.png");
-}
-
-.status-invalid text {
-    color: #C51162;
-}
-
-.status-valid text {
-    color: #087F23;
+#inv-label.status-invalid {
+    background-color: #d67b71;
 }
 
 #empty-label {
