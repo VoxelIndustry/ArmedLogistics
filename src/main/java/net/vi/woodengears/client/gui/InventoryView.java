@@ -1,27 +1,24 @@
-package net.vi.woodengears.common.gui;
+package net.vi.woodengears.client.gui;
 
 import fr.ourten.teabeans.binding.BaseExpression;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.WoodenGears;
-import net.vi.woodengears.client.GuiProvider;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
 import net.voxelindustry.brokkgui.element.GuiButton;
 import net.voxelindustry.brokkgui.element.GuiLabel;
 import net.voxelindustry.brokkgui.gui.SubGuiScreen;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
-import net.voxelindustry.brokkgui.panel.GuiRelativePane;
 import net.voxelindustry.brokkgui.panel.ScrollPane;
 import net.voxelindustry.brokkgui.policy.GuiOverflowPolicy;
 import net.voxelindustry.brokkgui.policy.GuiScrollbarPolicy;
-import net.voxelindustry.brokkgui.shape.Rectangle;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class InventoryView extends GuiRelativePane
+public class InventoryView extends GuiAbsolutePane
 {
     private final List<ItemStack>     rawStacks;
     private final List<ItemStackView> stacks;
@@ -33,51 +30,24 @@ public class InventoryView extends GuiRelativePane
 
     public InventoryView(GuiProvider guiProvider)
     {
+        this.setWidth(164);
         this.setHeight(67);
-        this.setWidthRatio(1);
         this.rawStacks = new ArrayList<>();
         this.stacks = new ArrayList<>();
         this.stacksPane = new GuiAbsolutePane();
         this.fullStackView = new FullStacksView();
         stacksPane.setID("stacks-panel");
-        this.addChild(stacksPane, 0.5f, 0f);
-
-        Rectangle topLine = new Rectangle();
-        this.addChild(topLine, 0, 0);
-        RelativeBindingHelper.bindToPos(topLine, stacksPane, 0, -1);
-        topLine.getWidthProperty().bind(stacksPane.getWidthProperty());
-        topLine.setHeight(1);
-        topLine.addStyleClass("box-line-top");
-
-        Rectangle bottomLine = new Rectangle();
-        this.addChild(bottomLine, 0, 0);
-        RelativeBindingHelper.bindToPos(bottomLine, stacksPane, null, stacksPane.getHeightProperty());
-        bottomLine.getWidthProperty().bind(stacksPane.getWidthProperty());
-        bottomLine.setHeight(1);
-        bottomLine.addStyleClass("box-line-bottom");
-
-        Rectangle leftLine = new Rectangle();
-        this.addChild(leftLine, 0, 0);
-        RelativeBindingHelper.bindToPos(leftLine, stacksPane, -1, 0);
-        leftLine.setWidth(1);
-        leftLine.getHeightProperty().bind(stacksPane.getHeightProperty());
-        leftLine.addStyleClass("box-line-top");
-
-        Rectangle rightLine = new Rectangle();
-        this.addChild(rightLine, 0, 0);
-        RelativeBindingHelper.bindToPos(rightLine, stacksPane, stacksPane.getWidthProperty(), null);
-        rightLine.setWidth(1);
-        rightLine.getHeightProperty().bind(stacksPane.getHeightProperty());
-        rightLine.addStyleClass("box-line-bottom");
+        stacksPane.setSize(164, 56);
+        this.addChild(stacksPane, 0, 9);
 
         this.moreButton = new GuiButton();
-        moreButton.setSize(148, 11);
+        moreButton.setSize(148, 10);
         moreButton.setVisible(false);
         moreButton.setID("more-button");
         this.addChild(moreButton);
         moreButton.setxTranslate(7);
         RelativeBindingHelper.bindToPos(moreButton, stacksPane, null,
-                BaseExpression.transform(stacksPane.getHeightProperty(), height -> height + 1));
+                BaseExpression.transform(stacksPane.getHeightProperty(), height -> height - 1));
 
         moreButton.setOnActionEvent(e ->
         {
@@ -86,13 +56,10 @@ public class InventoryView extends GuiRelativePane
         });
 
         this.emptyLabel = new GuiLabel(I18n.format(WoodenGears.MODID + ".gui.inventory.empty"));
-        emptyLabel.setSize(148, 11);
+        emptyLabel.setSize(148, 13);
         emptyLabel.setVisible(false);
         emptyLabel.setID("empty-label");
-        this.addChild(emptyLabel);
-        emptyLabel.setxTranslate(7);
-        RelativeBindingHelper.bindToPos(emptyLabel, stacksPane, null,
-                BaseExpression.transform(stacksPane.getHeightProperty(), height -> height + 1));
+        this.addChild(emptyLabel, 8, 37 - 6.5f);
 
         guiProvider.getListeners().attach(guiProvider.getProvider().getCachedInventoryProperty(),
                 obs -> refreshStacks(guiProvider.getProvider().getCachedInventoryProperty().getValue()));
@@ -102,7 +69,11 @@ public class InventoryView extends GuiRelativePane
     private void refreshStacks(IItemHandler inventory)
     {
         if (inventory == null)
+        {
+            this.emptyLabel.setVisible(true);
+            this.stacksPane.setDisabled(true);
             return;
+        }
 
         List<ItemStack> rawStacks = new ArrayList<>(inventory.getSlots());
         for (int slot = 0; slot < inventory.getSlots(); slot++)
@@ -135,38 +106,26 @@ public class InventoryView extends GuiRelativePane
                 view.setSize(18, 18);
                 view.setItemTooltip(true);
 
-                stacksPane.addChild(view, 18 * (stacks.size() % 9), 18 * (stacks.size() / 9));
+                stacksPane.addChild(view, 18 * (stacks.size() % 9) + 1, 18 * (stacks.size() / 9) + 1);
                 stacks.add(view);
             }
         }
 
         this.moreButton.setVisible(false);
         this.emptyLabel.setVisible(false);
+        this.stacksPane.setDisabled(false);
+
         if (this.stacks.isEmpty())
         {
-            this.stacksPane.setWidth(18 * 9);
-            this.stacksPane.setHeight(1);
             this.emptyLabel.setVisible(true);
+            this.stacksPane.setDisabled(true);
         }
-        else if (this.stacks.size() < 9)
+        else if (rawStacks.size() > 27)
         {
-            this.stacksPane.setWidth(18 * stacks.size());
-            this.stacksPane.setHeight(18);
-            this.stacksPane.setyTranslate(9);
-        }
-        else
-        {
-            this.stacksPane.setWidth(18 * 9);
-            this.stacksPane.setHeight((float) (18 * Math.ceil(stacks.size() / 9f)));
-            this.stacksPane.setyTranslate((float) (9 * Math.ceil(stacks.size() / 9f)));
-
-            if (rawStacks.size() > 27)
-            {
-                this.rawStacks.clear();
-                this.rawStacks.addAll(rawStacks);
-                this.moreButton.setVisible(true);
-                this.moreButton.setText(I18n.format(WoodenGears.MODID + ".gui.inventory.more", rawStacks.size() - 27));
-            }
+            this.rawStacks.clear();
+            this.rawStacks.addAll(rawStacks);
+            this.moreButton.setVisible(true);
+            this.moreButton.setText(I18n.format(WoodenGears.MODID + ".gui.inventory.more", rawStacks.size() - 27));
         }
 
         for (int slot = 0; slot < Math.min(stacks.size(), 27); slot++)

@@ -1,10 +1,9 @@
-package net.vi.woodengears.client;
+package net.vi.woodengears.client.gui;
 
 import lombok.Getter;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.vi.woodengears.WoodenGears;
-import net.vi.woodengears.common.gui.InventoryView;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.voxelindustry.brokkgui.data.RectOffset;
 import net.voxelindustry.brokkgui.element.GuiLabel;
@@ -48,9 +47,10 @@ public class GuiProvider extends BrokkGuiContainer<BuiltContainer>
 
         mainPanel.addChild(status, 88 - 55, 16);
 
-        mainPanel.addChild(new InventoryView(this), 0, 32);
+        mainPanel.addChild(new InventoryView(this), 6, 32);
 
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/provider.css");
+        this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/inventoryview.css");
     }
 
     private void updateStatusStyle(GuiLabel status)

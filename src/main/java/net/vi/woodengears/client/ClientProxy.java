@@ -35,6 +35,7 @@ public class ClientProxy extends CommonProxy
         MinecraftForge.EVENT_BUS.register(this);
 
         WGItems.ITEMS.stream().filter(IItemModelProvider.class::isInstance)
+                .filter(item -> ((IItemModelProvider) item).hasSpecialModel())
                 .forEach(item -> ((IItemModelProvider) item).registerVariants());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityLogisticArm.class, RenderLogisticArm::new);

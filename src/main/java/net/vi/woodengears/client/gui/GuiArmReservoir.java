@@ -1,4 +1,4 @@
-package net.vi.woodengears.client;
+package net.vi.woodengears.client.gui;
 
 import lombok.Getter;
 import net.minecraft.client.resources.I18n;
