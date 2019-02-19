@@ -2,11 +2,14 @@ package net.vi.woodengears.common.tile;
 
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.IWorldNameable;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.WoodenGears;
@@ -21,22 +24,28 @@ import net.voxelindustry.steamlayer.tile.TileBase;
 import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
 public abstract class TileLogicisticNode extends TileBase implements IContainerProvider, ILoadable,
-        IConnectionAware, IRailConnectable
+        IConnectionAware, IRailConnectable, IWorldNameable
 {
     @Getter
-    private BaseProperty<Boolean> connectedInventoryProperty;
+    private BaseProperty<Boolean>      connectedInventoryProperty;
+    @Getter
+    private BaseProperty<IItemHandler> cachedInventoryProperty;
 
     @Getter
     private TileCable cable;
 
     @Getter
-    private String name;
+    private String  name;
+    @Getter
+    private String  customName;
+    private boolean hasCustomName;
 
     public TileLogicisticNode(String name)
     {
         this.name = name;
 
         this.connectedInventoryProperty = new BaseProperty<>(false, "connectedInventoryProperty");
+        this.cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
     }
 
     @Override
@@ -110,6 +119,24 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         return null;
     }
 
+    @Override
+    public void readFromNBT(NBTTagCompound tag)
+    {
+        super.readFromNBT(tag);
+
+        this.customName = tag.getString("customName");
+        this.hasCustomName = tag.getBoolean("hasCustomName");
+    }
+
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound tag)
+    {
+        tag.setString("customName", this.customName);
+        tag.setBoolean("hasCustomName", this.hasCustomName);
+
+        return super.writeToNBT(tag);
+    }
+
     public EnumFacing getFacing()
     {
         return this.world.getBlockState(pos).getValue(BlockProvider.FACING);
@@ -121,8 +148,29 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     }
 
     @Override
+    public String getName()
+    {
+        if (this.hasCustomName())
+            return this.getCustomName();
+        return WoodenGears.MODID + ".gui." + this.name + ".name";
+    }
+
+    public void setCustomName(String name)
+    {
+        this.hasCustomName = true;
+        this.customName = name;
+    }
+
+    @Override
+    public boolean hasCustomName()
+    {
+        return this.hasCustomName;
+    }
+
+    @Override
     public ITextComponent getDisplayName()
     {
-        return new TextComponentTranslation(WoodenGears.MODID + ".gui." + this.getName() + ".name");
+        return (this.hasCustomName() ? new TextComponentString(this.getName()) :
+                new TextComponentTranslation(this.getName()));
     }
 }

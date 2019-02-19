@@ -1,10 +1,11 @@
-package net.vi.woodengears.client.gui;
+package net.vi.woodengears.client.gui.component;
 
 import fr.ourten.teabeans.binding.BaseExpression;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.WoodenGears;
+import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.brokkgui.data.RectAlignment;
 import net.voxelindustry.brokkgui.data.RectOffset;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
@@ -16,7 +17,9 @@ import net.voxelindustry.brokkgui.panel.ScrollPane;
 import net.voxelindustry.brokkgui.policy.GuiOverflowPolicy;
 import net.voxelindustry.brokkgui.policy.GuiScrollbarPolicy;
 import net.voxelindustry.brokkgui.shape.Rectangle;
+import net.voxelindustry.brokkgui.wrapper.container.BrokkGuiContainer;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
+import net.voxelindustry.steamlayer.container.BuiltContainer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +35,7 @@ public class InventoryView extends GuiAbsolutePane
 
     private final FullStacksView fullStackView;
 
-    public InventoryView(GuiProvider guiProvider)
+    public InventoryView(BrokkGuiContainer<BuiltContainer> parent, TileLogicisticNode tile)
     {
         this.setWidth(164);
         this.setHeight(74);
@@ -55,7 +58,7 @@ public class InventoryView extends GuiAbsolutePane
 
         moreButton.setOnActionEvent(e ->
         {
-            guiProvider.addSubGui(fullStackView);
+            parent.addSubGui(fullStackView);
             fullStackView.refreshStacks(this.rawStacks);
         });
 
@@ -94,9 +97,9 @@ public class InventoryView extends GuiAbsolutePane
         invLabelRightLine.getHeightProperty().bind(invLabel.getHeightProperty());
         invLabelRightLine.addStyleClass("box-line");
 
-        guiProvider.getListeners().attach(guiProvider.getProvider().getCachedInventoryProperty(),
-                obs -> refreshStacks(guiProvider.getProvider().getCachedInventoryProperty().getValue()));
-        this.refreshStacks(guiProvider.getProvider().getCachedInventoryProperty().getValue());
+        parent.getListeners().attach(tile.getCachedInventoryProperty(),
+                obs -> refreshStacks(tile.getCachedInventoryProperty().getValue()));
+        this.refreshStacks(tile.getCachedInventoryProperty().getValue());
     }
 
     public void setInvStatus(String status)

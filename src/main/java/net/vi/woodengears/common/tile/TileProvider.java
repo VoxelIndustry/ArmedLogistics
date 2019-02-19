@@ -20,16 +20,12 @@ public class TileProvider extends TileLogicisticNode implements ITickable
     @Getter
     private BaseItemProvider provider;
 
-    @Getter
-    private BaseProperty<IItemHandler> cachedInventoryProperty;
     private WrappedInventory           wrappedInventory;
     private InventoryBuffer            buffer;
 
     public TileProvider()
     {
         super("provider");
-
-        this.cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
 
         this.wrappedInventory = new WrappedInventory();
         this.buffer = new InventoryBuffer(8, 8 * 64);
@@ -86,7 +82,7 @@ public class TileProvider extends TileLogicisticNode implements ITickable
                 .player(player).inventory(8, 94).hotbar(8, 152)
                 .addInventory()
                 .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
-                .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
+                .syncInventory(this::getConnectedInventory, getCachedInventoryProperty()::setValue, 10)
                 .create();
     }
 

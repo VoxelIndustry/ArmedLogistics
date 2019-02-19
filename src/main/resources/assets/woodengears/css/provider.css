@@ -1,0 +1,12 @@
+#edit-button {
+    background-texture: url("woodengears:textures/gui/pencil.png");
+}
+
+#edit-field {
+    cursor-color: #000000 78%;
+}
+
+#edit-field .text {
+    color: #404040;
+    shadow-color: #8b8b8b;
+}
