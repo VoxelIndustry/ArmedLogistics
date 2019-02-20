@@ -7,8 +7,10 @@ import net.minecraftforge.fml.common.network.IGuiHandler;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.client.gui.GuiArmReservoir;
 import net.vi.woodengears.client.gui.GuiProvider;
+import net.vi.woodengears.client.gui.GuiRequester;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
+import net.vi.woodengears.common.tile.TileRequester;
 import net.voxelindustry.brokkgui.wrapper.impl.BrokkGuiManager;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
 
@@ -26,6 +28,8 @@ public class GuiHandler implements IGuiHandler
                 return ((IContainerProvider) world.getTileEntity(new BlockPos(x, y, z))).createContainer(player);
             case PROVIDER:
                 return ((IContainerProvider) world.getTileEntity(new BlockPos(x, y, z))).createContainer(player);
+            case REQUESTER:
+                return ((IContainerProvider) world.getTileEntity(new BlockPos(x, y, z))).createContainer(player);
         }
         return null;
     }
@@ -42,6 +46,9 @@ public class GuiHandler implements IGuiHandler
             case PROVIDER:
                 return BrokkGuiManager.getBrokkGuiContainer(WoodenGears.MODID, new GuiProvider(player,
                         (TileProvider) world.getTileEntity(new BlockPos(x, y, z))));
+            case REQUESTER:
+                return BrokkGuiManager.getBrokkGuiContainer(WoodenGears.MODID, new GuiRequester(player,
+                        (TileRequester) world.getTileEntity(new BlockPos(x, y, z))));
         }
         return null;
     }

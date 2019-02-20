@@ -7,8 +7,6 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -78,13 +76,6 @@ public class BlockRequester extends BlockTileBase<TileRequester>
             return false;
 
         player.openGui(WoodenGears.instance, GuiType.REQUESTER.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
-
-        if (world.isRemote)
-            return true;
-        TileRequester requester = (TileRequester) world.getTileEntity(pos);
-
-        requester.getRequester().addRequest(new ItemStack(Items.APPLE, 16));
-
         return true;
     }
 
