@@ -154,12 +154,9 @@ public class InventoryView extends GuiAbsolutePane
         int diff = this.stacks.size() - rawStacks.size();
         if (diff > 0)
         {
-            for (int slot = 0; slot < diff; slot++)
-            {
-                if (this.stacks.size() - 1 - slot < 0)
-                    break;
-                stacksPane.removeChild(this.stacks.remove(this.stacks.size() - 1 - slot));
-            }
+            int removeStart = this.stacks.size() - diff;
+            for (int i = 0; i < diff; i++)
+                stacksPane.removeChild(this.stacks.remove(removeStart));
 
             for (int i = 0; i < stacks.size(); i++)
             {
@@ -223,7 +220,7 @@ public class InventoryView extends GuiAbsolutePane
         int shadowWidth = (9 - stackCount % 9) * 18;
         int shadowHeight = (3 - (int) Math.ceil(stackCount / 9f)) * 18;
 
-        if (shadowWidth == 0)
+        if (shadowWidth == 0 || shadowWidth == 162)
             this.shadowRight.setVisible(false);
         if (shadowHeight == 0)
             this.shadowBottom.setVisible(false);
