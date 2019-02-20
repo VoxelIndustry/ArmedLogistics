@@ -160,6 +160,12 @@ public class InventoryView extends GuiAbsolutePane
                     break;
                 stacksPane.removeChild(this.stacks.remove(this.stacks.size() - 1 - slot));
             }
+
+            for (int i = 0; i < stacks.size(); i++)
+            {
+                ItemStackView view = stacks.get(i);
+                view.setTranslate(18 * (i % 9), 18 * (i / 9));
+            }
         }
         else if (diff < 0 && stacks.size() < 27)
         {
@@ -173,7 +179,8 @@ public class InventoryView extends GuiAbsolutePane
                 view.setSize(18, 18);
                 view.setItemTooltip(true);
 
-                stacksPane.addChild(view, 18 * (stacks.size() % 9) + 1, 18 * (stacks.size() / 9) + 1);
+                stacksPane.addChild(view, 1, 1);
+                view.setTranslate(18 * (stacks.size() % 9), 18 * (stacks.size() / 9));
                 stacks.add(view);
             }
         }
