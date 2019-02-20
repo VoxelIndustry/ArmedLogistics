@@ -34,6 +34,8 @@ public class InventoryView extends GuiAbsolutePane
     private final GuiLabel            invLabel;
 
     private final FullStacksView fullStackView;
+    private final Rectangle      shadowBottom;
+    private final Rectangle      shadowRight;
 
     public InventoryView(BrokkGuiContainer<BuiltContainer> parent, TileLogicisticNode tile)
     {
@@ -96,6 +98,16 @@ public class InventoryView extends GuiAbsolutePane
         invLabelRightLine.setWidth(1);
         invLabelRightLine.getHeightProperty().bind(invLabel.getHeightProperty());
         invLabelRightLine.addStyleClass("box-line");
+
+        this.shadowBottom = new Rectangle();
+        this.addChild(shadowBottom, 1, 10);
+        shadowBottom.setWidth(162);
+        shadowBottom.addStyleClass("shadow-rect");
+
+        this.shadowRight = new Rectangle();
+        this.addChild(shadowRight, 1, 10);
+        shadowRight.setHeight(18);
+        shadowRight.addStyleClass("shadow-rect");
 
         parent.getListeners().attach(tile.getCachedInventoryProperty(),
                 obs -> refreshStacks(tile.getCachedInventoryProperty().getValue()));
@@ -185,6 +197,36 @@ public class InventoryView extends GuiAbsolutePane
 
         for (int slot = 0; slot < Math.min(stacks.size(), 27); slot++)
             stacks.get(slot).setItemStack(rawStacks.get(slot));
+
+        this.updateInventoryShadows(stacks.size());
+    }
+
+    private void updateInventoryShadows(int stackCount)
+    {
+        if (stackCount == 0 || stackCount == 27)
+        {
+            this.shadowBottom.setVisible(false);
+            this.shadowRight.setVisible(false);
+            return;
+        }
+
+        this.shadowBottom.setVisible(true);
+        this.shadowRight.setVisible(true);
+
+        int shadowWidth = (9 - stackCount % 9) * 18;
+        int shadowHeight = (3 - (int) Math.ceil(stackCount / 9f)) * 18;
+
+        if (shadowWidth == 0)
+            this.shadowRight.setVisible(false);
+        if (shadowHeight == 0)
+            this.shadowBottom.setVisible(false);
+
+        this.shadowBottom.setHeight(shadowHeight);
+        this.shadowBottom.setyTranslate(18 * 3 - shadowHeight);
+
+        this.shadowRight.setWidth(shadowWidth);
+        this.shadowRight.setxTranslate(18 * 9 - shadowWidth);
+        this.shadowRight.setyTranslate(18 * 2 - shadowHeight);
     }
 
     private static class FullStacksView extends SubGuiScreen

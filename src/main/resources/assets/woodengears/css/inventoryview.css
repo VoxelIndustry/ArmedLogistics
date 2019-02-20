@@ -50,3 +50,7 @@ scrollpane .grip-y {
     texture: url("woodengears:textures/gui/inv-window-scroll.png");
     color: rgba(0, 0, 0, 0);
 }
+
+.shadow-rect {
+    background-color: #000000 25%;
+}
