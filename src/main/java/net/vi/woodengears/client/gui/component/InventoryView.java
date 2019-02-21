@@ -11,11 +11,7 @@ import net.voxelindustry.brokkgui.data.RectOffset;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
 import net.voxelindustry.brokkgui.element.GuiButton;
 import net.voxelindustry.brokkgui.element.GuiLabel;
-import net.voxelindustry.brokkgui.gui.SubGuiScreen;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
-import net.voxelindustry.brokkgui.panel.ScrollPane;
-import net.voxelindustry.brokkgui.policy.GuiOverflowPolicy;
-import net.voxelindustry.brokkgui.policy.GuiScrollbarPolicy;
 import net.voxelindustry.brokkgui.shape.Rectangle;
 import net.voxelindustry.brokkgui.wrapper.container.BrokkGuiContainer;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
@@ -33,18 +29,18 @@ public class InventoryView extends GuiAbsolutePane
     private final GuiLabel            emptyLabel;
     private final GuiLabel            invLabel;
 
-    private final FullStacksView fullStackView;
-    private final Rectangle      shadowBottom;
-    private final Rectangle      shadowRight;
+    private final FullInventoryView fullStackView;
+    private final Rectangle         shadowBottom;
+    private final Rectangle         shadowRight;
 
     public InventoryView(BrokkGuiContainer<BuiltContainer> parent, TileLogicisticNode tile)
     {
-        this.setWidth(164);
-        this.setHeight(74);
+        this.setSize(164, 74);
+
         this.rawStacks = new ArrayList<>();
         this.stacks = new ArrayList<>();
         this.stacksPane = new GuiAbsolutePane();
-        this.fullStackView = new FullStacksView();
+        this.fullStackView = new FullInventoryView();
         stacksPane.setID("stacks-panel");
         stacksPane.setSize(164, 56);
         this.addChild(stacksPane, 0, 9);
@@ -231,66 +227,5 @@ public class InventoryView extends GuiAbsolutePane
         this.shadowRight.setWidth(shadowWidth);
         this.shadowRight.setxTranslate(18 * 9 - shadowWidth);
         this.shadowRight.setyTranslate(18 * 2 - shadowHeight);
-    }
-
-    private static class FullStacksView extends SubGuiScreen
-    {
-        private List<ItemStackView> views;
-        private GuiAbsolutePane     mainPanel;
-
-        public FullStacksView()
-        {
-            super(0.5f, 0.45f);
-            this.setSize(180, 110);
-            this.setzLevel(300);
-            this.setID("inv-window");
-
-            views = new ArrayList<>();
-            mainPanel = new GuiAbsolutePane();
-            mainPanel.setWidth(20 * 8);
-            mainPanel.setxTranslate(11);
-
-            ScrollPane scrollPane = new ScrollPane();
-            RelativeBindingHelper.bindToPos(scrollPane, this, 1, 1);
-            scrollPane.setWidth(178);
-            scrollPane.setHeight(108);
-            scrollPane.setGuiOverflowPolicy(GuiOverflowPolicy.TRIM);
-            scrollPane.setScrollYPolicy(GuiScrollbarPolicy.ALWAYS);
-            scrollPane.setChild(mainPanel);
-            scrollPane.setGripYWidth(8);
-            scrollPane.setGripYHeight(22);
-            scrollPane.setzLevel(310);
-            this.addChild(scrollPane);
-
-            this.setCloseOnClick(true);
-        }
-
-        public void refreshStacks(List<ItemStack> stacks)
-        {
-            int diff = this.views.size() - stacks.size();
-            if (diff > 0)
-            {
-                for (int slot = 0; slot < diff; slot++)
-                    mainPanel.removeChild(this.views.remove(this.views.size() - 1 - slot));
-            }
-            else if (diff < 0)
-            {
-                for (int slot = 0; slot < -diff; slot++)
-                {
-                    ItemStackView view = new ItemStackView();
-                    view.setSize(18, 18);
-                    view.setItemTooltip(true);
-                    view.setzLevel(301);
-
-                    mainPanel.addChild(view, 20 * (views.size() % 8), 20 * (views.size() / 8));
-                    views.add(view);
-                }
-            }
-
-            for (int slot = 0; slot < views.size(); slot++)
-                views.get(slot).setItemStack(stacks.get(slot));
-
-            mainPanel.setHeight((float) (20 * Math.ceil(stacks.size() / 8f)));
-        }
     }
 }

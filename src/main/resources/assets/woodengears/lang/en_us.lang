@@ -9,6 +9,10 @@ woodengears.gui.inventory.genericname=Inventory
 woodengears.gui.inventory.more=Show §o%d§r more
 woodengears.gui.inventory.empty=Empty inventory
 
+woodengears.gui.filter.title=Filters
+woodengears.gui.filter.whitelist=Whitelist
+woodengears.gui.filter.blacklist=Blacklist
+
 woodengears.gui.armreservoir.busy=§o%d§r busy arms
 woodengears.gui.armreservoir.returning=§o%d§r returning arms
 woodengears.gui.armreservoir.blocked=§o%d§r blocked arms

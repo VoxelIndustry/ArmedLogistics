@@ -51,6 +51,10 @@ scrollpane .grip-y {
     color: rgba(0, 0, 0, 0);
 }
 
+.stack-slot {
+    background-texture: url("woodengears:textures/gui/inv-window-slot.png");
+}
+
 .shadow-rect {
     background-color: #000000 25%;
 }

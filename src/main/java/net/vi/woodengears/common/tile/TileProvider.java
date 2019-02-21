@@ -7,21 +7,25 @@ import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
-import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
+import net.voxelindustry.steamlayer.network.action.ActionSender;
+import net.voxelindustry.steamlayer.network.action.IActionReceiver;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
-public class TileProvider extends TileLogicisticNode implements ITickable
+public class TileProvider extends TileLogicisticNode implements ITickable, IActionReceiver
 {
     @Getter
     private BaseItemProvider provider;
 
     private WrappedInventory           wrappedInventory;
     private InventoryBuffer            buffer;
+
+    @Getter
+    private BaseProperty<Boolean> whitelistProperty;
 
     public TileProvider()
     {
@@ -33,6 +37,8 @@ public class TileProvider extends TileLogicisticNode implements ITickable
         this.provider = new BaseItemProvider(this, ProviderType.PASSIVE_PROVIDER, this.wrappedInventory, this.buffer);
 
         this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
+
+        this.whitelistProperty = new BaseProperty<>(true, "whitelistProperty");
     }
 
     @Override
@@ -61,10 +67,10 @@ public class TileProvider extends TileLogicisticNode implements ITickable
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
-        super.writeToNBT(tag);
-
         this.buffer.writeNBT(tag);
-        return tag;
+
+        tag.setBoolean("whitelist", this.whitelistProperty.getValue());
+        return super.writeToNBT(tag);
     }
 
     @Override
@@ -73,15 +79,17 @@ public class TileProvider extends TileLogicisticNode implements ITickable
         super.readFromNBT(tag);
 
         this.buffer.readNBT(tag);
+        this.whitelistProperty.setValue(tag.getBoolean("whitelist"));
     }
 
     @Override
     public BuiltContainer createContainer(EntityPlayer player)
     {
         return new ContainerBuilder("provider", player)
-                .player(player).inventory(8, 94).hotbar(8, 152)
+                .player(player).inventory(8, 134).hotbar(8, 192)
                 .addInventory()
                 .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
+                .syncBooleanValue(whitelistProperty::getValue, whitelistProperty::setValue)
                 .syncInventory(this::getConnectedInventory, getCachedInventoryProperty()::setValue, 10)
                 .create();
     }
@@ -90,5 +98,12 @@ public class TileProvider extends TileLogicisticNode implements ITickable
     {
         for (ItemStack stack : this.buffer.getStacks())
             InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
+    }
+
+    @Override
+    public void handle(ActionSender sender, String actionID, NBTTagCompound payload)
+    {
+        if("WHITELIST_SWITCH".equals(actionID))
+            this.whitelistProperty.setValue(payload.getBoolean("whitelist"));
     }
 }

@@ -1,0 +1,35 @@
+#filters-panel {
+    background-texture: url("woodengears:textures/gui/filter_whitelist.png");
+}
+
+#filterview.blacklist #filters-panel {
+    background-texture: url("woodengears:textures/gui/filter_blacklist.png");
+}
+
+#filter-switch-button {
+    background-texture: url("woodengears:textures/gui/filter_whitelist_button.png");
+}
+
+#filter-switch-button:hover {
+    background-texture: url("woodengears:textures/gui/filter_whitelist_button_hover.png");
+}
+
+#filterview.blacklist #filter-switch-button {
+    background-texture: url("woodengears:textures/gui/filter_blacklist_button.png");
+}
+
+#filterview.blacklist #filter-switch-button:hover {
+    background-texture: url("woodengears:textures/gui/filter_blacklist_button_hover.png");
+}
+
+#filterview.blacklist text {
+    color: #FFFFFF;
+}
+
+#filter-label {
+    background-color: #FFFFFF;
+}
+
+#filterview.blacklist #filter-label {
+    background-color: #919191;
+}
