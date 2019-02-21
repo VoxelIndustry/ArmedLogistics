@@ -1,6 +1,9 @@
 # Guis
 
 woodengears.gui.provider.name=Provider
+woodengears.gui.provider_colored.name=Colored Provider
+woodengears.gui.requester.name=Requester
+woodengears.gui.storage.name=Buffer Storage
 woodengears.gui.armreservoir.name=Arm Reservoir
 
 woodengears.gui.inventory.where=%s %s

@@ -20,19 +20,18 @@ public class FullInventoryView extends SubGuiScreen
     public FullInventoryView()
     {
         super(0.5f, 0.45f);
-        this.setSize(180, 110);
+        this.setSize(170, 102);
         this.setzLevel(300);
         this.setID("inv-window");
 
         views = new ArrayList<>();
         mainPanel = new GuiAbsolutePane();
         mainPanel.setWidth(20 * 8);
-        mainPanel.setxTranslate(11);
 
         ScrollPane scrollPane = new ScrollPane();
         RelativeBindingHelper.bindToPos(scrollPane, this, 1, 1);
-        scrollPane.setWidth(178);
-        scrollPane.setHeight(108);
+        scrollPane.setWidth(168);
+        scrollPane.setHeight(100);
         scrollPane.setGuiOverflowPolicy(GuiOverflowPolicy.TRIM);
         scrollPane.setScrollYPolicy(GuiScrollbarPolicy.ALWAYS);
         scrollPane.setChild(mainPanel);
@@ -44,7 +43,7 @@ public class FullInventoryView extends SubGuiScreen
         this.setCloseOnClick(true);
     }
 
-    public void refreshStacks(List<ItemStack> stacks)
+    void refreshStacks(List<ItemStack> stacks)
     {
         int diff = this.views.size() - stacks.size();
         if (diff > 0)
@@ -57,9 +56,10 @@ public class FullInventoryView extends SubGuiScreen
             for (int slot = 0; slot < -diff; slot++)
             {
                 ItemStackView view = new ItemStackView();
-                view.setSize(18, 18);
+                view.setSize(20, 20);
                 view.setItemTooltip(true);
                 view.setzLevel(301);
+                view.addStyleClass("stack-slot");
 
                 mainPanel.addChild(view, 20 * (views.size() % 8), 20 * (views.size() / 8));
                 views.add(view);
