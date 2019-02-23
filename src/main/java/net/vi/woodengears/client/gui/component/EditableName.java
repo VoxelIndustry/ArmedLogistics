@@ -52,7 +52,7 @@ public class EditableName extends GuiAbsolutePane
                 this.stopEditing();
         });
 
-        this.nameField.getEventDispatcher().addHandler(KeyEvent.TYPE, e ->
+        this.nameField.getEventDispatcher().addHandler(KeyEvent.PRESS, e ->
         {
             if (nameLabel.isVisible())
                 return;

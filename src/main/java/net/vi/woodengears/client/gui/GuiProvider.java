@@ -42,5 +42,6 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/provider.css");
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/inventoryview.css");
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/filterview.css");
+
     }
 }

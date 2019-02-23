@@ -50,6 +50,7 @@ public class InventoryView extends GuiAbsolutePane
         moreButton.setVisible(false);
         moreButton.setID("more-button");
         this.addChild(moreButton);
+        moreButton.getLabel().setTextPadding(RectOffset.build().top(1).create());
         moreButton.setxTranslate(7);
         RelativeBindingHelper.bindToPos(moreButton, stacksPane, null,
                 BaseExpression.transform(stacksPane.getHeightProperty(), height -> height - 1));

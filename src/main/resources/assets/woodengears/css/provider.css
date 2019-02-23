@@ -2,6 +2,10 @@
     background-texture: url("woodengears:textures/gui/pencil.png");
 }
 
+#edit-button:hover {
+    background-texture: url("woodengears:textures/gui/pencil-hover.png");
+}
+
 #edit-field {
     cursor-color: #000000 78%;
 }

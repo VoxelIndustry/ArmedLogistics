@@ -33,3 +33,13 @@
 #filterview.blacklist #filter-label {
     background-color: #919191;
 }
+
+#filterview.copypasting itemstack:hover {
+    border-color: #d67b71;
+    border-thin: 1;
+}
+
+#filterview itemstack.selected, #filterview itemstack.selected:hover {
+    border-color: #28a745;
+    border-thin: 1;
+}
