@@ -27,6 +27,9 @@ woodengears.gui.facing.west=at §lWest
 woodengears.gui.facing.up=§lAbove
 woodengears.gui.facing.down=§lBelow
 
+woodengears.gui.copy=Copied!
+woodengears.gui.paste=Pasted!
+
 # Blocks
 tile.woodengears.provider_active.name=Active Provider
 tile.woodengears.provider_passive.name=Passive Provider

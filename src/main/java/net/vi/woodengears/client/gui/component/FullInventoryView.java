@@ -2,9 +2,9 @@ package net.vi.woodengears.client.gui.component;
 
 import net.minecraft.item.ItemStack;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
+import net.voxelindustry.brokkgui.element.pane.ScrollPane;
 import net.voxelindustry.brokkgui.gui.SubGuiScreen;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
-import net.voxelindustry.brokkgui.panel.ScrollPane;
 import net.voxelindustry.brokkgui.policy.GuiOverflowPolicy;
 import net.voxelindustry.brokkgui.policy.GuiScrollbarPolicy;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
@@ -32,7 +32,7 @@ public class FullInventoryView extends SubGuiScreen
         RelativeBindingHelper.bindToPos(scrollPane, this, 1, 1);
         scrollPane.setWidth(168);
         scrollPane.setHeight(100);
-        scrollPane.setGuiOverflowPolicy(GuiOverflowPolicy.TRIM);
+        scrollPane.setGuiOverflow(GuiOverflowPolicy.TRIM);
         scrollPane.setScrollYPolicy(GuiScrollbarPolicy.ALWAYS);
         scrollPane.setChild(mainPanel);
         scrollPane.setGripYWidth(8);

@@ -1,3 +1,5 @@
+@import url("/assets/woodengears/css/ministatepopup.css");
+
 #filters-panel {
     background-texture: url("woodengears:textures/gui/filter_whitelist.png");
 }
@@ -36,10 +38,10 @@
 
 #filterview.copypasting itemstack:hover {
     border-color: #d67b71;
-    border-thin: 1;
+    border-width: 1;
 }
 
 #filterview itemstack.selected, #filterview itemstack.selected:hover {
     border-color: #28a745;
-    border-thin: 1;
+    border-width: 1;
 }

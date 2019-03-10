@@ -124,14 +124,17 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     {
         super.readFromNBT(tag);
 
-        this.customName = tag.getString("customName");
         this.hasCustomName = tag.getBoolean("hasCustomName");
+
+        if(this.hasCustomName())
+            this.customName = tag.getString("customName");
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
-        tag.setString("customName", this.customName);
+        if (this.customName != null)
+            tag.setString("customName", this.customName);
         tag.setBoolean("hasCustomName", this.hasCustomName);
 
         return super.writeToNBT(tag);

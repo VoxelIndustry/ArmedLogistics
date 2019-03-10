@@ -2,9 +2,9 @@ package net.vi.woodengears.client.gui.component;
 
 import net.voxelindustry.brokkgui.data.RectOffset;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
-import net.voxelindustry.brokkgui.element.GuiButton;
 import net.voxelindustry.brokkgui.element.GuiLabel;
-import net.voxelindustry.brokkgui.element.GuiTextfield;
+import net.voxelindustry.brokkgui.element.input.GuiButton;
+import net.voxelindustry.brokkgui.element.input.GuiTextfield;
 import net.voxelindustry.brokkgui.event.KeyEvent;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
 import org.lwjgl.input.Keyboard;

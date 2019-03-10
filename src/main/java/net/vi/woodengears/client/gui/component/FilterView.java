@@ -6,10 +6,11 @@ import net.vi.woodengears.WoodenGears;
 import net.voxelindustry.brokkgui.BrokkGuiPlatform;
 import net.voxelindustry.brokkgui.data.RectAlignment;
 import net.voxelindustry.brokkgui.data.RectOffset;
-import net.voxelindustry.brokkgui.element.GuiButton;
 import net.voxelindustry.brokkgui.element.GuiLabel;
+import net.voxelindustry.brokkgui.element.input.GuiButton;
 import net.voxelindustry.brokkgui.event.HoverEvent;
 import net.voxelindustry.brokkgui.event.KeyEvent;
+import net.voxelindustry.brokkgui.internal.PopupHandler;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
 import net.voxelindustry.brokkgui.shape.Rectangle;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
@@ -83,8 +84,6 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
         this.getEventDispatcher().addHandler(HoverEvent.TYPE, this::onHover);
         this.getEventDispatcher().addHandler(KeyEvent.PRESS, this::onKeyPressed);
         this.getEventDispatcher().addHandler(KeyEvent.RELEASE, this::onKeyReleased);
-
-
     }
 
     private void onKeyPressed(KeyEvent.Press event)
@@ -158,6 +157,8 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
         if (value == selected)
             return;
 
+        showCopiedPopup(value);
+
         if (selected != null)
             selected.removeStyleClass("selected");
         selected = value;
@@ -170,5 +171,10 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
     public MutableItemStackView getClipboard()
     {
         return selected;
+    }
+
+    private void showCopiedPopup(MutableItemStackView node)
+    {
+        PopupHandler.getInstance().addPopup(new MiniStatePopup(node, I18n.format("woodengears.gui.copy")));
     }
 }

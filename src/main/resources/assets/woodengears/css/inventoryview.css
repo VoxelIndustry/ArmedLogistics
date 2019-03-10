@@ -7,7 +7,7 @@
 }
 
 .box-line {
-    color: #23405c;
+    background-color: #23405c;
 }
 
 #inv-label {
@@ -39,12 +39,12 @@
 }
 
 scrollpane .grip-y {
-    texture: url("woodengears:textures/gui/inv-window-scroll.png");
-    color: rgba(0, 0, 0, 0);
+    background-texture: url("woodengears:textures/gui/inv-window-scroll.png");
+    background-color: rgba(0, 0, 0, 0);
 }
 
 scrollpane .grip-y:hover {
-    texture: url("woodengears:textures/gui/inv-window-scroll-hover.png");
+    background-texture: url("woodengears:textures/gui/inv-window-scroll-hover.png");
 }
 
 .stack-slot {
