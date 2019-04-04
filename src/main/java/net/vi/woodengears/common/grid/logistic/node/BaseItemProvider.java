@@ -2,6 +2,7 @@ package net.vi.woodengears.common.grid.logistic.node;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
@@ -27,6 +28,9 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Getter
     private ProviderType       providerType;
     private TileLogicisticNode tile;
+    @Getter
+    @Setter
+    private IItemFilter        filter = IItemFilter.ALWAYS_TRUE;
 
     public BaseItemProvider(TileLogicisticNode tile, ProviderType type, IItemHandler handler,
                             InventoryBuffer buffer)
@@ -34,6 +38,9 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
         this.tile = tile;
         this.handler = handler;
         this.buffer = buffer;
+
+        if (tile instanceof IItemFilter)
+            this.filter = (IItemFilter) tile;
 
         this.providerType = type;
 
@@ -82,6 +89,9 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
             for (int i = 0; i < handler.getSlots(); i++)
             {
                 ItemStack stack = handler.getStackInSlot(i);
+
+                if (!this.filter.filter(stack))
+                    continue;
 
                 Optional<ItemStack> found =
                         this.compressedStacks.stream().filter(candidate -> ItemUtils.deepEquals(candidate, stack)).findFirst();

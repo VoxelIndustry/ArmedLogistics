@@ -1,5 +1,6 @@
 package net.vi.woodengears.common.tile;
 
+import fr.ourten.teabeans.value.BaseListProperty;
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
 import net.minecraft.entity.player.EntityPlayer;
@@ -9,23 +10,28 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
+import net.vi.woodengears.common.grid.logistic.node.IItemFilter;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
 import net.voxelindustry.steamlayer.network.action.ActionSender;
 import net.voxelindustry.steamlayer.network.action.IActionReceiver;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
+import net.voxelindustry.steamlayer.utils.ItemUtils;
 
-public class TileProvider extends TileLogicisticNode implements ITickable, IActionReceiver
+public class TileProvider extends TileLogicisticNode implements ITickable, IActionReceiver, IItemFilter
 {
     @Getter
     private BaseItemProvider provider;
 
-    private WrappedInventory           wrappedInventory;
-    private InventoryBuffer            buffer;
+    private WrappedInventory wrappedInventory;
+    private InventoryBuffer  buffer;
 
     @Getter
     private BaseProperty<Boolean> whitelistProperty;
+
+    @Getter
+    private BaseListProperty<ItemStack> filtersProperty;
 
     public TileProvider()
     {
@@ -91,6 +97,15 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
                 .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncBooleanValue(whitelistProperty::getValue, whitelistProperty::setValue)
                 .syncInventory(this::getConnectedInventory, getCachedInventoryProperty()::setValue, 10)
+                .syncItemValue(() -> this.getFiltersProperty().get(0), stack -> this.getFiltersProperty().set(0, stack))
+                .syncItemValue(() -> this.getFiltersProperty().get(1), stack -> this.getFiltersProperty().set(1, stack))
+                .syncItemValue(() -> this.getFiltersProperty().get(2), stack -> this.getFiltersProperty().set(2, stack))
+                .syncItemValue(() -> this.getFiltersProperty().get(3), stack -> this.getFiltersProperty().set(3, stack))
+                .syncItemValue(() -> this.getFiltersProperty().get(4), stack -> this.getFiltersProperty().set(4, stack))
+                .syncItemValue(() -> this.getFiltersProperty().get(5), stack -> this.getFiltersProperty().set(5, stack))
+                .syncItemValue(() -> this.getFiltersProperty().get(6), stack -> this.getFiltersProperty().set(6, stack))
+                .syncItemValue(() -> this.getFiltersProperty().get(7), stack -> this.getFiltersProperty().set(7, stack))
+                .syncItemValue(() -> this.getFiltersProperty().get(8), stack -> this.getFiltersProperty().set(8, stack))
                 .create();
     }
 
@@ -103,7 +118,28 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     @Override
     public void handle(ActionSender sender, String actionID, NBTTagCompound payload)
     {
-        if("WHITELIST_SWITCH".equals(actionID))
+        if ("WHITELIST_SWITCH".equals(actionID))
             this.whitelistProperty.setValue(payload.getBoolean("whitelist"));
+    }
+
+    @Override
+    public boolean filter(ItemStack stack)
+    {
+        if (this.getWhitelistProperty().getValue() && this.doesFiltersContains(stack))
+            return true;
+        else
+            return !this.getWhitelistProperty().getValue() && !this.doesFiltersContains(stack);
+    }
+
+    private boolean doesFiltersContains(ItemStack stack)
+    {
+        for (ItemStack filter : this.filtersProperty.getValue())
+        {
+            if (filter.isEmpty())
+                continue;
+            if (ItemUtils.deepEquals(filter, stack))
+                return true;
+        }
+        return false;
     }
 }
