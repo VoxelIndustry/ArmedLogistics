@@ -30,6 +30,9 @@
 
 #filter-label {
     background-color: #FFFFFF;
+    border-width: 1 1 0;
+    border-radius: 2 2 0 0;
+    border-color: black;
 }
 
 #filterview.blacklist #filter-label {

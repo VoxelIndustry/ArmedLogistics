@@ -12,7 +12,6 @@ import net.voxelindustry.brokkgui.event.HoverEvent;
 import net.voxelindustry.brokkgui.event.KeyEvent;
 import net.voxelindustry.brokkgui.internal.PopupHandler;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
-import net.voxelindustry.brokkgui.shape.Rectangle;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
 
 import java.util.function.Consumer;
@@ -43,24 +42,6 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
         filterLabel.setTextPadding(RectOffset.build().left(2).right(2).top(1).create());
         filterLabel.setID("filter-label");
         this.addChild(filterLabel, 1, 1);
-
-        Rectangle invLabelLeftLine = new Rectangle();
-        this.addChild(invLabelLeftLine, 0, 1);
-        invLabelLeftLine.setWidth(1);
-        invLabelLeftLine.setHeight(9);
-        invLabelLeftLine.addStyleClass("box-line");
-
-        Rectangle invLabelTopLine = new Rectangle();
-        this.addChild(invLabelTopLine, 1, 0);
-        invLabelTopLine.setWidth(filterLabel.getWidth());
-        invLabelTopLine.setHeight(1);
-        invLabelTopLine.addStyleClass("box-line");
-
-        Rectangle invLabelRightLine = new Rectangle();
-        this.addChild(invLabelRightLine, filterLabel.getWidth() + 1, 1);
-        invLabelRightLine.setWidth(1);
-        invLabelRightLine.setHeight(9);
-        invLabelRightLine.addStyleClass("box-line");
 
         this.switchButton = new GuiButton();
         switchButton.setSize(148, 10);

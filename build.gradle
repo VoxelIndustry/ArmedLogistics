@@ -49,8 +49,8 @@ dependencies {
     deobfCompile 'mezz.jei:jei_1.12.2:4.14.4.264'
 
     deobfCompile 'net.voxelindustry:steamlayer-core:0.3.2'
-    deobfCompile 'net.voxelindustry:brokkgui-binding-mc1.12:1.0.0-39-SNAPSHOT'
-    compile 'fr.ourten:teabeans:0.7.0'
+    deobfCompile 'net.voxelindustry:brokkgui-binding-mc1.12:1.0.0-40-SNAPSHOT'
+    compile 'fr.ourten:teabeans:1.0.0'
 
     testCompile('org.junit.jupiter:junit-jupiter-api:5.3.2')
     testCompile('org.mockito:mockito-core:2.24.0')

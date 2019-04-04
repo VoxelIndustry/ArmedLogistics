@@ -75,27 +75,6 @@ public class InventoryView extends GuiAbsolutePane
         invLabel.setTextPadding(RectOffset.build().left(2).right(2).top(1).create());
         this.addChild(invLabel, 1, 1);
 
-        Rectangle invLabelLeftLine = new Rectangle();
-        this.addChild(invLabelLeftLine);
-        RelativeBindingHelper.bindToPos(invLabelLeftLine, invLabel, -1, 0);
-        invLabelLeftLine.setWidth(1);
-        invLabelLeftLine.getHeightProperty().bind(invLabel.getHeightProperty());
-        invLabelLeftLine.addStyleClass("box-line");
-
-        Rectangle invLabelTopLine = new Rectangle();
-        this.addChild(invLabelTopLine);
-        RelativeBindingHelper.bindToPos(invLabelTopLine, invLabel, 0, -1);
-        invLabelTopLine.getWidthProperty().bind(invLabel.getWidthProperty());
-        invLabelTopLine.setHeight(1);
-        invLabelTopLine.addStyleClass("box-line");
-
-        Rectangle invLabelRightLine = new Rectangle();
-        this.addChild(invLabelRightLine);
-        RelativeBindingHelper.bindToPos(invLabelRightLine, invLabel, invLabel.getWidthProperty(), null);
-        invLabelRightLine.setWidth(1);
-        invLabelRightLine.getHeightProperty().bind(invLabel.getHeightProperty());
-        invLabelRightLine.addStyleClass("box-line");
-
         this.shadowBottom = new Rectangle();
         this.addChild(shadowBottom, 1, 10);
         shadowBottom.setWidth(162);
