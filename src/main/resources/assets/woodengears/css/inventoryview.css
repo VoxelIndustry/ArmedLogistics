@@ -53,3 +53,11 @@ scrollpane .grip-y:hover {
 .shadow-rect {
     background-color: #000000 25%;
 }
+
+#hide-button {
+    background-texture: url("woodengears:textures/gui/icon/eye_open.png");
+}
+
+#hide-button:active {
+    background-texture: url("woodengears:textures/gui/icon/eye_closed.png");
+}

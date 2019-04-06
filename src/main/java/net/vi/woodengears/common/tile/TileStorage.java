@@ -71,8 +71,8 @@ public class TileStorage extends TileLogicisticNode
     {
         return new ContainerBuilder("storage", player)
                 .player(player).inventory(8, 103).hotbar(8, 161)
-                .addInventory()
-                .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
+                .sync()
+                .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
                 .create();
     }

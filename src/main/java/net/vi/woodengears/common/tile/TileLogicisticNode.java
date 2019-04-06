@@ -126,7 +126,7 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
 
         this.hasCustomName = tag.getBoolean("hasCustomName");
 
-        if(this.hasCustomName())
+        if (this.hasCustomName())
             this.customName = tag.getString("customName");
     }
 

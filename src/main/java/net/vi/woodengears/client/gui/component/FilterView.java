@@ -14,6 +14,7 @@ import net.voxelindustry.brokkgui.internal.PopupHandler;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -25,7 +26,8 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
     private ItemStackView[]      filters;
     private MutableItemStackView selected;
 
-    public FilterView(Supplier<Boolean> whitelistGetter, Consumer<Boolean> whitelistSetter)
+    public FilterView(Supplier<Boolean> whitelistGetter, Consumer<Boolean> whitelistSetter,
+                      ItemStack[] filterArray, BiConsumer<Integer, ItemStack> onFilterChange)
     {
         this.setSize(164, 38);
         this.setID("filterview");
@@ -55,8 +57,12 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
         this.filters = new ItemStackView[9];
         for (int i = 0; i < 9; i++)
         {
-            MutableItemStackView view = new MutableItemStackView(ItemStack.EMPTY, false, this);
+            final int finalIndex = i;
+
+            MutableItemStackView view = new MutableItemStackView(filterArray[i].copy(), false, this);
             view.setSize(18, 18);
+            view.getStackProperty().addListener(obs -> onFilterChange.accept(finalIndex, view.getItemStack()));
+
             filters[i] = view;
             filtersPanel.addChild(view, i * 18 + 1, 1);
         }
@@ -65,6 +71,11 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
         this.getEventDispatcher().addHandler(HoverEvent.TYPE, this::onHover);
         this.getEventDispatcher().addHandler(KeyEvent.PRESS, this::onKeyPressed);
         this.getEventDispatcher().addHandler(KeyEvent.RELEASE, this::onKeyReleased);
+    }
+
+    public void setFilterStack(int index, ItemStack stack)
+    {
+        this.filters[index].setItemStack(stack);
     }
 
     private void onKeyPressed(KeyEvent.Press event)
@@ -156,6 +167,7 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
 
     private void showCopiedPopup(MutableItemStackView node)
     {
-        PopupHandler.getInstance().addPopup(new MiniStatePopup(node, I18n.format("woodengears.gui.copy")));
+        PopupHandler.getInstance(this.getWindow()).addPopup(new MiniStatePopup(node,
+                I18n.format("woodengears.gui.copy")));
     }
 }

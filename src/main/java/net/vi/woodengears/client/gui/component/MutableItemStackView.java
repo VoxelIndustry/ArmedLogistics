@@ -86,6 +86,9 @@ public class MutableItemStackView extends ItemStackView
                     view.getItemStack().setCount(view.getItemStack().getMaxStackSize());
                 else
                     view.getItemStack().grow(1);
+
+                // Trigger listeners
+                view.setItemStack(view.getItemStack());
             }
         }
 
@@ -101,6 +104,9 @@ public class MutableItemStackView extends ItemStackView
                 view.getItemStack().setCount(0);
             else
                 view.getItemStack().shrink(1);
+
+            // Trigger listeners
+            view.setItemStack(view.getItemStack());
         }
 
         private ItemStack getHeldStack()

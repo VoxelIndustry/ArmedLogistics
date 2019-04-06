@@ -1,20 +1,25 @@
 package net.vi.woodengears.client.gui.component;
 
 import fr.ourten.teabeans.binding.BaseExpression;
+import fr.ourten.teabeans.value.BaseProperty;
+import lombok.Getter;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.WoodenGears;
+import net.vi.woodengears.common.grid.logistic.node.IItemFilter;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.brokkgui.data.RectAlignment;
 import net.voxelindustry.brokkgui.data.RectOffset;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
 import net.voxelindustry.brokkgui.element.GuiLabel;
 import net.voxelindustry.brokkgui.element.input.GuiButton;
+import net.voxelindustry.brokkgui.element.input.GuiToggleButton;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
 import net.voxelindustry.brokkgui.shape.Rectangle;
 import net.voxelindustry.brokkgui.wrapper.container.BrokkGuiContainer;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
+import net.voxelindustry.brokkgui.wrapper.elements.MCTooltip;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 
 import java.util.ArrayList;
@@ -29,18 +34,33 @@ public class InventoryView extends GuiAbsolutePane
     private final GuiLabel            emptyLabel;
     private final GuiLabel            invLabel;
 
+    private GuiToggleButton hideButton;
+
     private final FullInventoryView fullStackView;
     private final Rectangle         shadowBottom;
     private final Rectangle         shadowRight;
+
+    @Getter
+    private BaseProperty<Boolean> showFiltered;
+
+    private IItemFilter tileFilter;
 
     public InventoryView(BrokkGuiContainer<BuiltContainer> parent, TileLogicisticNode tile)
     {
         this.setSize(164, 74);
 
+        this.showFiltered = new BaseProperty<>(true, "showFilteredProperty");
+        this.showFiltered.addListener((obs, oldValue, newValue) ->
+        {
+            hideButton.setSelected(!newValue);
+            this.refreshStacks(tile.getCachedInventoryProperty().getValue());
+        });
+
         this.rawStacks = new ArrayList<>();
         this.stacks = new ArrayList<>();
         this.stacksPane = new GuiAbsolutePane();
         this.fullStackView = new FullInventoryView();
+
         stacksPane.setID("stacks-panel");
         stacksPane.setSize(164, 56);
         this.addChild(stacksPane, 0, 9);
@@ -74,6 +94,23 @@ public class InventoryView extends GuiAbsolutePane
         invLabel.setID("inv-label");
         invLabel.setTextPadding(RectOffset.build().left(2).right(2).top(1).create());
         this.addChild(invLabel, 1, 1);
+
+        if (tile instanceof IItemFilter)
+        {
+            this.tileFilter = (IItemFilter) tile;
+
+            this.hideButton = new GuiToggleButton();
+            hideButton.setID("hide-button");
+            hideButton.setTooltip(MCTooltip.build().dynamicLines(lines ->
+            {
+                lines.add(I18n.format(WoodenGears.MODID + ".gui.inventory.hidefiltered." +
+                        (hideButton.isSelected() ? "off" : "on")));
+            }).create());
+            hideButton.setSize(12, 9);
+            hideButton.getSelectedProperty().addListener((obs, oldValue, newValue) -> this.showFiltered.setValue(!newValue));
+
+            this.addChild(hideButton, 164 - 12 - 2, 0);
+        }
 
         this.shadowBottom = new Rectangle();
         this.addChild(shadowBottom, 1, 10);
@@ -109,7 +146,7 @@ public class InventoryView extends GuiAbsolutePane
         }
     }
 
-    private void refreshStacks(IItemHandler inventory)
+    public void refreshStacks(IItemHandler inventory)
     {
         if (inventory == null)
         {
@@ -123,7 +160,7 @@ public class InventoryView extends GuiAbsolutePane
         {
             ItemStack inSlot = inventory.getStackInSlot(slot);
 
-            if (!inSlot.isEmpty())
+            if (!inSlot.isEmpty() && (showFiltered.getValue() || tileFilter.test(inSlot)))
                 rawStacks.add(inSlot);
         }
 

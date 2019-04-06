@@ -42,11 +42,11 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
     {
         return new ContainerBuilder("armreservoir", player)
                 .player(player).inventory(8, 96).hotbar(8, 154)
-                .addInventory().tile(this.getInventory())
+                .tile(this.getInventory())
                 .filterSlotLine(0, 54, 52, 4, EnumFacing.Axis.X, stack -> stack.getItem() == WGItems.LOGISTIC_ARM)
                 .fuelSlot(4, 72, 74)
                 .fuelSlot(5, 90, 74)
-                .addInventory().create();
+                .create();
     }
 
     public Optional<EntityLogisticArm> injectArm()

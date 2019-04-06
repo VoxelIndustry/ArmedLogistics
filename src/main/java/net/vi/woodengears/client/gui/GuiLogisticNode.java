@@ -15,42 +15,42 @@ import net.voxelindustry.steamlayer.container.BuiltContainer;
 public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends BrokkGuiContainer<BuiltContainer>
 {
     @Getter
-    private final T node;
+    private final T tile;
 
     protected GuiAbsolutePane mainPanel;
 
-    public GuiLogisticNode(EntityPlayer player, T node)
+    public GuiLogisticNode(EntityPlayer player, T tile)
     {
-        super(node.createContainer(player));
+        super(tile.createContainer(player));
         this.setxRelativePos(0.5f);
         this.setyRelativePos(0.5f);
 
-        this.node = node;
+        this.tile = tile;
 
         mainPanel = new GuiAbsolutePane();
         this.setMainPanel(mainPanel);
 
-        EditableName title = new EditableName(node.getDisplayName()::getFormattedText, node::setCustomName);
+        EditableName title = new EditableName(tile.getDisplayName()::getFormattedText, tile::setCustomName);
         mainPanel.addChild(title, 6, 6);
     }
 
     protected void updateStatusStyle()
     {
-        if (node.getConnectedInventoryProperty().getValue())
+        if (tile.getConnectedInventoryProperty().getValue())
         {
             TileEntity tile =
-                    Minecraft.getMinecraft().world.getTileEntity(node.getPos().offset(node.getFacing()));
+                    Minecraft.getMinecraft().world.getTileEntity(this.tile.getPos().offset(this.tile.getFacing()));
             String name = tile.getDisplayName() != null ? tile.getDisplayName().getFormattedText() :
                     I18n.format("woodengears.gui.inventory.genericname");
 
             getInventoryView().setInvStatus(I18n.format("woodengears.gui.inventory.where", name,
-                    I18n.format("woodengears.gui.facing." + node.getFacing())));
+                    I18n.format("woodengears.gui.facing." + this.tile.getFacing())));
             getInventoryView().setInvValid(true);
         }
         else
         {
             getInventoryView().setInvStatus(I18n.format("woodengears.gui.inventory.notwhere",
-                    I18n.format("woodengears.gui.facing." + node.getFacing())));
+                    I18n.format("woodengears.gui.facing." + tile.getFacing())));
             getInventoryView().setInvValid(false);
         }
     }

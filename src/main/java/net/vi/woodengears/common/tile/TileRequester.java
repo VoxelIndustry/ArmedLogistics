@@ -105,8 +105,8 @@ public class TileRequester extends TileLogicisticNode implements ITickable
     {
         return new ContainerBuilder("requester", player)
                 .player(player).inventory(8, 103).hotbar(8, 161)
-                .addInventory()
-                .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
+                .sync()
+                .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
                 .create();
     }

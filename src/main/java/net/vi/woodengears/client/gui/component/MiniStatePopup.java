@@ -38,7 +38,7 @@ public class MiniStatePopup extends GuiAbsolutePane implements IGuiPopup
         SequentialTransition anim = new SequentialTransition(this, translation,
                 new WaitTransition(this, 1200, TimeUnit.MILLISECONDS));
 
-        anim.setOnFinishEvent(e -> PopupHandler.getInstance().removePopup(this));
+        anim.setOnFinishEvent(e -> PopupHandler.getInstance(parent.getWindow()).removePopup(this));
         anim.start();
     }
 }

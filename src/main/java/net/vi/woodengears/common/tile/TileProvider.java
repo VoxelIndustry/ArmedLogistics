@@ -1,8 +1,8 @@
 package net.vi.woodengears.common.tile;
 
-import fr.ourten.teabeans.value.BaseListProperty;
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
@@ -19,6 +19,8 @@ import net.voxelindustry.steamlayer.network.action.IActionReceiver;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
 import net.voxelindustry.steamlayer.utils.ItemUtils;
 
+import java.util.Arrays;
+
 public class TileProvider extends TileLogicisticNode implements ITickable, IActionReceiver, IItemFilter
 {
     @Getter
@@ -31,7 +33,11 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     private BaseProperty<Boolean> whitelistProperty;
 
     @Getter
-    private BaseListProperty<ItemStack> filtersProperty;
+    private ItemStack[] filters;
+
+    @Getter
+    @Setter
+    private boolean showFiltereds = true;
 
     public TileProvider()
     {
@@ -45,6 +51,8 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
         this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
 
         this.whitelistProperty = new BaseProperty<>(true, "whitelistProperty");
+        this.filters = new ItemStack[9];
+        Arrays.fill(filters, ItemStack.EMPTY);
     }
 
     @Override
@@ -76,6 +84,10 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
         this.buffer.writeNBT(tag);
 
         tag.setBoolean("whitelist", this.whitelistProperty.getValue());
+        tag.setBoolean("filteredShown", this.showFiltereds);
+
+        for (int i = 0; i < this.filters.length; i++)
+            tag.setTag("filter" + i, this.filters[i].writeToNBT(new NBTTagCompound()));
         return super.writeToNBT(tag);
     }
 
@@ -86,6 +98,10 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
 
         this.buffer.readNBT(tag);
         this.whitelistProperty.setValue(tag.getBoolean("whitelist"));
+        this.showFiltereds = tag.getBoolean("filteredShown");
+
+        for (int i = 0; i < 9; i++)
+            this.filters[i] = new ItemStack(tag.getCompoundTag("filter" + i));
     }
 
     @Override
@@ -93,19 +109,12 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     {
         return new ContainerBuilder("provider", player)
                 .player(player).inventory(8, 134).hotbar(8, 192)
-                .addInventory()
-                .syncBooleanValue(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
-                .syncBooleanValue(whitelistProperty::getValue, whitelistProperty::setValue)
+                .sync()
+                .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
+                .syncBoolean(whitelistProperty::getValue, whitelistProperty::setValue)
                 .syncInventory(this::getConnectedInventory, getCachedInventoryProperty()::setValue, 10)
-                .syncItemValue(() -> this.getFiltersProperty().get(0), stack -> this.getFiltersProperty().set(0, stack))
-                .syncItemValue(() -> this.getFiltersProperty().get(1), stack -> this.getFiltersProperty().set(1, stack))
-                .syncItemValue(() -> this.getFiltersProperty().get(2), stack -> this.getFiltersProperty().set(2, stack))
-                .syncItemValue(() -> this.getFiltersProperty().get(3), stack -> this.getFiltersProperty().set(3, stack))
-                .syncItemValue(() -> this.getFiltersProperty().get(4), stack -> this.getFiltersProperty().set(4, stack))
-                .syncItemValue(() -> this.getFiltersProperty().get(5), stack -> this.getFiltersProperty().set(5, stack))
-                .syncItemValue(() -> this.getFiltersProperty().get(6), stack -> this.getFiltersProperty().set(6, stack))
-                .syncItemValue(() -> this.getFiltersProperty().get(7), stack -> this.getFiltersProperty().set(7, stack))
-                .syncItemValue(() -> this.getFiltersProperty().get(8), stack -> this.getFiltersProperty().set(8, stack))
+                .syncArray(this::getFilters, ItemStack.class, null, "filters")
+                .syncBoolean(this::isShowFiltereds, this::setShowFiltereds, "filteredShown")
                 .create();
     }
 
@@ -119,7 +128,20 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     public void handle(ActionSender sender, String actionID, NBTTagCompound payload)
     {
         if ("WHITELIST_SWITCH".equals(actionID))
+        {
             this.whitelistProperty.setValue(payload.getBoolean("whitelist"));
+            this.markDirty();
+        }
+        else if ("FILTER_CHANGE".equals(actionID))
+        {
+            this.filters[payload.getInteger("index")] = new ItemStack(payload.getCompoundTag("stack"));
+            this.markDirty();
+        }
+        else if ("FILTERED_SHOW_CHANGE".equals(actionID))
+        {
+            this.setShowFiltereds(payload.getBoolean("state"));
+            this.markDirty();
+        }
     }
 
     @Override
@@ -133,7 +155,7 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
 
     private boolean doesFiltersContains(ItemStack stack)
     {
-        for (ItemStack filter : this.filtersProperty.getValue())
+        for (ItemStack filter : this.filters)
         {
             if (filter.isEmpty())
                 continue;
