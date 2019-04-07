@@ -19,18 +19,18 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
 
     protected GuiAbsolutePane mainPanel;
 
+    protected EditableName title;
+
     public GuiLogisticNode(EntityPlayer player, T tile)
     {
         super(tile.createContainer(player));
-        this.setxRelativePos(0.5f);
-        this.setyRelativePos(0.5f);
 
         this.tile = tile;
 
         mainPanel = new GuiAbsolutePane();
         this.setMainPanel(mainPanel);
 
-        EditableName title = new EditableName(tile.getDisplayName()::getFormattedText, tile::setCustomName);
+        this.title = new EditableName(tile.getDisplayName()::getFormattedText, tile::setCustomName);
         mainPanel.addChild(title, 6, 6);
     }
 

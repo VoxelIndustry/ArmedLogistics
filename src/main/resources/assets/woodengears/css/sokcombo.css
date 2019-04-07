@@ -1,0 +1,22 @@
+#sok-button-background {
+    background-texture: url("woodengears:textures/gui/request_sok_combo.png");
+}
+
+.sok-button {
+    background-texture: url("woodengears:textures/gui/request_sok_button_off.png");
+}
+
+.sok-button:active {
+    background-texture: url("woodengears:textures/gui/request_sok_button.png");
+}
+
+.sok-button:hover {
+    foreground-color: #FFFFFF 25%;
+}
+
+#sokcombo {
+    background-color: #C6C6C6;
+    border-color: black;
+    border-width: 1;
+    border-radius: 2;
+}

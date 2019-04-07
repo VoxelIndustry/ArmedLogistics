@@ -14,6 +14,11 @@ woodengears.gui.inventory.empty=Empty inventory
 woodengears.gui.inventory.hidefiltered.on=Hide filtereds items
 woodengears.gui.inventory.hidefiltered.off=Show filtereds items
 
+woodengears.gui.request.title=Requests
+woodengears.gui.sok.supply=Supply
+woodengears.gui.sok.once=Once
+woodengears.gui.sok.keep=Keep
+
 woodengears.gui.filter.title=Filters
 woodengears.gui.filter.whitelist=Whitelist
 woodengears.gui.filter.blacklist=Blacklist

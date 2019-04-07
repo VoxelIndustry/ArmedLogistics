@@ -2,6 +2,7 @@ package net.vi.woodengears.common.tile;
 
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
@@ -13,9 +14,13 @@ import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.vi.woodengears.common.grid.logistic.node.RequesterMode;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
+import net.voxelindustry.steamlayer.network.action.ActionSender;
+import net.voxelindustry.steamlayer.network.action.IActionReceiver;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
-public class TileRequester extends TileLogicisticNode implements ITickable
+import java.util.List;
+
+public class TileRequester extends TileLogicisticNode implements ITickable, IActionReceiver
 {
     @Getter
     private BaseItemRequester requester;
@@ -25,6 +30,10 @@ public class TileRequester extends TileLogicisticNode implements ITickable
 
     private WrappedInventory wrappedInventory;
     private InventoryBuffer  buffer;
+
+    @Getter
+    @Setter
+    private List<ItemStack> clientCachedRequests;
 
     public TileRequester()
     {
@@ -87,6 +96,11 @@ public class TileRequester extends TileLogicisticNode implements ITickable
         this.buffer.writeNBT(tag);
 
         tag.setInteger("requesterMode", this.requester.getMode().ordinal());
+
+        for (int index = 0; index < this.requester.getRequests().size(); index++)
+            tag.setTag("request" + index, this.requester.getRequests().get(index).writeToNBT(new NBTTagCompound()));
+        tag.setInteger("requests", this.requester.getRequests().size());
+
         return tag;
     }
 
@@ -98,16 +112,21 @@ public class TileRequester extends TileLogicisticNode implements ITickable
         this.buffer.readNBT(tag);
 
         this.requester.setMode(RequesterMode.values()[tag.getInteger("requesterMode")]);
+
+        int requestCount = tag.getInteger("requests");
+        for (int index = 0; index < requestCount; index++)
+            this.requester.addRequest(new ItemStack(tag.getCompoundTag("request" + index)));
     }
 
     @Override
     public BuiltContainer createContainer(EntityPlayer player)
     {
         return new ContainerBuilder("requester", player)
-                .player(player).inventory(8, 103).hotbar(8, 161)
+                .player(player).inventory(58, 129).hotbar(58, 187)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
+                .syncList(this.getRequester()::getRequests, ItemStack.class, null, "requests")
                 .create();
     }
 
@@ -117,7 +136,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable
             InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
     }
 
-    public void makeOrder(ItemStack stack)
+    private void makeOrder(ItemStack stack)
     {
         if (this.getCable() == null || this.getCable().getGrid() == -1 || this.getConnectedInventory() == null)
             return;
@@ -170,6 +189,21 @@ public class TileRequester extends TileLogicisticNode implements ITickable
                 order.setCount(Math.min(stack.getCount() - contained, mayInsert));
                 this.makeOrder(order, false);
             }
+        }
+    }
+
+    @Override
+    public void handle(ActionSender sender, String actionID, NBTTagCompound payload)
+    {
+        if ("REQUEST_CHANGE".equals(actionID))
+        {
+            int index = payload.getInteger("index");
+            ItemStack stack = new ItemStack(payload.getCompoundTag("stack"));
+
+            if (index >= getRequester().getRequests().size())
+                this.getRequester().addRequest(stack);
+            else
+                this.getRequester().getRequests().set(index, stack);
         }
     }
 }
