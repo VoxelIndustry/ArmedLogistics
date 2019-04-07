@@ -122,11 +122,12 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     public BuiltContainer createContainer(EntityPlayer player)
     {
         return new ContainerBuilder("requester", player)
-                .player(player).inventory(58, 129).hotbar(58, 187)
+                .player(player).inventory(8, 129).hotbar(8, 187)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
                 .syncList(this.getRequester()::getRequests, ItemStack.class, null, "requests")
+                .syncEnum(this.getRequester()::getMode, this.getRequester()::setMode, RequesterMode.class, "mode")
                 .create();
     }
 
@@ -205,5 +206,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
             else
                 this.getRequester().getRequests().set(index, stack);
         }
+        else if ("MODE_CHANGE".equals(actionID))
+            this.getRequester().setMode(RequesterMode.values()[payload.getInteger("mode")]);
     }
 }

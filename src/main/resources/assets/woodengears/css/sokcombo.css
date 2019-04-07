@@ -1,16 +1,18 @@
-#sok-button-background {
-    background-texture: url("woodengears:textures/gui/request_sok_combo.png");
+.sok-button .mark {
+    background-color: rgba(0, 0, 0, 0);
 }
 
-.sok-button {
+.sok-button .box {
     background-texture: url("woodengears:textures/gui/request_sok_button_off.png");
+    border-color: #555555;
+    border-radius: 2;
 }
 
-.sok-button:active {
+.sok-button:active .box {
     background-texture: url("woodengears:textures/gui/request_sok_button.png");
 }
 
-.sok-button:hover {
+.sok-button:hover .box {
     foreground-color: #FFFFFF 25%;
 }
 
@@ -19,4 +21,9 @@
     border-color: black;
     border-width: 1;
     border-radius: 2;
+}
+
+#soklines {
+    border-width: 0 1;
+    border-color: #373737;
 }

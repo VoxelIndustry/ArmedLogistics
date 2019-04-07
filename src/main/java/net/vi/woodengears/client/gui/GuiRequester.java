@@ -8,6 +8,7 @@ import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.client.gui.component.InventoryView;
 import net.vi.woodengears.client.gui.component.RequestView;
 import net.vi.woodengears.client.gui.component.SOKCombo;
+import net.vi.woodengears.common.grid.logistic.node.RequesterMode;
 import net.vi.woodengears.common.tile.TileRequester;
 import net.voxelindustry.brokkgui.paint.Texture;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
@@ -23,23 +24,28 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
     private final InventoryView inventoryView;
 
     private final RequestView requestView;
+    private final SOKCombo    sokCombo;
 
     public GuiRequester(EntityPlayer player, TileRequester requester)
     {
         super(player, requester);
 
-        this.setSize(276, 216);
-        this.setxOffset(-50);
+        this.sokCombo = new SOKCombo(requester.getRequester().getMode(), this::onModeChange);
+        this.getContainer().addSyncCallback("mode", this::onModeSync);
+        mainPanel.addChild(sokCombo, 0, 1);
 
-        super.title.setxTranslate(100);
+        int offset = (int) sokCombo.getWidth() + 2;
 
-        SOKCombo sokCombo = new SOKCombo();
-        mainPanel.addChild(sokCombo, 0, 0);
+        this.setSize(176 + offset, 216);
+        this.setxOffset(-offset / 2);
+        super.title.setxTranslate(offset);
+
+        this.getContainer().inventorySlots.forEach(slot -> slot.xPos += offset / 2 + 1);
 
         GuiAbsolutePane inventory = new GuiAbsolutePane();
         inventory.setSize(176, 216);
         inventory.setBackgroundTexture(BACKGROUND);
-        mainPanel.addChild(inventory, 100, 0);
+        mainPanel.addChild(inventory, offset, 0);
 
         inventoryView = new InventoryView(this, requester);
         inventory.addChild(inventoryView, 6, 52);
@@ -54,6 +60,17 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/inventoryview.css");
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/requestview.css");
         this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/sokcombo.css");
+    }
+
+    private void onModeChange(RequesterMode mode)
+    {
+        if (mode != this.getTile().getRequester().getMode())
+            new ServerActionBuilder("MODE_CHANGE").withInt("mode", mode.ordinal()).toTile(this.getTile()).send();
+    }
+
+    private void onModeSync(SyncedValue value)
+    {
+        sokCombo.setMode(this.getTile().getRequester().getMode());
     }
 
     private void onRequestChange(int index, ItemStack value)
