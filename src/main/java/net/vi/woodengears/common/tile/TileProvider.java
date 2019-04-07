@@ -131,11 +131,13 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
         {
             this.whitelistProperty.setValue(payload.getBoolean("whitelist"));
             this.markDirty();
+            this.provider.markDirty();
         }
         else if ("FILTER_CHANGE".equals(actionID))
         {
             this.filters[payload.getInteger("index")] = new ItemStack(payload.getCompoundTag("stack"));
             this.markDirty();
+            this.provider.markDirty();
         }
         else if ("FILTERED_SHOW_CHANGE".equals(actionID))
         {

@@ -1,7 +1,6 @@
 package net.vi.woodengears.common.block;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
@@ -43,7 +42,7 @@ public class BlockStorage extends BlockTileBase<TileStorage>
 
     protected BlockStateContainer createBlockState()
     {
-        return new BlockStateContainer(this, new IProperty[]{FACING});
+        return new BlockStateContainer(this, FACING);
     }
 
     public IBlockState getStateFromMeta(int meta)

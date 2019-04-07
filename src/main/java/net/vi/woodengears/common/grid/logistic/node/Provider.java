@@ -42,4 +42,6 @@ public interface Provider<T> extends LogisticNode
     boolean isColored();
 
     ProviderType getProviderType();
+
+    void markDirty();
 }

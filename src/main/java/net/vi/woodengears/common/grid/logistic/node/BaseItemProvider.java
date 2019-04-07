@@ -32,6 +32,8 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Setter
     private IItemFilter        filter = IItemFilter.ALWAYS_TRUE;
 
+    private boolean isDirtyFromExternal;
+
     public BaseItemProvider(TileLogicisticNode tile, ProviderType type, IItemHandler handler,
                             InventoryBuffer buffer)
     {
@@ -82,7 +84,7 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
             }
         }
 
-        if (isDirty)
+        if (isDirty || isDirtyFromExternal)
         {
             this.compressedStacks.clear();
 
@@ -100,6 +102,8 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
                 else
                     this.compressedStacks.add(stack.copy());
             }
+
+            this.isDirtyFromExternal = false;
         }
 
         super.wake();
@@ -251,5 +255,11 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     public boolean isColored()
     {
         return false;
+    }
+
+    @Override
+    public void markDirty()
+    {
+        this.isDirtyFromExternal = true;
     }
 }
