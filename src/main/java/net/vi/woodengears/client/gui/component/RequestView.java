@@ -45,7 +45,7 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
             view.getStackProperty().addListener(obs -> onRequestChange.accept(finalIndex, view.getItemStack()));
 
             requests[i] = view;
-            this.addChild(view, i * 18 + 1, 9);
+            this.addChild(view, i * 18 + 1, 10);
         }
 
         this.setFocusable(true);

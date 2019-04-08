@@ -2,7 +2,6 @@ package net.vi.woodengears.client.gui.component;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
-import net.vi.woodengears.common.grid.logistic.node.Requester;
 import net.vi.woodengears.common.grid.logistic.node.RequesterMode;
 import net.voxelindustry.brokkgui.data.RectAlignment;
 import net.voxelindustry.brokkgui.data.RectOffset;
@@ -83,6 +82,8 @@ public class SOKCombo extends GuiAbsolutePane
             else
                 modeCallback.accept(RequesterMode.CONTINUOUS);
         });
+
+        this.setMode(currentMode);
     }
 
     public void setMode(RequesterMode mode)

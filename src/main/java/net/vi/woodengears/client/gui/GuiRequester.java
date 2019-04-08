@@ -82,7 +82,12 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
 
     private void onRequestSync(SyncedValue value)
     {
-        for (int i = 0; i < this.getTile().getRequester().getRequests().size(); i++)
-            requestView.setRequestStack(i, this.getTile().getRequester().getRequests().get(i).copy());
+        for (int i = 0; i < 9; i++)
+        {
+            if (i >= this.getTile().getRequester().getRequests().size())
+                requestView.setRequestStack(i, ItemStack.EMPTY);
+            else
+                requestView.setRequestStack(i, this.getTile().getRequester().getRequests().get(i).copy());
+        }
     }
 }
