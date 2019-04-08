@@ -155,14 +155,14 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
 
     public void randomTick()
     {
-        if (this.requester.getMode() == RequesterMode.ONCE || !this.requester.getCurrentOrders().isEmpty())
+        if (!this.requester.getCurrentOrders().isEmpty())
             return;
 
         IItemHandler inventory = this.getConnectedInventory();
         if (inventory == null)
             return;
 
-        if (this.requester.getMode() == RequesterMode.CONTINUOUS)
+        if (this.requester.getMode() == RequesterMode.ONCE || this.requester.getMode() == RequesterMode.CONTINUOUS)
         {
             for (ItemStack stack : this.requester.getRequests())
             {
@@ -172,7 +172,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
                     continue;
 
                 ItemStack order = stack.copy();
-                order.setCount(Math.min(stack.getMaxStackSize(), mayInsert));
+                order.setCount(mayInsert);
                 this.makeOrder(order, false);
             }
         }
