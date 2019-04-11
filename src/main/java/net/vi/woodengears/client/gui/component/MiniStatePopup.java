@@ -5,7 +5,7 @@ import net.voxelindustry.brokkgui.animation.transition.TranslateTransition;
 import net.voxelindustry.brokkgui.animation.transition.WaitTransition;
 import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.component.IGuiPopup;
-import net.voxelindustry.brokkgui.data.RectOffset;
+import net.voxelindustry.brokkgui.data.RectBox;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
 import net.voxelindustry.brokkgui.element.GuiLabel;
 import net.voxelindustry.brokkgui.internal.PopupHandler;
@@ -27,7 +27,7 @@ public class MiniStatePopup extends GuiAbsolutePane implements IGuiPopup
         GuiLabel label = new GuiLabel(text);
         label.setExpandToText(true);
         label.setHeight(10);
-        label.setTextPadding(RectOffset.build().left(2).top(1).create());
+        label.setTextPadding(RectBox.build().left(2).top(1).create());
         this.addChild(label, 1, 1);
 
         this.setScissorBox(ScissorBox.withRegion(getxPos(), getyPos(), getxPos() + 200, getyPos() + 20));

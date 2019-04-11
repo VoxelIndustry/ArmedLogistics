@@ -10,7 +10,7 @@ import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.grid.logistic.node.IItemFilter;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.brokkgui.data.RectAlignment;
-import net.voxelindustry.brokkgui.data.RectOffset;
+import net.voxelindustry.brokkgui.data.RectBox;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
 import net.voxelindustry.brokkgui.element.GuiLabel;
 import net.voxelindustry.brokkgui.element.input.GuiButton;
@@ -70,7 +70,7 @@ public class InventoryView extends GuiAbsolutePane
         moreButton.setVisible(false);
         moreButton.setID("more-button");
         this.addChild(moreButton);
-        moreButton.getLabel().setTextPadding(RectOffset.build().top(1).create());
+        moreButton.getLabel().setTextPadding(RectBox.build().top(1).create());
         moreButton.setxTranslate(7);
         RelativeBindingHelper.bindToPos(moreButton, stacksPane, null,
                 BaseExpression.transform(stacksPane.getHeightProperty(), height -> height - 1));
@@ -92,7 +92,7 @@ public class InventoryView extends GuiAbsolutePane
         invLabel.setExpandToText(true);
         invLabel.setTextAlignment(RectAlignment.LEFT_CENTER);
         invLabel.setID("inv-label");
-        invLabel.setTextPadding(RectOffset.build().left(2).right(2).top(1).create());
+        invLabel.setTextPadding(RectBox.build().left(2).right(2).top(1).create());
         this.addChild(invLabel, 1, 1);
 
         if (tile instanceof IItemFilter)

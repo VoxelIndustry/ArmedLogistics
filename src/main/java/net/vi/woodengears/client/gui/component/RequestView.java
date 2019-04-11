@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.vi.woodengears.WoodenGears;
 import net.voxelindustry.brokkgui.BrokkGuiPlatform;
 import net.voxelindustry.brokkgui.data.RectAlignment;
-import net.voxelindustry.brokkgui.data.RectOffset;
+import net.voxelindustry.brokkgui.data.RectBox;
 import net.voxelindustry.brokkgui.element.GuiLabel;
 import net.voxelindustry.brokkgui.event.HoverEvent;
 import net.voxelindustry.brokkgui.event.KeyEvent;
@@ -30,7 +30,7 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
         requestLabel.setExpandToText(true);
         requestLabel.setHeight(9);
         requestLabel.setTextAlignment(RectAlignment.LEFT_CENTER);
-        requestLabel.setTextPadding(RectOffset.build().left(2).right(2).top(1).create());
+        requestLabel.setTextPadding(RectBox.build().left(2).right(2).top(1).create());
         requestLabel.setID("request-label");
         this.addChild(requestLabel, 1, 1);
 

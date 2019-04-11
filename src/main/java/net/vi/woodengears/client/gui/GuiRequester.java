@@ -32,9 +32,9 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
 
         this.sokCombo = new SOKCombo(requester.getRequester().getMode(), this::onModeChange);
         this.getContainer().addSyncCallback("mode", this::onModeSync);
-        mainPanel.addChild(sokCombo, 0, 1);
+        mainPanel.addChild(sokCombo, 0, 4);
 
-        int offset = (int) sokCombo.getWidth() + 2;
+        int offset = (int) sokCombo.getWidth() + 4;
 
         this.setSize(176 + offset, 216);
         this.setxOffset(-offset / 2);

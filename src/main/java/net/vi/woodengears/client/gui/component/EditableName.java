@@ -1,6 +1,6 @@
 package net.vi.woodengears.client.gui.component;
 
-import net.voxelindustry.brokkgui.data.RectOffset;
+import net.voxelindustry.brokkgui.data.RectBox;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
 import net.voxelindustry.brokkgui.element.GuiLabel;
 import net.voxelindustry.brokkgui.element.input.GuiButton;
@@ -41,7 +41,7 @@ public class EditableName extends GuiAbsolutePane
         nameField.setID("edit-field");
         nameField.setVisible(false);
         nameField.setHeight(9);
-        nameField.setTextPadding(RectOffset.EMPTY);
+        nameField.setTextPadding(RectBox.EMPTY);
         this.addChild(nameField, 0, 0);
 
         editButton.setOnActionEvent(e ->

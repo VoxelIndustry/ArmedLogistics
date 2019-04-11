@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.vi.woodengears.WoodenGears;
 import net.voxelindustry.brokkgui.BrokkGuiPlatform;
 import net.voxelindustry.brokkgui.data.RectAlignment;
-import net.voxelindustry.brokkgui.data.RectOffset;
+import net.voxelindustry.brokkgui.data.RectBox;
 import net.voxelindustry.brokkgui.element.GuiLabel;
 import net.voxelindustry.brokkgui.element.input.GuiButton;
 import net.voxelindustry.brokkgui.event.HoverEvent;
@@ -41,14 +41,14 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
         filterLabel.setExpandToText(true);
         filterLabel.setHeight(9);
         filterLabel.setTextAlignment(RectAlignment.LEFT_CENTER);
-        filterLabel.setTextPadding(RectOffset.build().left(2).right(2).top(1).create());
+        filterLabel.setTextPadding(RectBox.build().left(2).right(2).top(1).create());
         filterLabel.setID("filter-label");
         this.addChild(filterLabel, 1, 1);
 
         this.switchButton = new GuiButton();
         switchButton.setSize(148, 10);
         switchButton.setID("filter-switch-button");
-        switchButton.getLabel().setTextPadding(RectOffset.build().top(1).create());
+        switchButton.getLabel().setTextPadding(RectBox.build().top(1).create());
         switchButton.setOnActionEvent(e -> whitelistSetter.accept(!whitelistGetter.get()));
         this.addChild(switchButton, 7, 28);
 

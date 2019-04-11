@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.vi.woodengears.common.grid.logistic.node.RequesterMode;
 import net.voxelindustry.brokkgui.data.RectAlignment;
-import net.voxelindustry.brokkgui.data.RectOffset;
+import net.voxelindustry.brokkgui.data.RectBox;
 import net.voxelindustry.brokkgui.data.RectSide;
 import net.voxelindustry.brokkgui.element.input.GuiRadioButton;
 import net.voxelindustry.brokkgui.element.input.GuiToggleGroup;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  */
 public class SOKCombo extends GuiAbsolutePane
 {
-    private final RectOffset     textPadding = RectOffset.build().top(0.5f).create();
+    private final RectBox        textPadding = RectBox.build().top(0.5f).create();
     private final GuiToggleGroup toggleGroup;
     private final GuiRadioButton keepButton;
     private final GuiRadioButton onceButton;

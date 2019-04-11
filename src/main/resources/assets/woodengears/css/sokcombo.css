@@ -18,9 +18,9 @@
 
 #sokcombo {
     background-color: #C6C6C6;
-    border-color: black;
-    border-width: 1;
-    border-radius: 2;
+    border-width: 4;
+    border-image-source: url("woodengears:textures/gui/background_generic.png");
+    border-image-slice: 40%;
 }
 
 #soklines {
