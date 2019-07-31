@@ -142,7 +142,6 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
         if (this.getCable() == null || this.getCable().getGrid() == -1 || this.getConnectedInventory() == null)
             return;
 
-        System.out.println("Order made " + stack);
         this.makeOrder(stack, true);
     }
 

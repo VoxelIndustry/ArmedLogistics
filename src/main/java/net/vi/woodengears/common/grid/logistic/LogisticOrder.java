@@ -13,7 +13,7 @@ public class LogisticOrder<T>
     private T                         ordered;
     @Setter
     private OrderState                state;
-    private Requester<T>                 destination;
+    private Requester<T>              destination;
     private List<LogisticShipment<T>> shippedParts;
 
     protected LogisticOrder(T ordered, Requester<T> destination)

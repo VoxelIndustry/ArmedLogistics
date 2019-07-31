@@ -214,6 +214,8 @@ public class RailGrid extends CableGrid
                     current = current.getPrevious();
                 }
                 Collections.reverse(path.getPoints());
+                path.getPoints().add(to);
+                path.getPoints().add(0, from);
                 return path;
             }
 

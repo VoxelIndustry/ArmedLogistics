@@ -14,13 +14,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RailGridTest
 {
     private GridManager instance;
-    
+
     @BeforeAll
     void setup()
     {
         this.instance = GridManager.createGetInstance("woodengears:test");
     }
-    
+
     @Test
     void straightPath()
     {
@@ -43,9 +43,11 @@ class RailGridTest
         assertThat(path.getTo()).isEqualTo(to.getBlockPos()).isEqualTo(new BlockPos(0, 0, 4));
 
         assertThat(path.getPoints()).containsExactly(
+                from.getBlockPos(),
                 new BlockPos(0, 0, 1),
                 new BlockPos(0, 0, 2),
-                new BlockPos(0, 0, 3)
+                new BlockPos(0, 0, 3),
+                to.getBlockPos()
         );
     }
 
@@ -74,9 +76,11 @@ class RailGridTest
         assertThat(path.getTo()).isEqualTo(to.getBlockPos()).isEqualTo(new BlockPos(0, 0, 4));
 
         assertThat(path.getPoints()).containsExactly(
+                from.getBlockPos(),
                 new BlockPos(0, 0, 1),
                 new BlockPos(0, 0, 2),
-                new BlockPos(0, 0, 3)
+                new BlockPos(0, 0, 3),
+                to.getBlockPos()
         );
     }
 
@@ -98,7 +102,7 @@ class RailGridTest
         assertThat(path.getFrom()).isEqualTo(from.getBlockPos()).isEqualTo(new BlockPos(0, 0, 0));
         assertThat(path.getTo()).isEqualTo(to.getBlockPos()).isEqualTo(new BlockPos(0, 0, 1));
 
-        assertThat(path.getPoints()).isEmpty();
+        assertThat(path.getPoints()).containsOnly(to.getBlockPos());
     }
 }
 
