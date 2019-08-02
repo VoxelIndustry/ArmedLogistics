@@ -3,8 +3,6 @@ package net.vi.woodengears.common.tile;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
 import net.vi.woodengears.common.block.BlockArmReservoir;
-import net.vi.woodengears.common.block.BlockCable;
-import net.vi.woodengears.common.entity.EntityLogisticArm;
 import net.vi.woodengears.common.grid.IRailConnectable;
 import net.vi.woodengears.common.grid.RailGrid;
 import net.vi.woodengears.common.init.WGItems;
@@ -14,8 +12,6 @@ import net.voxelindustry.steamlayer.container.IContainerProvider;
 import net.voxelindustry.steamlayer.grid.CableGrid;
 import net.voxelindustry.steamlayer.grid.IConnectionAware;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
-
-import java.util.Optional;
 
 public class TileArmReservoir extends TileInventoryBase implements IContainerProvider, IRailConnectable,
         IConnectionAware
@@ -47,23 +43,6 @@ public class TileArmReservoir extends TileInventoryBase implements IContainerPro
                 .fuelSlot(4, 72, 74)
                 .fuelSlot(5, 90, 74)
                 .create();
-    }
-
-    public Optional<EntityLogisticArm> injectArm()
-    {
-        // TODO : Spawn arm entity on call and return it for futher logic
-        if (this.world.getBlockState(this.pos.north()).getBlock() instanceof BlockCable || this.world.getBlockState(this.pos.south()) instanceof BlockCable || this.world.getBlockState(this.pos.east()).getBlock() instanceof BlockCable || this.world.getBlockState(this.pos.west()) instanceof BlockCable)
-        {
-            if (!world.isRemote)
-            {
-                EntityLogisticArm logisticArm = new EntityLogisticArm(world, pos);
-
-                world.spawnEntity(logisticArm);
-                return Optional.of(logisticArm);
-            }
-
-        }
-        return Optional.empty();
     }
 
     @Override

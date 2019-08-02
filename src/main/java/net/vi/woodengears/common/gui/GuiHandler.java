@@ -1,6 +1,7 @@
 package net.vi.woodengears.common.gui;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
@@ -22,15 +23,10 @@ public class GuiHandler implements IGuiHandler
     @Override
     public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z)
     {
-        switch (GuiType.values()[ID])
-        {
-            case ARM_RESERVOIR:
-                return ((IContainerProvider) world.getTileEntity(new BlockPos(x, y, z))).createContainer(player);
-            case PROVIDER:
-                return ((IContainerProvider) world.getTileEntity(new BlockPos(x, y, z))).createContainer(player);
-            case REQUESTER:
-                return ((IContainerProvider) world.getTileEntity(new BlockPos(x, y, z))).createContainer(player);
-        }
+        TileEntity tile = world.getTileEntity(new BlockPos(x, y, z));
+
+        if (tile instanceof IContainerProvider)
+            return ((IContainerProvider) tile).createContainer(player);
         return null;
     }
 

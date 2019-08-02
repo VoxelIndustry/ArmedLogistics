@@ -6,6 +6,7 @@ import com.google.common.cache.LoadingCache;
 import lombok.Getter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
+import net.vi.woodengears.common.entity.EntityLogisticArm;
 import net.vi.woodengears.common.grid.logistic.ItemStackMethods;
 import net.vi.woodengears.common.grid.logistic.LogisticNetwork;
 import net.vi.woodengears.common.grid.logistic.LogisticShipment;
@@ -16,7 +17,13 @@ import net.voxelindustry.steamlayer.grid.CableGrid;
 import net.voxelindustry.steamlayer.grid.ITileNode;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -42,14 +49,7 @@ public class RailGrid extends CableGrid
 
         pathCache = CacheBuilder.newBuilder().maximumSize(100)
                 .expireAfterAccess(5, TimeUnit.MINUTES)
-                .build(new CacheLoader<Pair<BlockPos, BlockPos>, Path>()
-                {
-                    @Override
-                    public Path load(Pair<BlockPos, BlockPos> key)
-                    {
-                        return pathFind(key.getKey(), key.getValue());
-                    }
-                });
+                .build(CacheLoader.from(key -> pathFind(key.getKey(), key.getValue())));
 
         this.stackNetwork = new LogisticNetwork<>(this, ItemStack.class, ItemStackMethods.getInstance());
     }
@@ -72,7 +72,19 @@ public class RailGrid extends CableGrid
                 TileProvider provider = this.providerMap.get(this.getFromPos(shipment.getFrom()));
                 TileRequester requester = this.requesterMap.get(this.getFromPos(shipment.getTo()));
 
-                // TODO : Use requester buffer
+                Optional<BlockPos> closestReservoirPos = this.reservoirMap.keySet().stream().map(ITileNode::getBlockPos).min(Comparator.comparingInt(pos -> getDistanceBetween(pos, shipment.getFrom())));
+
+                if (!closestReservoirPos.isPresent())
+                    continue;
+
+                TileArmReservoir reservoir = this.reservoirMap.get(getFromPos(closestReservoirPos.get()));
+
+                Path reservoirToProvider = getPath(closestReservoirPos.get(), shipment.getFrom());
+                Path providerToReservoir = getPath(shipment.getFrom(), shipment.getTo());
+
+                EntityLogisticArm arm = new EntityLogisticArm(provider.getWorld(), reservoir, reservoirToProvider);
+                provider.getWorld().spawnEntity(arm);
+
                 ItemStack shipped = provider.getProvider().fromBuffer(shipment.getContent());
 
                 requester.getRequester().insert(shipped);
@@ -183,6 +195,18 @@ public class RailGrid extends CableGrid
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public Path getPath(BlockPos from, BlockPos to)
+    {
+        try
+        {
+            return this.pathCache.get(Pair.of(from, to));
+        } catch (ExecutionException e)
+        {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public Path pathFind(BlockPos from, BlockPos to)
