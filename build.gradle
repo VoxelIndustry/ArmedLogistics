@@ -11,7 +11,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 
 
 version = "1.0"
-group = "net.opmcorp.woodengears"
+group = "net.voxelindustry.woodengears"
 archivesBaseName = "woodengears"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
@@ -20,7 +20,7 @@ compileJava {
 }
 
 minecraft {
-    version = "1.12.2-14.23.5.2814"
+    version = "1.12.2-${project.forge_version}"
     runDir = "run"
 
     mappings = "stable_39"
@@ -43,14 +43,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.6'
+    compileOnly 'org.projectlombok:lombok:1.18.8'
 
-    deobfCompile 'mcjty.theoneprobe:TheOneProbe-1.12:1.12-1.4.23-16'
-    deobfCompile 'mezz.jei:jei_1.12.2:4.14.4.264'
+    compile "net.voxelindustry:Gizmos:${project.gizmos_version}"
+    deobfCompile "mcjty.theoneprobe:TheOneProbe-1.12:${project.top_version}"
+    deobfCompile "mezz.jei:jei_1.12.2:${project.jei_version}"
 
-    deobfCompile 'net.voxelindustry:steamlayer-core:0.6.1'
-    deobfCompile 'net.voxelindustry:brokkgui-binding-mc1.12:1.0.0-46-SNAPSHOT'
-    compile 'fr.ourten:teabeans:1.0.0'
+    deobfCompile "net.voxelindustry:steamlayer-core:${project.steamlayer_version}"
+    deobfCompile "net.voxelindustry:brokkgui-binding-mc1.12:${project.brokkgui_version}"
+    compile "fr.ourten:teabeans:${project.teabeans_version}"
 
     testCompile('org.junit.jupiter:junit-jupiter-api:5.3.2')
     testCompile('org.mockito:mockito-core:2.24.0')
