@@ -22,7 +22,7 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
     public RenderLogisticArm(RenderManager renderManager)
     {
         super(renderManager);
-        this.itemRenderer = Minecraft.getMinecraft().getRenderItem();
+        itemRenderer = Minecraft.getMinecraft().getRenderItem();
     }
 
     @Override
@@ -35,36 +35,36 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
         GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.scale(0.5F, 0.5F, 0.5F);
 
-        this.bindEntityTexture(logisticArm);
+        bindEntityTexture(logisticArm);
 
-        this.modelLogisticArm.renderPedestal(0.0625F);
-        this.modelLogisticArm.renderFirstPiston(0.0625F);
+        modelLogisticArm.renderPedestal(0.0625F);
+        modelLogisticArm.renderFirstPiston(0.0625F);
 
         if (logisticArm.isHoverBlockProvider())
         {
             if (logisticArm.getPickupCount() > 40)
             {
                 GlStateManager.translate(0, 2.35 * (1 - (logisticArm.getPickupCount() / 40D) / 2D), 0);
-                this.modelLogisticArm.renderSecondPiston(0.0625F);
+                modelLogisticArm.renderSecondPiston(0.0625F);
                 GlStateManager.translate(0, 2 * (1 - (logisticArm.getPickupCount() / 40D) / 2D), 0);
-                this.modelLogisticArm.renderHead(0.0625F);
+                modelLogisticArm.renderHead(0.0625F);
             }
             else
             {
                 GlStateManager.translate(0, 1.175 * (logisticArm.getPickupCount() / 40D), 0);
-                this.modelLogisticArm.renderSecondPiston(0.0625F);
+                modelLogisticArm.renderSecondPiston(0.0625F);
                 GlStateManager.translate(0, (logisticArm.getPickupCount() / 40D), 0);
-                this.modelLogisticArm.renderHead(0.0625F);
+                modelLogisticArm.renderHead(0.0625F);
             }
         }
         else
         {
-            this.modelLogisticArm.renderSecondPiston(0.0625F);
-            this.modelLogisticArm.renderHead(0.0625F);
+            modelLogisticArm.renderSecondPiston(0.0625F);
+            modelLogisticArm.renderHead(0.0625F);
         }
 
-        GlStateManager.translate(0.5D, 1.375D, 0.0D);
-        this.renderItem(logisticArm);
+        GlStateManager.translate(0.5D, 22 / 16D, 0.0D);
+        renderItem(logisticArm);
 
         GlStateManager.popMatrix();
     }
@@ -78,10 +78,11 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
             GlStateManager.pushMatrix();
             GlStateManager.disableLighting();
             GlStateManager.scale(0.5F, 0.5F, 0.5F);
+            GlStateManager.rotate(180, 1, 0, 0);
             GlStateManager.pushAttrib();
-            RenderHelper.disableStandardItemLighting();
-            this.itemRenderer.renderItem(itemStack, ItemCameraTransforms.TransformType.FIXED);
             RenderHelper.enableStandardItemLighting();
+            itemRenderer.renderItem(itemStack, ItemCameraTransforms.TransformType.FIXED);
+            RenderHelper.disableStandardItemLighting();
             GlStateManager.popAttrib();
             GlStateManager.enableLighting();
             GlStateManager.popMatrix();
