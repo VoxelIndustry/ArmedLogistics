@@ -1,10 +1,13 @@
-package net.vi.woodengears.common.grid;
+package net.vi.woodengears.common.serializer;
 
 import io.netty.buffer.ByteBuf;
+import lombok.experimental.UtilityClass;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
+import net.vi.woodengears.common.grid.Path;
 
-public class PathUtils
+@UtilityClass
+public class PathSerializer
 {
     public static void pathToByteBuf(Path path, ByteBuf buf)
     {

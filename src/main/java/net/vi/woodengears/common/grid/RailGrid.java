@@ -17,16 +17,17 @@ import net.voxelindustry.steamlayer.grid.CableGrid;
 import net.voxelindustry.steamlayer.grid.ITileNode;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 public class RailGrid extends CableGrid
 {
@@ -39,6 +40,8 @@ public class RailGrid extends CableGrid
     @Getter
     private LogisticNetwork<ItemStack> stackNetwork;
 
+    private List<LogisticShipment<ItemStack>> shipped;
+
     public RailGrid(int identifier)
     {
         super(identifier);
@@ -46,6 +49,8 @@ public class RailGrid extends CableGrid
         this.reservoirMap = new HashMap<>();
         this.providerMap = new HashMap<>();
         this.requesterMap = new HashMap<>();
+
+        this.shipped = new ArrayList<>();
 
         pathCache = CacheBuilder.newBuilder().maximumSize(100)
                 .expireAfterAccess(5, TimeUnit.MINUTES)
@@ -68,9 +73,11 @@ public class RailGrid extends CableGrid
         {
             for (LogisticShipment<ItemStack> shipment : this.stackNetwork.getShipments())
             {
+                if (shipped.contains(shipment))
+                    continue;
+
                 // Ignore warning, this will always return a ITileRail
                 TileProvider provider = this.providerMap.get(this.getFromPos(shipment.getFrom()));
-                TileRequester requester = this.requesterMap.get(this.getFromPos(shipment.getTo()));
 
                 Optional<BlockPos> closestReservoirPos = this.reservoirMap.keySet().stream().map(ITileNode::getBlockPos).min(Comparator.comparingInt(pos -> getDistanceBetween(pos, shipment.getFrom())));
 
@@ -82,15 +89,13 @@ public class RailGrid extends CableGrid
                 Path reservoirToProvider = getPath(closestReservoirPos.get(), shipment.getFrom());
                 Path providerToReservoir = getPath(shipment.getFrom(), shipment.getTo());
 
-                EntityLogisticArm arm = new EntityLogisticArm(provider.getWorld(), reservoir, reservoirToProvider);
+                EntityLogisticArm arm = new EntityLogisticArm(provider.getWorld(), shipment, reservoir, reservoirToProvider, providerToReservoir);
                 provider.getWorld().spawnEntity(arm);
 
-                ItemStack shipped = provider.getProvider().fromBuffer(shipment.getContent());
-
-                requester.getRequester().insert(shipped);
+                shipped.add(shipment);
             }
-            Stream.of(stackNetwork.getShipments().toArray(new LogisticShipment[0])).forEach(this.stackNetwork::completeShipment);
-            this.stackNetwork.getShipments().clear();
+            //  Stream.of(stackNetwork.getShipments().toArray(new LogisticShipment[0])).forEach(this.stackNetwork::completeShipment);
+            //  this.stackNetwork.getShipments().clear();
         }
     }
 

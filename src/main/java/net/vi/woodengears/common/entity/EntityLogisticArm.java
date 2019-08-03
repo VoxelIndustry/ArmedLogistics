@@ -15,6 +15,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
@@ -26,8 +27,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.vi.woodengears.common.block.BlockProvider;
 import net.vi.woodengears.common.grid.Path;
-import net.vi.woodengears.common.grid.PathUtils;
+import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.init.WGItems;
+import net.vi.woodengears.common.serializer.LogisticShipmentSerializer;
+import net.vi.woodengears.common.serializer.Vec3dListSerializer;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.voxelindustry.gizmos.Gizmos;
@@ -35,17 +38,21 @@ import net.voxelindustry.gizmos.Gizmos;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+
 public class EntityLogisticArm extends Entity implements ILockableContainer, IEntityAdditionalSpawnData
 {
-    private static final DataParameter<Float>   DAMAGE           =
+    private static final DataParameter<Float>     DAMAGE           =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
-    private              NonNullList<ItemStack> logisticArmItems = NonNullList.withSize(1, ItemStack.EMPTY);
+    private static final DataParameter<ItemStack> ITEM             =
+            EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.ITEM_STACK);
+    private              NonNullList<ItemStack>   logisticArmItems = NonNullList.withSize(1, ItemStack.EMPTY);
 
     private boolean startPickup;
     @Getter
-    private int     pickupCount = 80;
+    private int     pickupCount = 0;
 
-    private Path path;
+    private LogisticShipment<ItemStack> shipment;
 
     private List<Vec3d> steps;
     private int         index = 1;
@@ -53,37 +60,45 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     public EntityLogisticArm(World worldIn)
     {
         super(worldIn);
-        this.setSize(0.3525F, 1.0F);
+        setSize(0.3525F, 1.0F);
     }
 
-    public EntityLogisticArm(World world, TileArmReservoir reservoir, Path path)
+    public EntityLogisticArm(World world, LogisticShipment<ItemStack> shipment, TileArmReservoir reservoir, Path reservoirToProvider, Path providerToRequester)
     {
         this(world);
 
-        Vec3d pos = setOffsetFromPath(reservoir.getPos().offset(reservoir.getFacing()), path);
+        Vec3d pos = new Vec3d(reservoir.getPos()).add(0.5, 0, 0.5);
 
-        this.setPositionAndRotation(pos.x, pos.y - 0.0625D, pos.z, 0.0F, 90.0F);
-        this.motionX = 0.0D;
-        this.motionY = 0.0D;
-        this.motionZ = 0.0D;
-        this.prevPosX = pos.x;
-        this.prevPosY = pos.y;
-        this.prevPosZ = pos.z;
+        setPositionAndRotation(pos.x, pos.y - 0.0625D, pos.z, 0.0F, 90.0F);
+        motionX = 0.0D;
+        motionY = 0.0D;
+        motionZ = 0.0D;
+        prevPosX = pos.x;
+        prevPosY = pos.y;
+        prevPosZ = pos.z;
 
-        this.path = path;
-        this.steps = createStepsFromPath(path);
+        this.shipment = shipment;
+        steps = createStepsFromPath(reservoirToProvider);
 
-        this.steps.add(0, pos);
+        steps.add(0, pos);
+        steps.add(1, getStartingOffset(reservoir.getPos(), reservoir.getFacing(), reservoirToProvider));
         for (Vec3d step : steps)
             Gizmos.edgedBox(step.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x00880044, 0x00FF00FF, 1)
-                    .handle(() -> this.isDead);
+                    .handle(() -> isDead);
 
-        this.noClip = true;
+        noClip = true;
     }
 
     private List<Vec3d> createStepsFromPath(Path path)
     {
+        if (path.getPoints().isEmpty())
+            return emptyList();
+
         int index = 1;
+
+        double frontOffset = 0;
+        double sideOffset = 0;
+        EnumFacing facing = null;
 
         List<Vec3d> steps = new ArrayList<>();
         while (index < path.getPoints().size() - 1)
@@ -97,33 +112,29 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
 
                 Vec3d pos = new Vec3d(current);
 
-                double frontOffset = getOffsetFromCorner(previous, next);
-                double sideOffset = getSideOffsetFromCorner(previous, next);
+                frontOffset = getOffsetFromCorner(previous, next);
+                sideOffset = getSideOffsetFromCorner(previous, next);
 
-                EnumFacing facing = EnumFacing.getFacingFromVector((float) (pos.x - previous.getX()), 0, (float) (pos.z - previous.getZ()));
+                facing = EnumFacing.getFacingFromVector((float) (pos.x - previous.getX()), 0, (float) (pos.z - previous.getZ()));
+
+                Gizmos.edgedBox(new Vec3d(previous).add(pos).add(0.5, 1, 0.5), new Vec3d(0.2D, 1, 0.2D), 0x88000044, 0xFF0000FF, 1)
+                        .handle(() -> isDead);
+                Gizmos.edgedBox(new Vec3d(next).add(pos).add(0.5, 1, 0.5), new Vec3d(0.2D, 1, 0.2D), 0x88000044, 0xFF0000FF, 1)
+                        .handle(() -> isDead);
 
                 if (facing.getAxis() == EnumFacing.Axis.X)
-                {
-                    Vec3d interm = pos.add(0, 0, 0.5);
-
-                    Gizmos.edgedBox(interm.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x88880044, 0xFFFF00FF, 1)
-                            .handle(() -> this.isDead);
                     steps.add(pos.add(frontOffset, 0, 0.5 + sideOffset));
-                }
                 else // Z-AXIS
-                {
-                    Vec3d interm = pos.add(0.5, 0, 0);
-
-                    Gizmos.edgedBox(interm.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x88880044, 0xFFFF00FF, 1)
-                            .handle(() -> this.isDead);
-
                     steps.add(pos.add(0.5 + sideOffset, 0, frontOffset));
-                }
             }
             index++;
         }
 
-        steps.add(new Vec3d(path.getTo()));
+        if (facing.getAxis() == EnumFacing.Axis.X)
+            steps.add(new Vec3d(path.getTo()).add(frontOffset, 0, 0.5));
+        else
+            steps.add(new Vec3d(path.getTo()).add(0.5, 0, frontOffset));
+        steps.add(new Vec3d(path.getTo()).add(0.5, 0, 0.5));
 
         return steps;
     }
@@ -131,7 +142,17 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     @Override
     protected void entityInit()
     {
-        this.dataManager.register(DAMAGE, 0.0F);
+        dataManager.register(DAMAGE, 0.0F);
+        dataManager.register(ITEM, ItemStack.EMPTY);
+    }
+
+    @Override
+    public void notifyDataManagerChange(DataParameter<?> key)
+    {
+        if (ITEM.equals(key) && world.isRemote)
+            setInventorySlotContents(0, getDataManager().get(ITEM));
+
+        super.notifyDataManagerChange(key);
     }
 
     @Override
@@ -140,47 +161,60 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         return false;
     }
 
-    private Vec3d setOffsetFromPath(BlockPos origin, Path path)
+    private Vec3d getStartingOffset(BlockPos origin, EnumFacing reservoirFacing, Path path)
     {
-        BlockPos current = path.getPoints().get(index);
+        BlockPos current = path.getPoints().get(0);
 
         BlockPos previous = origin.subtract(current);
-        BlockPos next = path.getPoints().get(index + 1).subtract(current);
+        BlockPos next = path.getPoints().get(1).subtract(current);
 
         double frontOffset = getOffsetFromCorner(previous, next);
-        double sideOffset = getSideOffsetFromCorner(previous, next);
-        Vec3d pos = new Vec3d(origin);
+        Vec3d pos = new Vec3d(origin.offset(reservoirFacing));
 
         EnumFacing facing = EnumFacing.getFacingFromVector((float) (current.getX() - origin.getX()), 0, (float) (current.getZ() - origin.getZ()));
 
         if (facing.getAxis() == EnumFacing.Axis.X)
-        {
-            pos = pos.add(frontOffset, 0, 0.5 + sideOffset);
-        }
+            pos = pos.add(frontOffset, 0, 0.5);
         else // Z-AXIS
-        {
-            pos = pos.add(0.5 + sideOffset, 0, frontOffset);
-        }
+            pos = pos.add(0.5, 0, frontOffset);
 
-        Gizmos.edgedBox(pos.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x88882244, 0xFFFF44FF, 1)
-                .handle(() -> this.isDead);
+        Gizmos.edgedBox(pos.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x88006644, 0xFF00AAFF, 1)
+                .handle(() -> isDead);
         return pos;
     }
 
     private double getOffsetFromCorner(BlockPos previous, BlockPos next)
     {
-        if (previous.getX() != 0)
+        if (previous.getX() == 1)
         {
             if (next.getZ() == -1)
-                return 1 - (0.3125 - 0.03125);
-            else
-                return 0.3125 - 0.03125;
-        }
+                return 9 / 32D;
+            else if (next.getZ() == 1)
+                return 23 / 32D;
 
-        if (next.getX() == -1)
-            return 0.3125 - 0.03125;
-        else
-            return 1 - (0.3125 - 0.03125);
+        }
+        else if (previous.getX() == -1)
+        {
+            if (next.getZ() == -1)
+                return 23 / 32D;
+            else if (next.getZ() == 1)
+                return 9 / 32D;
+        }
+        else if (previous.getZ() == -1)
+        {
+            if (next.getX() == -1)
+                return 9 / 32D;
+            else if (next.getX() == 1)
+                return 23 / 32D;
+        }
+        else if (previous.getZ() == 1)
+        {
+            if (next.getX() == -1)
+                return 9 / 32D;
+            else if (next.getX() == 1)
+                return 23 / 32D;
+        }
+        return 0;
     }
 
     private double getSideOffsetFromCorner(BlockPos previous, BlockPos next)
@@ -188,9 +222,10 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         if (previous.getX() == 1)
         {
             if (next.getZ() == -1)
-                return -7 / 32D;
+                return 7 / 32D;
             else if (next.getZ() == 1)
                 return -7 / 32D;
+
         }
         else if (previous.getX() == -1)
         {
@@ -230,67 +265,76 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     {
         if (steps != null)
         {
-            if (index < this.steps.size())
+            if (index < steps.size())
             {
                 Vec3d previous = steps.get(index - 1);
                 Vec3d pos = steps.get(index);
 
                 Vec3d dir = pos.subtract(previous).normalize();
 
-                System.out.println(dir);
-                this.move(MoverType.SELF, dir.x * 0.025D, 0, dir.z * 0.025D);
+                move(MoverType.SELF, dir.x * getSpeed(), 0, dir.z * getSpeed());
 
-                if (Math.abs(pos.x - this.posX) < 0.025D && Math.abs(pos.x - this.posX) < 0.025D)
+                if (Math.abs(pos.x - posX) < getSpeed() && Math.abs(pos.z - posZ) < getSpeed())
+                {
+                    setPosition(pos.x, posY, pos.z);
                     index++;
+                }
+            }
+            else if (!startPickup)
+                startPickup = true;
+        }
+
+
+        if (startPickup)
+        {
+            if (pickupCount < 80)
+                pickupCount++;
+            else
+            {
+                pickupCount = 80;
+                startPickup = false;
             }
         }
 
-        if (!this.world.isRemote)
+        if (isHoverBlockProvider() && pickupCount == 40 && isEmpty() && !world.isRemote)
+        {
+            TileEntity provider = world.getTileEntity(new BlockPos(this).down());
+
+            if (!(provider instanceof TileProvider))
+                return;
+
+            ItemStack shipped = ((TileProvider) provider).getProvider().fromBuffer(shipment.getContent());
+
+            setItemStack(shipped);
+            // TODO: Insertion
+            //   requester.getRequester().insert(shipped);
+        }
+
+        if (!world.isRemote)
         {
             if (!isBottomBlockCable())
             {
-                this.setDead();
-                if (this.world.getGameRules().getBoolean("doEntityDrops"))
+                setDead();
+                if (world.getGameRules().getBoolean("doEntityDrops"))
                 {
                     ItemStack logistic_arm = new ItemStack(WGItems.LOGISTIC_ARM);
 
-                    InventoryHelper.dropInventoryItems(this.world, this, this);
+                    InventoryHelper.dropInventoryItems(world, this, this);
 
-                    this.entityDropItem(logistic_arm, 0.0F);
+                    entityDropItem(logistic_arm, 0.0F);
                 }
             }
         }
+    }
 
-        if (!startPickup && this.isHoverBlockProvider() && this.isEmpty())
-            this.startPickup = true;
-
-      /*  if (startPickup)
-        {
-            if (this.posX - (Math.floor(this.posX)) <= 0.5D)
-                this.move(MoverType.SELF, 0.025D, 0, 0);
-            else if (this.posZ - (Math.floor(this.posZ)) <= 0.5D)
-                this.move(MoverType.SELF, 0, 0, 0.025D);
-            else if (this.pickupCount != 0)
-                this.pickupCount--;
-            else
-            {
-                this.pickupCount = 80;
-                this.startPickup = false;
-            }
-        }*/
-
-        if (this.isHoverBlockProvider() && this.pickupCount == 40 && this.isEmpty())
-        {
-            BlockProvider provider = (BlockProvider) this.world.getBlockState(new BlockPos(this).down()).getBlock();
-            TileProvider tileProvider = (TileProvider) provider.getRawWorldTile(this.world, new BlockPos(this).down());
-
-            // TODO : Impl extraction
-        }
+    private double getSpeed()
+    {
+        return 0.025D;
     }
 
     public boolean isHoverBlockProvider()
     {
-        Block block = this.world.getBlockState(new BlockPos(this).down()).getBlock();
+        Block block = world.getBlockState(new BlockPos(this).down()).getBlock();
         return block instanceof BlockProvider;
     }
 
@@ -302,24 +346,26 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     }
 
     @Override
-    protected void readEntityFromNBT(NBTTagCompound compound)
+    protected void readEntityFromNBT(NBTTagCompound tag)
     {
-        ItemStackHelper.saveAllItems(compound, this.logisticArmItems);
+        ItemStackHelper.saveAllItems(tag, logisticArmItems);
 
-        this.pickupCount = compound.getInteger("pickupCount");
+        pickupCount = tag.getInteger("pickupCount");
 
-        this.path = PathUtils.pathFromNBT(compound.getCompoundTag("path"));
+        steps = Vec3dListSerializer.vec3dListFromNBT(tag.getCompoundTag("steps"));
+        shipment = LogisticShipmentSerializer.itemShipmentFromNBT(tag.getCompoundTag("shipment"));
     }
 
     @Override
-    protected void writeEntityToNBT(NBTTagCompound compound)
+    protected void writeEntityToNBT(NBTTagCompound tag)
     {
-        this.logisticArmItems = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
-        ItemStackHelper.loadAllItems(compound, this.logisticArmItems);
+        logisticArmItems = NonNullList.withSize(getSizeInventory(), ItemStack.EMPTY);
+        ItemStackHelper.loadAllItems(tag, logisticArmItems);
 
-        compound.setInteger("pickupCount", this.pickupCount);
+        tag.setInteger("pickupCount", pickupCount);
 
-        compound.setTag("path", PathUtils.pathToNBT(this.path));
+        tag.setTag("steps", Vec3dListSerializer.vec3dListToNBT(steps));
+        tag.setTag("shipment", LogisticShipmentSerializer.itemShipmentToNBT(shipment));
     }
 
     @Override
@@ -348,7 +394,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     @Override
     public boolean isEmpty()
     {
-        for (ItemStack itemStack : this.logisticArmItems)
+        for (ItemStack itemStack : logisticArmItems)
         {
             if (!itemStack.isEmpty())
                 return false;
@@ -359,36 +405,42 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     @Override
     public ItemStack getStackInSlot(int index)
     {
-        return this.logisticArmItems.get(index);
+        return logisticArmItems.get(index);
     }
 
     @Override
     public ItemStack decrStackSize(int index, int count)
     {
-        return ItemStackHelper.getAndSplit(this.logisticArmItems, index, count);
+        return ItemStackHelper.getAndSplit(logisticArmItems, index, count);
     }
 
     @Override
     public ItemStack removeStackFromSlot(int index)
     {
-        ItemStack itemStack = this.logisticArmItems.get(index);
+        ItemStack itemStack = logisticArmItems.get(index);
 
         if (itemStack.isEmpty())
             return ItemStack.EMPTY;
         else
         {
-            this.logisticArmItems.set(index, ItemStack.EMPTY);
+            logisticArmItems.set(index, ItemStack.EMPTY);
             return itemStack;
         }
+    }
+
+    private void setItemStack(ItemStack stack)
+    {
+        dataManager.set(ITEM, stack);
+        setInventorySlotContents(0, stack);
     }
 
     @Override
     public void setInventorySlotContents(int index, ItemStack stack)
     {
-        this.logisticArmItems.set(index, stack);
+        logisticArmItems.set(index, stack);
 
-        if (!stack.isEmpty() && stack.getCount() > this.getInventoryStackLimit())
-            stack.setCount(this.getInventoryStackLimit());
+        if (!stack.isEmpty() && stack.getCount() > getInventoryStackLimit())
+            stack.setCount(getInventoryStackLimit());
     }
 
     @Override
@@ -405,7 +457,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     @Override
     public boolean isUsableByPlayer(EntityPlayer player)
     {
-        if (this.isDead)
+        if (isDead)
         {
             return false;
         }
@@ -451,7 +503,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     @Override
     public void clear()
     {
-        this.logisticArmItems.clear();
+        logisticArmItems.clear();
     }
 
     @Override
@@ -469,12 +521,14 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     @Override
     public void writeSpawnData(ByteBuf buffer)
     {
-        PathUtils.pathToByteBuf(this.path, buffer);
+        Vec3dListSerializer.vec3dListToByteBuf(steps, buffer);
+        LogisticShipmentSerializer.itemShipmentToByteBuf(shipment, buffer);
     }
 
     @Override
     public void readSpawnData(ByteBuf buffer)
     {
-        path = PathUtils.pathFromByteBuf(buffer);
+        steps = Vec3dListSerializer.vec3dListFromByteBuf(buffer);
+        shipment = LogisticShipmentSerializer.itemShipmentFromByteBuf(buffer);
     }
 }

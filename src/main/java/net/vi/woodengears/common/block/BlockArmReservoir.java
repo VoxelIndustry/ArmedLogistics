@@ -49,7 +49,7 @@ public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
 
         if (count == 1)
             return this.getDefaultState().withProperty(FACING, cable);
-        return this.getDefaultState().withProperty(FACING, EnumFacing.getDirectionFromEntityLiving(pos, placer));
+        return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
     }
 
     @Override
