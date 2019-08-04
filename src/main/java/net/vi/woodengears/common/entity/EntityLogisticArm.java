@@ -8,7 +8,6 @@ import net.minecraft.entity.MoverType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -26,19 +25,21 @@ import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.vi.woodengears.common.block.BlockProvider;
+import net.vi.woodengears.common.block.BlockRequester;
 import net.vi.woodengears.common.grid.Path;
 import net.vi.woodengears.common.grid.logistic.LogisticShipment;
-import net.vi.woodengears.common.init.WGItems;
 import net.vi.woodengears.common.serializer.LogisticShipmentSerializer;
 import net.vi.woodengears.common.serializer.Vec3dListSerializer;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
+import net.vi.woodengears.common.tile.TileRequester;
 import net.voxelindustry.gizmos.Gizmos;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static net.vi.woodengears.common.entity.PathToStepConverter.*;
 
 public class EntityLogisticArm extends Entity implements ILockableContainer, IEntityAdditionalSpawnData
 {
@@ -46,16 +47,24 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
     private static final DataParameter<ItemStack> ITEM             =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.ITEM_STACK);
+    private static final DataParameter<Integer>   PATH_INDEX       =
+            EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.VARINT);
     private              NonNullList<ItemStack>   logisticArmItems = NonNullList.withSize(1, ItemStack.EMPTY);
 
     private boolean startPickup;
+    private boolean startDrop;
+    private boolean hasPickedItem;
+    private boolean hasDroppedItem;
+
     @Getter
-    private int     pickupCount = 0;
+    private int pickupCount = 0;
 
     private LogisticShipment<ItemStack> shipment;
 
     private List<Vec3d> steps;
-    private int         index = 1;
+    private int         index       = 1;
+    private int         pickupIndex = 0;
+    private int         dropIndex   = 0;
 
     public EntityLogisticArm(World worldIn)
     {
@@ -63,7 +72,7 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         setSize(0.3525F, 1.0F);
     }
 
-    public EntityLogisticArm(World world, LogisticShipment<ItemStack> shipment, TileArmReservoir reservoir, Path reservoirToProvider, Path providerToRequester)
+    public EntityLogisticArm(World world, LogisticShipment<ItemStack> shipment, TileArmReservoir reservoir, Path reservoirToProvider, Path providerToRequester, Path requesterToReservoir)
     {
         this(world);
 
@@ -80,6 +89,14 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         this.shipment = shipment;
         steps = createStepsFromPath(reservoirToProvider);
 
+        pickupIndex = steps.size() + 1;
+        steps.addAll(createStepsFromPath(providerToRequester));
+        dropIndex = steps.size() + 1;
+        steps.addAll(createStepsFromPath(requesterToReservoir));
+        steps.remove(steps.size() - 1);
+        steps.remove(steps.size() - 1);
+        steps.add(pos);
+
         steps.add(0, pos);
         steps.add(1, getStartingOffset(reservoir.getPos(), reservoir.getFacing(), reservoirToProvider));
         for (Vec3d step : steps)
@@ -89,9 +106,126 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         noClip = true;
     }
 
-    private List<Vec3d> createStepsFromPath(Path path)
+    @Override
+    protected void entityInit()
     {
-        if (path.getPoints().isEmpty())
+        dataManager.register(DAMAGE, 0.0F);
+        dataManager.register(ITEM, ItemStack.EMPTY);
+        dataManager.register(PATH_INDEX, 1);
+    }
+
+    @Override
+    public void notifyDataManagerChange(DataParameter<?> key)
+    {
+        if (world.isRemote)
+        {
+            if (ITEM.equals(key))
+                setInventorySlotContents(0, getDataManager().get(ITEM));
+            else if (PATH_INDEX.equals(key))
+                index = getDataManager().get(PATH_INDEX);
+        }
+
+        super.notifyDataManagerChange(key);
+    }
+
+    @Override
+    public boolean attackEntityFrom(DamageSource source, float amount)
+    {
+        return false;
+    }
+
+    private boolean shouldMove()
+    {
+        if (startPickup || startDrop)
+            return false;
+        if (!hasPickedItem)
+            return index < pickupIndex;
+        if (!hasDroppedItem)
+            return index < dropIndex;
+        return index < steps.size();
+    }
+
+    private void completeShipment()
+    {
+        setDead();
+    }
+
+    @Override
+    public void onUpdate()
+    {
+        if (steps != null)
+        {
+            if (shouldMove())
+            {
+                Vec3d previous = steps.get(index - 1);
+                Vec3d pos = steps.get(index);
+
+                Vec3d dir = pos.subtract(previous).normalize();
+
+                move(MoverType.SELF, dir.x * getSpeed(), 0, dir.z * getSpeed());
+
+                if (Math.abs(pos.x - posX) < getSpeed() && Math.abs(pos.z - posZ) < getSpeed())
+                {
+                    setPosition(pos.x, posY, pos.z);
+                    incrementPathIndex();
+                }
+            }
+            else if (!hasPickedItem && !startPickup)
+                startPickup = true;
+            else if (hasPickedItem && !startDrop)
+                startDrop = true;
+            else if (index == steps.size())
+                completeShipment();
+        }
+
+
+        if (startPickup || startDrop)
+        {
+            if (pickupCount < 80)
+                pickupCount++;
+            else
+            {
+                pickupCount = 0;
+                startPickup = false;
+                startDrop = false;
+            }
+        }
+
+        if (pickupCount == 40)
+        {
+            if (isOverProvider() && !hasPickedItem)
+            {
+                if (!world.isRemote)
+                {
+                    TileEntity provider = world.getTileEntity(new BlockPos(this).down());
+
+                    if (!(provider instanceof TileProvider))
+                        return;
+
+                    setItemStack(((TileProvider) provider).getProvider().fromBuffer(shipment.getContent()));
+                }
+                hasPickedItem = true;
+            }
+            else if (isOverRequester() && hasPickedItem && !hasDroppedItem)
+            {
+                if (!world.isRemote)
+                {
+                    TileEntity requester = world.getTileEntity(new BlockPos(this).down());
+
+                    if (!(requester instanceof TileRequester))
+                        return;
+
+                    ((TileRequester) requester).getRequester().insert(getStackInSlot(0));
+                    setItemStack(ItemStack.EMPTY);
+                }
+                hasDroppedItem = true;
+            }
+        }
+    }
+
+    private List<Vec3d> createStepsFromPath(Path comingPath)
+    {
+        if (comingPath.getPoints().isEmpty())
             return emptyList();
 
         int index = 1;
@@ -101,14 +235,14 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         EnumFacing facing = null;
 
         List<Vec3d> steps = new ArrayList<>();
-        while (index < path.getPoints().size() - 1)
+        while (index < comingPath.getPoints().size() - 1)
         {
-            if (isNextRailCorner(index, path))
+            if (isNextRailCorner(index, comingPath))
             {
-                BlockPos current = path.getPoints().get(index);
+                BlockPos current = comingPath.getPoints().get(index);
 
-                BlockPos previous = path.getPoints().get(index - 1).subtract(current);
-                BlockPos next = path.getPoints().get(index + 1).subtract(current);
+                BlockPos previous = comingPath.getPoints().get(index - 1).subtract(current);
+                BlockPos next = comingPath.getPoints().get(index + 1).subtract(current);
 
                 Vec3d pos = new Vec3d(current);
 
@@ -131,34 +265,19 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         }
 
         if (facing.getAxis() == EnumFacing.Axis.X)
-            steps.add(new Vec3d(path.getTo()).add(frontOffset, 0, 0.5));
+        {
+            steps.add(new Vec3d(comingPath.getTo()).add(frontOffset, 0, 0.5));
+            steps.add(new Vec3d(comingPath.getTo()).add(0.5, 0, 0.5));
+            steps.add(new Vec3d(comingPath.getTo()).add(1 - frontOffset, 0, 0.5));
+        }
         else
-            steps.add(new Vec3d(path.getTo()).add(0.5, 0, frontOffset));
-        steps.add(new Vec3d(path.getTo()).add(0.5, 0, 0.5));
+        {
+            steps.add(new Vec3d(comingPath.getTo()).add(0.5, 0, frontOffset));
+            steps.add(new Vec3d(comingPath.getTo()).add(0.5, 0, 0.5));
+            steps.add(new Vec3d(comingPath.getTo()).add(0.5, 0, 1 - frontOffset));
+        }
 
         return steps;
-    }
-
-    @Override
-    protected void entityInit()
-    {
-        dataManager.register(DAMAGE, 0.0F);
-        dataManager.register(ITEM, ItemStack.EMPTY);
-    }
-
-    @Override
-    public void notifyDataManagerChange(DataParameter<?> key)
-    {
-        if (ITEM.equals(key) && world.isRemote)
-            setInventorySlotContents(0, getDataManager().get(ITEM));
-
-        super.notifyDataManagerChange(key);
-    }
-
-    @Override
-    public boolean attackEntityFrom(DamageSource source, float amount)
-    {
-        return false;
     }
 
     private Vec3d getStartingOffset(BlockPos origin, EnumFacing reservoirFacing, Path path)
@@ -183,159 +302,21 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         return pos;
     }
 
-    private double getOffsetFromCorner(BlockPos previous, BlockPos next)
-    {
-        if (previous.getX() == 1)
-        {
-            if (next.getZ() == -1)
-                return 9 / 32D;
-            else if (next.getZ() == 1)
-                return 23 / 32D;
-
-        }
-        else if (previous.getX() == -1)
-        {
-            if (next.getZ() == -1)
-                return 23 / 32D;
-            else if (next.getZ() == 1)
-                return 9 / 32D;
-        }
-        else if (previous.getZ() == -1)
-        {
-            if (next.getX() == -1)
-                return 9 / 32D;
-            else if (next.getX() == 1)
-                return 23 / 32D;
-        }
-        else if (previous.getZ() == 1)
-        {
-            if (next.getX() == -1)
-                return 9 / 32D;
-            else if (next.getX() == 1)
-                return 23 / 32D;
-        }
-        return 0;
-    }
-
-    private double getSideOffsetFromCorner(BlockPos previous, BlockPos next)
-    {
-        if (previous.getX() == 1)
-        {
-            if (next.getZ() == -1)
-                return 7 / 32D;
-            else if (next.getZ() == 1)
-                return -7 / 32D;
-
-        }
-        else if (previous.getX() == -1)
-        {
-            if (next.getZ() == -1)
-                return 7 / 32D;
-            else if (next.getZ() == 1)
-                return 7 / 32D;
-        }
-        else if (previous.getZ() == -1)
-        {
-            if (next.getX() == -1)
-                return -7 / 32D;
-            else if (next.getX() == 1)
-                return -7 / 32D;
-        }
-        else if (previous.getZ() == 1)
-        {
-            if (next.getX() == -1)
-                return 7 / 32D;
-            else if (next.getX() == 1)
-                return 7 / 32D;
-        }
-
-        return 0;
-    }
-
-    private boolean isNextRailCorner(int index, Path path)
-    {
-        BlockPos previous = path.getPoints().get(index - 1);
-        BlockPos next = path.getPoints().get(index + 1);
-
-        return previous.getX() != next.getX() && previous.getZ() != next.getZ();
-    }
-
-    @Override
-    public void onUpdate()
-    {
-        if (steps != null)
-        {
-            if (index < steps.size())
-            {
-                Vec3d previous = steps.get(index - 1);
-                Vec3d pos = steps.get(index);
-
-                Vec3d dir = pos.subtract(previous).normalize();
-
-                move(MoverType.SELF, dir.x * getSpeed(), 0, dir.z * getSpeed());
-
-                if (Math.abs(pos.x - posX) < getSpeed() && Math.abs(pos.z - posZ) < getSpeed())
-                {
-                    setPosition(pos.x, posY, pos.z);
-                    index++;
-                }
-            }
-            else if (!startPickup)
-                startPickup = true;
-        }
-
-
-        if (startPickup)
-        {
-            if (pickupCount < 80)
-                pickupCount++;
-            else
-            {
-                pickupCount = 80;
-                startPickup = false;
-            }
-        }
-
-        if (isHoverBlockProvider() && pickupCount == 40 && isEmpty() && !world.isRemote)
-        {
-            TileEntity provider = world.getTileEntity(new BlockPos(this).down());
-
-            if (!(provider instanceof TileProvider))
-                return;
-
-            ItemStack shipped = ((TileProvider) provider).getProvider().fromBuffer(shipment.getContent());
-
-            setItemStack(shipped);
-            // TODO: Insertion
-            //   requester.getRequester().insert(shipped);
-        }
-
-        if (!world.isRemote)
-        {
-            if (!isBottomBlockCable())
-            {
-                setDead();
-                if (world.getGameRules().getBoolean("doEntityDrops"))
-                {
-                    ItemStack logistic_arm = new ItemStack(WGItems.LOGISTIC_ARM);
-
-                    InventoryHelper.dropInventoryItems(world, this, this);
-
-                    entityDropItem(logistic_arm, 0.0F);
-                }
-            }
-        }
-    }
-
     private double getSpeed()
     {
-        return 0.025D;
+        return 0.075D;
     }
 
-    public boolean isHoverBlockProvider()
+    public boolean isOverProvider()
     {
         Block block = world.getBlockState(new BlockPos(this).down()).getBlock();
         return block instanceof BlockProvider;
+    }
+
+    public boolean isOverRequester()
+    {
+        Block block = world.getBlockState(new BlockPos(this).down()).getBlock();
+        return block instanceof BlockRequester;
     }
 
     public boolean isBottomBlockCable()
@@ -343,6 +324,14 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         return true;
         //Block block = this.world.getBlockState(new BlockPos(this).up()).getBlock();
         //return block instanceof BlockCable;
+    }
+
+    private void incrementPathIndex()
+    {
+        index++;
+
+        if (!world.isRemote)
+            dataManager.set(PATH_INDEX, index);
     }
 
     @Override
@@ -523,6 +512,9 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     {
         Vec3dListSerializer.vec3dListToByteBuf(steps, buffer);
         LogisticShipmentSerializer.itemShipmentToByteBuf(shipment, buffer);
+
+        buffer.writeInt(pickupIndex);
+        buffer.writeInt(dropIndex);
     }
 
     @Override
@@ -530,5 +522,8 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     {
         steps = Vec3dListSerializer.vec3dListFromByteBuf(buffer);
         shipment = LogisticShipmentSerializer.itemShipmentFromByteBuf(buffer);
+
+        pickupIndex = buffer.readInt();
+        dropIndex = buffer.readInt();
     }
 }

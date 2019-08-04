@@ -46,17 +46,17 @@ public class RailGrid extends CableGrid
     {
         super(identifier);
 
-        this.reservoirMap = new HashMap<>();
-        this.providerMap = new HashMap<>();
-        this.requesterMap = new HashMap<>();
+        reservoirMap = new HashMap<>();
+        providerMap = new HashMap<>();
+        requesterMap = new HashMap<>();
 
-        this.shipped = new ArrayList<>();
+        shipped = new ArrayList<>();
 
         pathCache = CacheBuilder.newBuilder().maximumSize(100)
                 .expireAfterAccess(5, TimeUnit.MINUTES)
                 .build(CacheLoader.from(key -> pathFind(key.getKey(), key.getValue())));
 
-        this.stackNetwork = new LogisticNetwork<>(this, ItemStack.class, ItemStackMethods.getInstance());
+        stackNetwork = new LogisticNetwork<>(this, ItemStack.class, ItemStackMethods.getInstance());
     }
 
     @Override
@@ -64,32 +64,33 @@ public class RailGrid extends CableGrid
     {
         super.tick();
 
-        if (this.providerMap.isEmpty() || this.reservoirMap.isEmpty() || this.requesterMap.isEmpty())
+        if (providerMap.isEmpty() || reservoirMap.isEmpty() || requesterMap.isEmpty())
             return;
 
-        this.stackNetwork.tick();
+        stackNetwork.tick();
 
-        if (!this.stackNetwork.getShipments().isEmpty())
+        if (!stackNetwork.getShipments().isEmpty())
         {
-            for (LogisticShipment<ItemStack> shipment : this.stackNetwork.getShipments())
+            for (LogisticShipment<ItemStack> shipment : stackNetwork.getShipments())
             {
                 if (shipped.contains(shipment))
                     continue;
 
                 // Ignore warning, this will always return a ITileRail
-                TileProvider provider = this.providerMap.get(this.getFromPos(shipment.getFrom()));
+                TileProvider provider = providerMap.get(getFromPos(shipment.getFrom()));
 
-                Optional<BlockPos> closestReservoirPos = this.reservoirMap.keySet().stream().map(ITileNode::getBlockPos).min(Comparator.comparingInt(pos -> getDistanceBetween(pos, shipment.getFrom())));
+                Optional<BlockPos> closestReservoirPos = reservoirMap.keySet().stream().map(ITileNode::getBlockPos).min(Comparator.comparingInt(pos -> getDistanceBetween(pos, shipment.getFrom())));
 
                 if (!closestReservoirPos.isPresent())
                     continue;
 
-                TileArmReservoir reservoir = this.reservoirMap.get(getFromPos(closestReservoirPos.get()));
+                TileArmReservoir reservoir = reservoirMap.get(getFromPos(closestReservoirPos.get()));
 
                 Path reservoirToProvider = getPath(closestReservoirPos.get(), shipment.getFrom());
-                Path providerToReservoir = getPath(shipment.getFrom(), shipment.getTo());
+                Path providerToRequester = getPath(shipment.getFrom(), shipment.getTo());
+                Path requesterToReservoir = getPath(shipment.getTo(), closestReservoirPos.get());
 
-                EntityLogisticArm arm = new EntityLogisticArm(provider.getWorld(), shipment, reservoir, reservoirToProvider, providerToReservoir);
+                EntityLogisticArm arm = new EntityLogisticArm(provider.getWorld(), shipment, reservoir, reservoirToProvider, providerToRequester, requesterToReservoir);
                 provider.getWorld().spawnEntity(arm);
 
                 shipped.add(shipment);
@@ -122,59 +123,59 @@ public class RailGrid extends CableGrid
 
         ((RailGrid) grid).providerMap.forEach((rail, provider) ->
         {
-            if (this.hasCable(rail))
-                this.addProvider(rail, provider);
+            if (hasCable(rail))
+                addProvider(rail, provider);
         });
         ((RailGrid) grid).requesterMap.forEach((rail, requester) ->
         {
-            if (this.hasCable(rail))
-                this.addRequester(rail, requester);
+            if (hasCable(rail))
+                addRequester(rail, requester);
         });
         ((RailGrid) grid).reservoirMap.forEach((rail, reservoir) ->
         {
-            if (this.hasCable(rail))
-                this.addReservoir(rail, reservoir);
+            if (hasCable(rail))
+                addReservoir(rail, reservoir);
         });
     }
 
     public void addReservoir(ITileRail pipe, TileArmReservoir handler)
     {
-        if (this.reservoirMap.containsKey(pipe))
+        if (reservoirMap.containsKey(pipe))
             return;
-        this.reservoirMap.put(pipe, handler);
+        reservoirMap.put(pipe, handler);
     }
 
     public void removeReservoir(ITileRail pipe)
     {
-        this.reservoirMap.remove(pipe);
+        reservoirMap.remove(pipe);
     }
 
     public void addProvider(ITileRail pipe, TileProvider handler)
     {
-        if (this.providerMap.containsKey(pipe))
+        if (providerMap.containsKey(pipe))
             return;
-        this.providerMap.put(pipe, handler);
-        this.stackNetwork.addProvider(handler.getProvider());
+        providerMap.put(pipe, handler);
+        stackNetwork.addProvider(handler.getProvider());
     }
 
     public void removeProvider(ITileRail pipe)
     {
-        TileProvider removed = this.providerMap.remove(pipe);
+        TileProvider removed = providerMap.remove(pipe);
 
         if (removed != null)
-            this.stackNetwork.removeProvider(removed.getProvider());
+            stackNetwork.removeProvider(removed.getProvider());
     }
 
     public void addRequester(ITileRail rail, TileRequester requester)
     {
-        if (this.requesterMap.containsKey(rail))
+        if (requesterMap.containsKey(rail))
             return;
-        this.requesterMap.put(rail, requester);
+        requesterMap.put(rail, requester);
     }
 
     public void removeRequester(ITileRail rail)
     {
-        this.requesterMap.remove(rail);
+        requesterMap.remove(rail);
     }
 
     @Override
@@ -182,9 +183,9 @@ public class RailGrid extends CableGrid
     {
         if (super.removeCable(cable))
         {
-            this.removeReservoir((ITileRail) cable);
-            this.removeProvider((ITileRail) cable);
-            this.removeRequester((ITileRail) cable);
+            removeReservoir((ITileRail) cable);
+            removeProvider((ITileRail) cable);
+            removeRequester((ITileRail) cable);
             return true;
         }
         return false;
@@ -194,7 +195,7 @@ public class RailGrid extends CableGrid
     {
         try
         {
-            return this.pathCache.get(Pair.of(from, to)).getPoints().size();
+            return pathCache.get(Pair.of(from, to)).getPoints().size();
         } catch (ExecutionException e)
         {
             e.printStackTrace();
@@ -206,7 +207,7 @@ public class RailGrid extends CableGrid
     {
         try
         {
-            return this.pathCache.get(Pair.of(from, to));
+            return pathCache.get(Pair.of(from, to));
         } catch (ExecutionException e)
         {
             e.printStackTrace();
@@ -227,7 +228,7 @@ public class RailGrid extends CableGrid
         }));
         HashSet<BlockPos> closedSet = new HashSet<>();
 
-        openSet.add(new PathNode(null, from, this.getFromPos(from)));
+        openSet.add(new PathNode(null, from, getFromPos(from)));
 
         while (!openSet.isEmpty())
         {
