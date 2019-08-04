@@ -5,10 +5,6 @@ import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
@@ -17,11 +13,8 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.ILockableContainer;
-import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.vi.woodengears.common.block.BlockProvider;
@@ -39,22 +32,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static net.vi.woodengears.common.entity.LogisticArmState.*;
 import static net.vi.woodengears.common.entity.PathToStepConverter.*;
 
-public class EntityLogisticArm extends Entity implements ILockableContainer, IEntityAdditionalSpawnData
+public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnData
 {
-    private static final DataParameter<Float>     DAMAGE           =
+    private static final DataParameter<Float>     DAMAGE     =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
-    private static final DataParameter<ItemStack> ITEM             =
+    private static final DataParameter<ItemStack> ITEM       =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.ITEM_STACK);
-    private static final DataParameter<Integer>   PATH_INDEX       =
+    private static final DataParameter<Integer>   PATH_INDEX =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.VARINT);
-    private              NonNullList<ItemStack>   logisticArmItems = NonNullList.withSize(1, ItemStack.EMPTY);
 
-    private boolean startPickup;
-    private boolean startDrop;
-    private boolean hasPickedItem;
-    private boolean hasDroppedItem;
+    private LogisticArmState      armState = MOVING_TO_PROVIDER;
+    private LogisticArmBlockCause armBlockCause;
 
     @Getter
     private int pickupCount = 0;
@@ -65,6 +56,9 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     private int         index       = 1;
     private int         pickupIndex = 0;
     private int         dropIndex   = 0;
+
+    @Getter
+    private ItemStack stack = ItemStack.EMPTY;
 
     public EntityLogisticArm(World worldIn)
     {
@@ -107,50 +101,6 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     }
 
     @Override
-    protected void entityInit()
-    {
-        dataManager.register(DAMAGE, 0.0F);
-        dataManager.register(ITEM, ItemStack.EMPTY);
-        dataManager.register(PATH_INDEX, 1);
-    }
-
-    @Override
-    public void notifyDataManagerChange(DataParameter<?> key)
-    {
-        if (world.isRemote)
-        {
-            if (ITEM.equals(key))
-                setInventorySlotContents(0, getDataManager().get(ITEM));
-            else if (PATH_INDEX.equals(key))
-                index = getDataManager().get(PATH_INDEX);
-        }
-
-        super.notifyDataManagerChange(key);
-    }
-
-    @Override
-    public boolean attackEntityFrom(DamageSource source, float amount)
-    {
-        return false;
-    }
-
-    private boolean shouldMove()
-    {
-        if (startPickup || startDrop)
-            return false;
-        if (!hasPickedItem)
-            return index < pickupIndex;
-        if (!hasDroppedItem)
-            return index < dropIndex;
-        return index < steps.size();
-    }
-
-    private void completeShipment()
-    {
-        setDead();
-    }
-
-    @Override
     public void onUpdate()
     {
         if (steps != null)
@@ -170,30 +120,29 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
                     incrementPathIndex();
                 }
             }
-            else if (!hasPickedItem && !startPickup)
-                startPickup = true;
-            else if (hasPickedItem && !startDrop)
-                startDrop = true;
+            else if (armState == MOVING_TO_PROVIDER)
+                armState = PICKING_FROM_PROVIDER;
+            else if (armState == MOVING_TO_REQUESTER)
+                armState = GIVING_TO_REQUESTER;
             else if (index == steps.size())
                 completeShipment();
         }
 
 
-        if (startPickup || startDrop)
+        if (armState == PICKING_FROM_PROVIDER || armState == GIVING_TO_REQUESTER)
         {
             if (pickupCount < 80)
                 pickupCount++;
             else
             {
                 pickupCount = 0;
-                startPickup = false;
-                startDrop = false;
+                armState = armState == PICKING_FROM_PROVIDER ? MOVING_TO_REQUESTER : MOVING_TO_RESERVOIR;
             }
         }
 
         if (pickupCount == 40)
         {
-            if (isOverProvider() && !hasPickedItem)
+            if (isOverProvider() && armState == PICKING_FROM_PROVIDER)
             {
                 if (!world.isRemote)
                 {
@@ -204,9 +153,8 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
 
                     setItemStack(((TileProvider) provider).getProvider().fromBuffer(shipment.getContent()));
                 }
-                hasPickedItem = true;
             }
-            else if (isOverRequester() && hasPickedItem && !hasDroppedItem)
+            else if (isOverRequester() && armState == GIVING_TO_REQUESTER)
             {
                 if (!world.isRemote)
                 {
@@ -215,66 +163,71 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
                     if (!(requester instanceof TileRequester))
                         return;
 
-                    ((TileRequester) requester).getRequester().insert(getStackInSlot(0));
+                    ((TileRequester) requester).getRequester().insert(stack);
                     setItemStack(ItemStack.EMPTY);
                 }
-                hasDroppedItem = true;
             }
         }
     }
 
-    private List<Vec3d> createStepsFromPath(Path comingPath)
+    private List<Vec3d> createStepsFromPath(Path path)
     {
-        if (comingPath.getPoints().isEmpty())
+        if (path.getPoints().isEmpty())
             return emptyList();
 
         int index = 1;
+        boolean straightPath = isPathStraight(path);
 
         double frontOffset = 0;
-        double sideOffset = 0;
-        EnumFacing facing = null;
+
+        EnumFacing endFacing = EnumFacing.getFacingFromVector(
+                path.getTo().getX() - path.getPoints().get(path.getPoints().size() - 2).getX(),
+                0,
+                path.getTo().getZ() - path.getPoints().get(path.getPoints().size() - 2).getZ());
 
         List<Vec3d> steps = new ArrayList<>();
-        while (index < comingPath.getPoints().size() - 1)
-        {
-            if (isNextRailCorner(index, comingPath))
-            {
-                BlockPos current = comingPath.getPoints().get(index);
 
-                BlockPos previous = comingPath.getPoints().get(index - 1).subtract(current);
-                BlockPos next = comingPath.getPoints().get(index + 1).subtract(current);
+        if (straightPath)
+        {
+            System.out.println("STRAIGHT PATH");
+            frontOffset = getOffsetFromLine(path.getFrom(), path.getTo());
+        }
+
+        while (!straightPath && index < path.getPoints().size() - 1)
+        {
+            if (isNextRailCorner(index, path))
+            {
+                BlockPos current = path.getPoints().get(index);
+
+                BlockPos previous = path.getPoints().get(index - 1).subtract(current);
+                BlockPos next = path.getPoints().get(index + 1).subtract(current);
 
                 Vec3d pos = new Vec3d(current);
 
                 frontOffset = getOffsetFromCorner(previous, next);
-                sideOffset = getSideOffsetFromCorner(previous, next);
-
-                facing = EnumFacing.getFacingFromVector((float) (pos.x - previous.getX()), 0, (float) (pos.z - previous.getZ()));
+                double sideOffset = getSideOffsetFromCorner(previous, next);
 
                 Gizmos.edgedBox(new Vec3d(previous).add(pos).add(0.5, 1, 0.5), new Vec3d(0.2D, 1, 0.2D), 0x88000044, 0xFF0000FF, 1)
                         .handle(() -> isDead);
                 Gizmos.edgedBox(new Vec3d(next).add(pos).add(0.5, 1, 0.5), new Vec3d(0.2D, 1, 0.2D), 0x88000044, 0xFF0000FF, 1)
                         .handle(() -> isDead);
 
-                if (facing.getAxis() == EnumFacing.Axis.X)
-                    steps.add(pos.add(frontOffset, 0, 0.5 + sideOffset));
-                else // Z-AXIS
-                    steps.add(pos.add(0.5 + sideOffset, 0, frontOffset));
+                steps.add(pos.add(0.5 + sideOffset, 0, frontOffset));
             }
             index++;
         }
 
-        if (facing.getAxis() == EnumFacing.Axis.X)
+        if (endFacing.getAxis() == EnumFacing.Axis.X)
         {
-            steps.add(new Vec3d(comingPath.getTo()).add(frontOffset, 0, 0.5));
-            steps.add(new Vec3d(comingPath.getTo()).add(0.5, 0, 0.5));
-            steps.add(new Vec3d(comingPath.getTo()).add(1 - frontOffset, 0, 0.5));
+            steps.add(new Vec3d(path.getTo()).add(0.5, 0, frontOffset));
+            steps.add(new Vec3d(path.getTo()).add(0.5, 0, 0.5));
+            steps.add(new Vec3d(path.getTo()).add(0.5, 0, 1 - frontOffset));
         }
         else
         {
-            steps.add(new Vec3d(comingPath.getTo()).add(0.5, 0, frontOffset));
-            steps.add(new Vec3d(comingPath.getTo()).add(0.5, 0, 0.5));
-            steps.add(new Vec3d(comingPath.getTo()).add(0.5, 0, 1 - frontOffset));
+            steps.add(new Vec3d(path.getTo()).add(frontOffset, 0, 0.5));
+            steps.add(new Vec3d(path.getTo()).add(0.5, 0, 0.5));
+            steps.add(new Vec3d(path.getTo()).add(1 - frontOffset, 0, 0.5));
         }
 
         return steps;
@@ -300,6 +253,22 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
         Gizmos.edgedBox(pos.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x88006644, 0xFF00AAFF, 1)
                 .handle(() -> isDead);
         return pos;
+    }
+
+    private boolean shouldMove()
+    {
+        if (!armState.isMoving())
+            return false;
+        if (armState.ordinal() < PICKING_FROM_PROVIDER.ordinal())
+            return index < pickupIndex;
+        if (armState.ordinal() < GIVING_TO_REQUESTER.ordinal())
+            return index < dropIndex;
+        return index < steps.size();
+    }
+
+    private void completeShipment()
+    {
+        setDead();
     }
 
     private double getSpeed()
@@ -334,10 +303,48 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
             dataManager.set(PATH_INDEX, index);
     }
 
+    private void setItemStack(ItemStack stack)
+    {
+        this.stack = stack;
+        getDataManager().set(ITEM, stack);
+    }
+
+    /////////////////////
+    // VANILLA METHODS //
+    /////////////////////
+
+    @Override
+    protected void entityInit()
+    {
+        dataManager.register(DAMAGE, 0.0F);
+        dataManager.register(ITEM, ItemStack.EMPTY);
+        dataManager.register(PATH_INDEX, 1);
+    }
+
+    @Override
+    public void notifyDataManagerChange(DataParameter<?> key)
+    {
+        if (world.isRemote)
+        {
+            if (ITEM.equals(key))
+                stack = getDataManager().get(ITEM);
+            else if (PATH_INDEX.equals(key))
+                index = getDataManager().get(PATH_INDEX);
+        }
+
+        super.notifyDataManagerChange(key);
+    }
+
+    @Override
+    public boolean attackEntityFrom(DamageSource source, float amount)
+    {
+        return false;
+    }
+
     @Override
     protected void readEntityFromNBT(NBTTagCompound tag)
     {
-        ItemStackHelper.saveAllItems(tag, logisticArmItems);
+        stack = new ItemStack(tag.getCompoundTag("itemstack"));
 
         pickupCount = tag.getInteger("pickupCount");
 
@@ -348,163 +355,12 @@ public class EntityLogisticArm extends Entity implements ILockableContainer, IEn
     @Override
     protected void writeEntityToNBT(NBTTagCompound tag)
     {
-        logisticArmItems = NonNullList.withSize(getSizeInventory(), ItemStack.EMPTY);
-        ItemStackHelper.loadAllItems(tag, logisticArmItems);
+        tag.setTag("itemstack", stack.writeToNBT(new NBTTagCompound()));
 
         tag.setInteger("pickupCount", pickupCount);
 
         tag.setTag("steps", Vec3dListSerializer.vec3dListToNBT(steps));
         tag.setTag("shipment", LogisticShipmentSerializer.itemShipmentToNBT(shipment));
-    }
-
-    @Override
-    public boolean isLocked()
-    {
-        return false;
-    }
-
-    @Override
-    public void setLockCode(LockCode code)
-    {
-    }
-
-    @Override
-    public LockCode getLockCode()
-    {
-        return LockCode.EMPTY_CODE;
-    }
-
-    @Override
-    public int getSizeInventory()
-    {
-        return 1;
-    }
-
-    @Override
-    public boolean isEmpty()
-    {
-        for (ItemStack itemStack : logisticArmItems)
-        {
-            if (!itemStack.isEmpty())
-                return false;
-        }
-        return true;
-    }
-
-    @Override
-    public ItemStack getStackInSlot(int index)
-    {
-        return logisticArmItems.get(index);
-    }
-
-    @Override
-    public ItemStack decrStackSize(int index, int count)
-    {
-        return ItemStackHelper.getAndSplit(logisticArmItems, index, count);
-    }
-
-    @Override
-    public ItemStack removeStackFromSlot(int index)
-    {
-        ItemStack itemStack = logisticArmItems.get(index);
-
-        if (itemStack.isEmpty())
-            return ItemStack.EMPTY;
-        else
-        {
-            logisticArmItems.set(index, ItemStack.EMPTY);
-            return itemStack;
-        }
-    }
-
-    private void setItemStack(ItemStack stack)
-    {
-        dataManager.set(ITEM, stack);
-        setInventorySlotContents(0, stack);
-    }
-
-    @Override
-    public void setInventorySlotContents(int index, ItemStack stack)
-    {
-        logisticArmItems.set(index, stack);
-
-        if (!stack.isEmpty() && stack.getCount() > getInventoryStackLimit())
-            stack.setCount(getInventoryStackLimit());
-    }
-
-    @Override
-    public int getInventoryStackLimit()
-    {
-        return 64;
-    }
-
-    @Override
-    public void markDirty()
-    {
-    }
-
-    @Override
-    public boolean isUsableByPlayer(EntityPlayer player)
-    {
-        if (isDead)
-        {
-            return false;
-        }
-        else
-        {
-            return player.getDistanceSq(this) <= 64.0D;
-        }
-    }
-
-    @Override
-    public void openInventory(EntityPlayer player)
-    {
-    }
-
-    @Override
-    public void closeInventory(EntityPlayer player)
-    {
-    }
-
-    @Override
-    public boolean isItemValidForSlot(int index, ItemStack stack)
-    {
-        return true;
-    }
-
-    @Override
-    public int getField(int id)
-    {
-        return 0;
-    }
-
-    @Override
-    public void setField(int id, int value)
-    {
-    }
-
-    @Override
-    public int getFieldCount()
-    {
-        return 0;
-    }
-
-    @Override
-    public void clear()
-    {
-        logisticArmItems.clear();
-    }
-
-    @Override
-    public Container createContainer(InventoryPlayer playerInventory, EntityPlayer playerIn)
-    {
-        return null;
-    }
-
-    @Override
-    public String getGuiID()
-    {
-        return null;
     }
 
     @Override

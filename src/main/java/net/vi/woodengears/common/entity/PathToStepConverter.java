@@ -81,4 +81,21 @@ public class PathToStepConverter
 
         return previous.getX() != next.getX() && previous.getZ() != next.getZ();
     }
+
+    public static boolean isPathStraight(Path path)
+    {
+        if (path.getFrom().getX() != path.getTo().getX() && path.getFrom().getZ() != path.getTo().getZ())
+            return false;
+
+        return path.getPoints().stream().allMatch(point -> point.getX() == path.getFrom().getX() || point.getZ() == path.getFrom().getZ());
+    }
+
+    public static double getOffsetFromLine(BlockPos previous, BlockPos next)
+    {
+        if (previous.getX() > 0 || next.getZ() < 0)
+            return 9 / 32D;
+        else if (previous.getX() < 0 || next.getZ() > 0)
+            return 23 / 32D;
+        return 0;
+    }
 }

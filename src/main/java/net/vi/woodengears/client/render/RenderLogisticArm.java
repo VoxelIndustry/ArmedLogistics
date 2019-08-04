@@ -30,7 +30,7 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
                          float partialTicks)
     {
         GlStateManager.pushMatrix();
-        GlStateManager.translate((float) x + 0.25F, (float) y + 0.75F, (float) z);
+        GlStateManager.translate(x + 0.25, y + 0.75, z);
 
         GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.scale(0.5F, 0.5F, 0.5F);
@@ -71,7 +71,7 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
 
     private void renderItem(EntityLogisticArm logisticArm)
     {
-        ItemStack itemStack = logisticArm.getStackInSlot(0);
+        ItemStack itemStack = logisticArm.getStack();
 
         if (!itemStack.isEmpty())
         {
