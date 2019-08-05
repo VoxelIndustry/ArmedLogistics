@@ -15,7 +15,7 @@ public class WGEntity
     {
         EntityEntry logistic_arm =
                 EntityEntryBuilder.create().entity(EntityLogisticArm.class).name("logistic_arm").id("logistic_arm",
-                        0).tracker(64, 3, true).build();
+                        0).tracker(64, 1, true).build();
 
         event.getRegistry().registerAll(logistic_arm);
     }

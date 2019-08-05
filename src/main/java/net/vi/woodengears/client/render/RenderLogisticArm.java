@@ -44,14 +44,16 @@ public class RenderLogisticArm extends Render<EntityLogisticArm>
         {
             if (logisticArm.getPickupCount() > 40)
             {
-                GlStateManager.translate(0, 2.35 * (1 - (logisticArm.getPickupCount() / 40D) / 2D), 0);
+                double delta = 1 - (interp(logisticArm.getPickupCount(), logisticArm.getPickupCount() + 1, partialTicks) / 80D);
+                GlStateManager.translate(0, 2.35 * delta, 0);
                 modelLogisticArm.renderSecondPiston(0.0625F);
                 GlStateManager.translate(0, 2 * (1 - (logisticArm.getPickupCount() / 40D) / 2D), 0);
                 modelLogisticArm.renderHead(0.0625F);
             }
             else
             {
-                GlStateManager.translate(0, 1.175 * (logisticArm.getPickupCount() / 40D), 0);
+                double delta = interp(logisticArm.getPickupCount(), logisticArm.getPickupCount() + 1, partialTicks) / 40D;
+                GlStateManager.translate(0, 1.175 * delta, 0);
                 modelLogisticArm.renderSecondPiston(0.0625F);
                 GlStateManager.translate(0, (logisticArm.getPickupCount() / 40D), 0);
                 modelLogisticArm.renderHead(0.0625F);

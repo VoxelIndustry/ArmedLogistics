@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.MoverType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
@@ -32,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static net.vi.woodengears.common.entity.LogisticArmBlockCause.NONE;
 import static net.vi.woodengears.common.entity.LogisticArmState.*;
 import static net.vi.woodengears.common.entity.PathToStepConverter.*;
 
@@ -44,8 +44,8 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     private static final DataParameter<Integer>   PATH_INDEX =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.VARINT);
 
-    private LogisticArmState      armState = MOVING_TO_PROVIDER;
-    private LogisticArmBlockCause armBlockCause;
+    private LogisticArmState      armState      = MOVING_TO_PROVIDER;
+    private LogisticArmBlockCause armBlockCause = NONE;
 
     @Getter
     private int pickupCount = 0;
@@ -112,7 +112,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
                 Vec3d dir = pos.subtract(previous).normalize();
 
-                move(MoverType.SELF, dir.x * getSpeed(), 0, dir.z * getSpeed());
+                setPosition(posX + dir.x * getSpeed(), posY, posZ + dir.z * getSpeed());
 
                 if (Math.abs(pos.x - posX) < getSpeed() && Math.abs(pos.z - posZ) < getSpeed())
                 {
@@ -188,10 +188,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
         List<Vec3d> steps = new ArrayList<>();
 
         if (straightPath)
-        {
-            System.out.println("STRAIGHT PATH");
             frontOffset = getOffsetFromLine(path.getFrom(), path.getTo());
-        }
 
         while (!straightPath && index < path.getPoints().size() - 1)
         {
@@ -350,6 +347,15 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
         steps = Vec3dListSerializer.vec3dListFromNBT(tag.getCompoundTag("steps"));
         shipment = LogisticShipmentSerializer.itemShipmentFromNBT(tag.getCompoundTag("shipment"));
+
+        index = tag.getInteger("currentIndex");
+        pickupIndex = tag.getInteger("pickupIndex");
+        dropIndex = tag.getInteger("dropIndex");
+
+        pickupCount = tag.getInteger("pickupCount");
+
+        armState = LogisticArmState.values()[tag.getInteger("armState")];
+        armBlockCause = LogisticArmBlockCause.values()[tag.getInteger("blockState")];
     }
 
     @Override
@@ -361,6 +367,14 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
         tag.setTag("steps", Vec3dListSerializer.vec3dListToNBT(steps));
         tag.setTag("shipment", LogisticShipmentSerializer.itemShipmentToNBT(shipment));
+
+        tag.setInteger("currentIndex", index);
+        tag.setInteger("pickupIndex", pickupIndex);
+        tag.setInteger("dropIndex", dropIndex);
+
+        tag.setInteger("pickupCount", pickupCount);
+        tag.setInteger("armState", armState.ordinal());
+        tag.setInteger("blockState", armBlockCause.ordinal());
     }
 
     @Override

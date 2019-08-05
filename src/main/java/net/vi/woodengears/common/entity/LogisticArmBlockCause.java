@@ -2,6 +2,7 @@ package net.vi.woodengears.common.entity;
 
 public enum LogisticArmBlockCause
 {
+    NONE,
     /**
      * Out of fuel meaning it didn't took enough or the path has changed and was too big.
      */
