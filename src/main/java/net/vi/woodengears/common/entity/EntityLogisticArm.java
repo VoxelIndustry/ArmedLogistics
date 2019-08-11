@@ -11,7 +11,6 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -25,16 +24,11 @@ import net.vi.woodengears.common.serializer.Vec3dListSerializer;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.vi.woodengears.common.tile.TileRequester;
-import net.voxelindustry.gizmos.Gizmos;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
 import static net.vi.woodengears.common.entity.LogisticArmBlockCause.NONE;
 import static net.vi.woodengears.common.entity.LogisticArmState.*;
-import static net.vi.woodengears.common.entity.PathToStepConverter.isNextRailCorner;
-import static net.vi.woodengears.common.entity.PathToStepConverter.isPathStraight;
 
 public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnData
 {
@@ -60,10 +54,6 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     private int         pickupIndex = 0;
     private int         dropIndex   = 0;
 
-    private Path reservoirToProvider;
-    private Path providerToRequester;
-    private Path requesterToReservoir;
-
     @Getter
     private ItemStack stack = ItemStack.EMPTY;
 
@@ -79,9 +69,6 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
         this.shipment = shipment;
 
-        this.reservoirToProvider = reservoirToProvider;
-        this.providerToRequester = providerToRequester;
-        this.requesterToReservoir = requesterToReservoir;
         recreate(reservoirToProvider, providerToRequester, requesterToReservoir, reservoir);
         initPos();
 
@@ -105,12 +92,12 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     {
         requesterToReservoir.getPoints().add(reservoir.getPos());
 
-        steps = createStepsFromPath(reservoirToProvider);
+        steps = PathToStepConverter.createStepsFromPath(reservoirToProvider);
 
         pickupIndex = steps.size();
-        steps.addAll(createStepsFromPath(providerToRequester));
+        steps.addAll(PathToStepConverter.createStepsFromPath(providerToRequester));
         dropIndex = steps.size();
-        steps.addAll(createStepsFromPath(requesterToReservoir));
+        steps.addAll(PathToStepConverter.createStepsFromPath(requesterToReservoir));
 
         // Remove last three steps for reservoir storage
         steps.remove(steps.size() - 1);
@@ -121,10 +108,6 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
         steps.add(0, pos.add(FacingLane.fromFacing(reservoir.getFacing()).getVector()));
         steps.add(pos.add(FacingLane.fromFacing(reservoir.getFacing().getOpposite()).getVector()));
-
-        for (Vec3d step : steps)
-            Gizmos.edgedBox(step.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x00880044, 0x00FF00FF, 1)
-                    .handle(() -> isDead);
     }
 
     @Override
@@ -195,63 +178,6 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
                 }
             }
         }
-    }
-
-    private List<Vec3d> createStepsFromPath(Path path)
-    {
-        if (path.getPoints().isEmpty())
-            return emptyList();
-
-        int index = 1;
-        boolean straightPath = isPathStraight(path);
-
-        EnumFacing endFacing = EnumFacing.getFacingFromVector(
-                path.getTo().getX() - path.getPoints().get(path.getPoints().size() - 2).getX(),
-                0,
-                path.getTo().getZ() - path.getPoints().get(path.getPoints().size() - 2).getZ()).getOpposite();
-
-        List<Vec3d> steps = new ArrayList<>();
-
-        while (!straightPath && index < path.getPoints().size() - 1)
-        {
-            if (isNextRailCorner(index, path))
-            {
-                BlockPos current = path.getPoints().get(index);
-
-                BlockPos previous = path.getPoints().get(index - 1).subtract(current);
-                BlockPos next = path.getPoints().get(index + 1).subtract(current);
-
-                Vec3d pos = new Vec3d(current);
-
-                EnumFacing facing = EnumFacing.getFacingFromVector(next.getX(), 0, next.getZ());
-
-                FacingCorner facingCorner = FacingCorner.fromBlockPos(previous, next);
-
-                Vec3d add;
-                if (facingCorner == FacingCorner.WEST_NORTH)
-                {
-                    add = pos.add(new Vec3d(1 - RAIL_OFFSET, 0, 1 - RAIL_OFFSET));
-                }
-                else
-                    add = pos.add(facingCorner.getVector());
-                steps.add(add);
-
-                Gizmos.text(add.subtract(0, 1, 0), facingCorner.name() + " | " + facing.name(), 0)
-                        .handle(() -> isDead);
-                Gizmos.edgedBox(new Vec3d(previous).add(pos).add(0.5, 1, 0.5), new Vec3d(0.2D, 1, 0.2D), 0x88000044, 0xFF0000FF, 1)
-                        .handle(() -> isDead);
-                Gizmos.edgedBox(new Vec3d(next).add(pos).add(0.5, 1, 0.5), new Vec3d(0.2D, 1, 0.2D), 0x88000044, 0xFF0000FF, 1)
-                        .handle(() -> isDead);
-            }
-            index++;
-        }
-
-        Vec3d to = new Vec3d(path.getTo()).add(0.5, 0, 0.5);
-        steps.add(to.add(FacingLane.fromFacing(endFacing.getOpposite()).getVector()));
-        steps.add(to);
-        steps.add(to.add(FacingLane.fromFacing(endFacing).getVector()));
-
-        return steps;
     }
 
     private boolean shouldMove()
