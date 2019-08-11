@@ -28,7 +28,7 @@ public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
     {
         super("armreservoir", Material.WOOD, TileArmReservoir.class);
 
-        this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+        setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
     }
 
     @Override
@@ -38,7 +38,7 @@ public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
         EnumFacing cable = null;
         int count = 0;
 
-        for (EnumFacing side : EnumFacing.VALUES)
+        for (EnumFacing side : EnumFacing.HORIZONTALS)
         {
             if (world.getBlockState(pos.offset(side)).getBlock() instanceof BlockCable)
             {
@@ -48,14 +48,14 @@ public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
         }
 
         if (count == 1)
-            return this.getDefaultState().withProperty(FACING, cable);
-        return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+            return getDefaultState().withProperty(FACING, cable);
+        return getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
     }
 
     @Override
     public IBlockState getStateFromMeta(int meta)
     {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta));
+        return getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta));
     }
 
     @Override
@@ -70,11 +70,13 @@ public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
         return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
     }
 
+    @Override
     public IBlockState withMirror(IBlockState state, Mirror mirror)
     {
         return state.withRotation(mirror.toRotation(state.getValue(FACING)));
     }
 
+    @Override
     protected BlockStateContainer createBlockState()
     {
         return new BlockStateContainer(this, FACING);

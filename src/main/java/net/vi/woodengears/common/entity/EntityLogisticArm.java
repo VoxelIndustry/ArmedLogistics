@@ -33,10 +33,13 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static net.vi.woodengears.common.entity.LogisticArmBlockCause.NONE;
 import static net.vi.woodengears.common.entity.LogisticArmState.*;
-import static net.vi.woodengears.common.entity.PathToStepConverter.*;
+import static net.vi.woodengears.common.entity.PathToStepConverter.isNextRailCorner;
+import static net.vi.woodengears.common.entity.PathToStepConverter.isPathStraight;
 
 public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnData
 {
+    public static double RAIL_OFFSET = 9 / 32D;
+
     private static final DataParameter<Float>     DAMAGE     =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
     private static final DataParameter<ItemStack> ITEM       =
@@ -57,6 +60,10 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     private int         pickupIndex = 0;
     private int         dropIndex   = 0;
 
+    private Path reservoirToProvider;
+    private Path providerToRequester;
+    private Path requesterToReservoir;
+
     @Getter
     private ItemStack stack = ItemStack.EMPTY;
 
@@ -70,7 +77,20 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     {
         this(world);
 
-        Vec3d pos = new Vec3d(reservoir.getPos()).add(0.5, 0, 0.5);
+        this.shipment = shipment;
+
+        this.reservoirToProvider = reservoirToProvider;
+        this.providerToRequester = providerToRequester;
+        this.requesterToReservoir = requesterToReservoir;
+        recreate(reservoirToProvider, providerToRequester, requesterToReservoir, reservoir);
+        initPos();
+
+        noClip = true;
+    }
+
+    private void initPos()
+    {
+        Vec3d pos = steps.get(0);
 
         setPositionAndRotation(pos.x, pos.y - 0.0625D, pos.z, 0.0F, 90.0F);
         motionX = 0.0D;
@@ -79,25 +99,32 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
         prevPosX = pos.x;
         prevPosY = pos.y;
         prevPosZ = pos.z;
+    }
 
-        this.shipment = shipment;
+    private void recreate(Path reservoirToProvider, Path providerToRequester, Path requesterToReservoir, TileArmReservoir reservoir)
+    {
+        requesterToReservoir.getPoints().add(reservoir.getPos());
+
         steps = createStepsFromPath(reservoirToProvider);
 
-        pickupIndex = steps.size() + 1;
+        pickupIndex = steps.size();
         steps.addAll(createStepsFromPath(providerToRequester));
-        dropIndex = steps.size() + 1;
+        dropIndex = steps.size();
         steps.addAll(createStepsFromPath(requesterToReservoir));
-        steps.remove(steps.size() - 1);
-        steps.remove(steps.size() - 1);
-        steps.add(pos);
 
-        steps.add(0, pos);
-        steps.add(1, getStartingOffset(reservoir.getPos(), reservoir.getFacing(), reservoirToProvider));
+        // Remove last three steps for reservoir storage
+        steps.remove(steps.size() - 1);
+        steps.remove(steps.size() - 1);
+        steps.remove(steps.size() - 1);
+
+        Vec3d pos = new Vec3d(reservoir.getPos()).add(0.5, 0, 0.5);
+
+        steps.add(0, pos.add(FacingLane.fromFacing(reservoir.getFacing()).getVector()));
+        steps.add(pos.add(FacingLane.fromFacing(reservoir.getFacing().getOpposite()).getVector()));
+
         for (Vec3d step : steps)
             Gizmos.edgedBox(step.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x00880044, 0x00FF00FF, 1)
                     .handle(() -> isDead);
-
-        noClip = true;
     }
 
     @Override
@@ -127,7 +154,6 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
             else if (index == steps.size())
                 completeShipment();
         }
-
 
         if (armState == PICKING_FROM_PROVIDER || armState == GIVING_TO_REQUESTER)
         {
@@ -178,17 +204,12 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
         int index = 1;
         boolean straightPath = isPathStraight(path);
 
-        double frontOffset = 0;
-
         EnumFacing endFacing = EnumFacing.getFacingFromVector(
                 path.getTo().getX() - path.getPoints().get(path.getPoints().size() - 2).getX(),
                 0,
-                path.getTo().getZ() - path.getPoints().get(path.getPoints().size() - 2).getZ());
+                path.getTo().getZ() - path.getPoints().get(path.getPoints().size() - 2).getZ()).getOpposite();
 
         List<Vec3d> steps = new ArrayList<>();
-
-        if (straightPath)
-            frontOffset = getOffsetFromLine(path.getFrom(), path.getTo());
 
         while (!straightPath && index < path.getPoints().size() - 1)
         {
@@ -201,55 +222,35 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
                 Vec3d pos = new Vec3d(current);
 
-                frontOffset = getOffsetFromCorner(previous, next);
-                double sideOffset = getSideOffsetFromCorner(previous, next);
+                EnumFacing facing = EnumFacing.getFacingFromVector(next.getX(), 0, next.getZ());
 
+                FacingCorner facingCorner = FacingCorner.fromBlockPos(previous, next);
+
+                Vec3d add;
+                if (facingCorner == FacingCorner.WEST_NORTH)
+                {
+                    add = pos.add(new Vec3d(1 - RAIL_OFFSET, 0, 1 - RAIL_OFFSET));
+                }
+                else
+                    add = pos.add(facingCorner.getVector());
+                steps.add(add);
+
+                Gizmos.text(add.subtract(0, 1, 0), facingCorner.name() + " | " + facing.name(), 0)
+                        .handle(() -> isDead);
                 Gizmos.edgedBox(new Vec3d(previous).add(pos).add(0.5, 1, 0.5), new Vec3d(0.2D, 1, 0.2D), 0x88000044, 0xFF0000FF, 1)
                         .handle(() -> isDead);
                 Gizmos.edgedBox(new Vec3d(next).add(pos).add(0.5, 1, 0.5), new Vec3d(0.2D, 1, 0.2D), 0x88000044, 0xFF0000FF, 1)
                         .handle(() -> isDead);
-
-                steps.add(pos.add(0.5 + sideOffset, 0, frontOffset));
             }
             index++;
         }
 
-        if (endFacing.getAxis() == EnumFacing.Axis.X)
-        {
-            steps.add(new Vec3d(path.getTo()).add(0.5, 0, frontOffset));
-            steps.add(new Vec3d(path.getTo()).add(0.5, 0, 0.5));
-            steps.add(new Vec3d(path.getTo()).add(0.5, 0, 1 - frontOffset));
-        }
-        else
-        {
-            steps.add(new Vec3d(path.getTo()).add(frontOffset, 0, 0.5));
-            steps.add(new Vec3d(path.getTo()).add(0.5, 0, 0.5));
-            steps.add(new Vec3d(path.getTo()).add(1 - frontOffset, 0, 0.5));
-        }
+        Vec3d to = new Vec3d(path.getTo()).add(0.5, 0, 0.5);
+        steps.add(to.add(FacingLane.fromFacing(endFacing.getOpposite()).getVector()));
+        steps.add(to);
+        steps.add(to.add(FacingLane.fromFacing(endFacing).getVector()));
 
         return steps;
-    }
-
-    private Vec3d getStartingOffset(BlockPos origin, EnumFacing reservoirFacing, Path path)
-    {
-        BlockPos current = path.getPoints().get(0);
-
-        BlockPos previous = origin.subtract(current);
-        BlockPos next = path.getPoints().get(1).subtract(current);
-
-        double frontOffset = getOffsetFromCorner(previous, next);
-        Vec3d pos = new Vec3d(origin.offset(reservoirFacing));
-
-        EnumFacing facing = EnumFacing.getFacingFromVector((float) (current.getX() - origin.getX()), 0, (float) (current.getZ() - origin.getZ()));
-
-        if (facing.getAxis() == EnumFacing.Axis.X)
-            pos = pos.add(frontOffset, 0, 0.5);
-        else // Z-AXIS
-            pos = pos.add(0.5, 0, frontOffset);
-
-        Gizmos.edgedBox(pos.add(0, 1, 0), new Vec3d(0.2D, 1, 0.2D), 0x88006644, 0xFF00AAFF, 1)
-                .handle(() -> isDead);
-        return pos;
     }
 
     private boolean shouldMove()
@@ -270,7 +271,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
     private double getSpeed()
     {
-        return 0.075D;
+        return 0.1D;
     }
 
     public boolean isOverProvider()
