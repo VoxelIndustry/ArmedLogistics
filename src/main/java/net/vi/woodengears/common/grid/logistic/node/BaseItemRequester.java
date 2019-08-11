@@ -4,13 +4,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.IItemHandler;
+import net.vi.woodengears.common.grid.logistic.ColoredShipment;
 import net.vi.woodengears.common.grid.logistic.LogisticOrder;
+import net.vi.woodengears.common.grid.logistic.LogisticShipment;
+import net.vi.woodengears.common.serializer.LogisticShipmentSerializer;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class BaseItemRequester extends BaseLogisticNode implements Requester<ItemStack>
@@ -29,13 +34,19 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
     @Setter
     private RequesterMode mode;
 
+    private List<LogisticShipment<ItemStack>> shipments;
+    private List<ColoredShipment<ItemStack>>  coloredShipments;
+
     public BaseItemRequester(TileLogicisticNode tile, InventoryBuffer buffer)
     {
         this.tile = tile;
 
         this.buffer = buffer;
-        this.requests = new ArrayList<>();
-        this.currentOrders = new ArrayList<>();
+        requests = new ArrayList<>();
+        currentOrders = new ArrayList<>();
+
+        shipments = new ArrayList<>();
+        coloredShipments = new ArrayList<>();
     }
 
     @Override
@@ -47,17 +58,17 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
     @Override
     public int insert(ItemStack value)
     {
-        this.emptyBuffer();
+        emptyBuffer();
         if (buffer.isFull())
             return 0;
 
-        this.sleep();
+        sleep();
 
         int added = buffer.add(value).getCount();
 
-        this.removeRequest(value, added);
+        removeRequest(value, added);
 
-        this.emptyBuffer();
+        emptyBuffer();
         return added;
     }
 
@@ -70,19 +81,19 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
     @Override
     public void addRequest(ItemStack value)
     {
-        this.requests.add(value);
+        requests.add(value);
     }
 
     @Override
     public void addOrder(LogisticOrder<ItemStack> order)
     {
-        this.currentOrders.add(order);
+        currentOrders.add(order);
     }
 
     @Override
     public void removeOrder(LogisticOrder<ItemStack> order)
     {
-        this.currentOrders.remove(order);
+        currentOrders.remove(order);
     }
 
     public void removeRequest(ItemStack value, int quantity)
@@ -110,14 +121,14 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
         {
             index = index == requests.size() - 1 ? 0 : index + 1;
             ItemStack request = requests.get(index);
-            int mayInsert = this.inventoryAccept(request);
+            int mayInsert = inventoryAccept(request);
 
             if (mayInsert == 0)
                 return;
 
             ItemStack order = request.copy();
             order.setCount(Math.min(request.getMaxStackSize(), mayInsert));
-            this.tile.getCable().getGridObject().getStackNetwork().makeOrder(this, order);
+            tile.getCable().getGridObject().getStackNetwork().makeOrder(this, order);
             return;
         }
 
@@ -129,12 +140,12 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
 
     public ItemStack getRequest(int index)
     {
-        return this.requests.get(index);
+        return requests.get(index);
     }
 
     public void removeRequest(int index)
     {
-        this.requests.remove(index);
+        requests.remove(index);
     }
 
     public void emptyBuffer()
@@ -191,5 +202,85 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
                 contained += inSlot.getCount();
         }
         return contained;
+    }
+
+    @Override
+    public void addShipment(LogisticShipment<ItemStack> shipment)
+    {
+        shipments.add(shipment);
+    }
+
+    @Override
+    public Collection<LogisticShipment<ItemStack>> getShipments()
+    {
+        return shipments;
+    }
+
+    @Override
+    public void addColoredShipment(ColoredShipment<ItemStack> shipment)
+    {
+        coloredShipments.add(shipment);
+    }
+
+    @Override
+    public Collection<ColoredShipment<ItemStack>> getColoredShipments()
+    {
+        return coloredShipments;
+    }
+
+    @Override
+    public void deliverShipment(LogisticShipment<ItemStack> shipment)
+    {
+        shipments.remove(shipment);
+
+        if (tile.getCable() == null || tile.getCable().getGrid() == -1 || tile.getConnectedInventory() == null)
+            return;
+
+        tile.getCable().getGridObject().getStackNetwork().completeShipment(shipment);
+    }
+
+    @Override
+    public void deliverShipment(ColoredShipment<ItemStack> shipment)
+    {
+        coloredShipments.remove(shipment);
+
+        if (tile.getCable() == null || tile.getCable().getGrid() == -1 || tile.getConnectedInventory() == null)
+            return;
+
+        tile.getCable().getGridObject().getStackNetwork().completeColoredShipment(shipment);
+    }
+
+    public NBTTagCompound toNBT(NBTTagCompound tag)
+    {
+        int i = 0;
+        for (LogisticShipment<ItemStack> shipment : shipments)
+        {
+            tag.setTag("shipment" + i, LogisticShipmentSerializer.itemShipmentToNBT(shipment));
+            i++;
+        }
+        tag.setInteger("shipmentCount", i);
+
+        i = 0;
+        for (ColoredShipment<ItemStack> shipment : coloredShipments)
+        {
+            tag.setTag("coloredShipment" + i, LogisticShipmentSerializer.coloredItemShipmentToNBT(shipment));
+            i++;
+        }
+        tag.setInteger("coloredShipmentCount", i);
+
+        return tag;
+    }
+
+    public void fromNBT(NBTTagCompound tag)
+    {
+        int count = tag.getInteger("shipmentCount");
+
+        for (int i = 0; i < count; i++)
+            shipments.add(LogisticShipmentSerializer.itemShipmentFromNBT(tag.getCompoundTag("shipment" + i)));
+
+        count = tag.getInteger("coloredShipmentCount");
+
+        for (int i = 0; i < count; i++)
+            coloredShipments.add(LogisticShipmentSerializer.coloredItemShipmentFromNBT(tag.getCompoundTag("shipment" + i)));
     }
 }

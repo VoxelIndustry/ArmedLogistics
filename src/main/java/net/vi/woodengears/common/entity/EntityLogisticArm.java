@@ -190,6 +190,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
                         return;
 
                     ((TileRequester) requester).getRequester().insert(stack);
+                    ((TileRequester) requester).getRequester().deliverShipment(shipment);
                     setItemStack(ItemStack.EMPTY);
                 }
             }

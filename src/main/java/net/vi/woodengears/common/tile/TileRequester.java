@@ -39,26 +39,26 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     {
         super("requester");
 
-        this.cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
+        cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
 
-        this.buffer = new InventoryBuffer(8, 8 * 64);
-        this.wrappedInventory = new WrappedInventory();
+        buffer = new InventoryBuffer(8, 8 * 64);
+        wrappedInventory = new WrappedInventory();
 
-        this.requester = new BaseItemRequester(this, this.buffer);
-        this.requester.setMode(RequesterMode.KEEP);
+        requester = new BaseItemRequester(this, buffer);
+        requester.setMode(RequesterMode.KEEP);
 
-        this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
+        getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
     }
 
     @Override
     public void update()
     {
-        if (this.isClient())
+        if (isClient())
             return;
 
-        if (this.world.getTotalWorldTime() % 32 != ((this.pos.getX() ^ this.pos.getZ()) & 31))
+        if (world.getTotalWorldTime() % 32 != ((pos.getX() ^ pos.getZ()) & 31))
             return;
-        this.randomTick();
+        randomTick();
     }
 
     @Override
@@ -66,21 +66,21 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     {
         super.addInfo(list);
 
-        list.addText("Mode: " + this.getRequester().getMode());
-        if (!this.buffer.isEmpty())
+        list.addText("Mode: " + getRequester().getMode());
+        if (!buffer.isEmpty())
         {
             list.addText("Buffer:");
-            this.buffer.getStacks().forEach(stack ->
+            buffer.getStacks().forEach(stack ->
             {
                 if (!stack.isEmpty())
                     list.addItem(stack);
             });
         }
 
-        if (!this.getRequester().getRequests().isEmpty())
+        if (!getRequester().getRequests().isEmpty())
         {
             list.addText("Requests:");
-            this.getRequester().getRequests().forEach(stack ->
+            getRequester().getRequests().forEach(stack ->
             {
                 if (!stack.isEmpty())
                     list.addItem(stack);
@@ -93,14 +93,15 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     {
         super.writeToNBT(tag);
 
-        this.buffer.writeNBT(tag);
+        buffer.writeNBT(tag);
 
-        tag.setInteger("requesterMode", this.requester.getMode().ordinal());
+        tag.setInteger("requesterMode", requester.getMode().ordinal());
 
-        for (int index = 0; index < this.requester.getRequests().size(); index++)
-            tag.setTag("request" + index, this.requester.getRequests().get(index).writeToNBT(new NBTTagCompound()));
-        tag.setInteger("requests", this.requester.getRequests().size());
+        for (int index = 0; index < requester.getRequests().size(); index++)
+            tag.setTag("request" + index, requester.getRequests().get(index).writeToNBT(new NBTTagCompound()));
+        tag.setInteger("requests", requester.getRequests().size());
 
+        requester.toNBT(tag);
         return tag;
     }
 
@@ -109,13 +110,15 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     {
         super.readFromNBT(tag);
 
-        this.buffer.readNBT(tag);
+        buffer.readNBT(tag);
 
-        this.requester.setMode(RequesterMode.values()[tag.getInteger("requesterMode")]);
+        requester.setMode(RequesterMode.values()[tag.getInteger("requesterMode")]);
 
         int requestCount = tag.getInteger("requests");
         for (int index = 0; index < requestCount; index++)
-            this.requester.addRequest(new ItemStack(tag.getCompoundTag("request" + index)));
+            requester.addRequest(new ItemStack(tag.getCompoundTag("request" + index)));
+
+        requester.fromNBT(tag);
     }
 
     @Override
@@ -126,68 +129,70 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
-                .syncList(this.getRequester()::getRequests, ItemStack.class, null, "requests")
-                .syncEnum(this.getRequester()::getMode, this.getRequester()::setMode, RequesterMode.class, "mode")
+                .syncList(getRequester()::getRequests, ItemStack.class, null, "requests")
+                .syncEnum(getRequester()::getMode, getRequester()::setMode, RequesterMode.class, "mode")
                 .create();
     }
 
     public void dropBuffer()
     {
-        for (ItemStack stack : this.buffer.getStacks())
+        for (ItemStack stack : buffer.getStacks())
             InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
     }
 
     private void makeOrder(ItemStack stack)
     {
-        if (this.getCable() == null || this.getCable().getGrid() == -1 || this.getConnectedInventory() == null)
+        if (getCable() == null || getCable().getGrid() == -1 || getConnectedInventory() == null)
             return;
 
-        this.makeOrder(stack, true);
+        makeOrder(stack, true);
     }
 
     private void makeOrder(ItemStack stack, boolean addRequest)
     {
         if (addRequest)
-            this.getRequester().addRequest(stack);
-        this.getCable().getGridObject().getStackNetwork().makeOrder(this.getRequester(), stack);
+            getRequester().addRequest(stack);
+        getCable().getGridObject().getStackNetwork().makeOrder(getRequester(), stack);
     }
 
     public void randomTick()
     {
-        if (!this.requester.getCurrentOrders().isEmpty())
+        if (getCable() == null || getCable().getGridObject() == null)
+            return;
+        if (!requester.getCurrentOrders().isEmpty())
             return;
 
-        IItemHandler inventory = this.getConnectedInventory();
+        IItemHandler inventory = getConnectedInventory();
         if (inventory == null)
             return;
 
-        if (this.requester.getMode() == RequesterMode.ONCE || this.requester.getMode() == RequesterMode.CONTINUOUS)
+        if (requester.getMode() == RequesterMode.ONCE || requester.getMode() == RequesterMode.CONTINUOUS)
         {
-            for (ItemStack stack : this.requester.getRequests())
+            for (ItemStack stack : requester.getRequests())
             {
-                int mayInsert = this.getRequester().inventoryAccept(stack);
+                int mayInsert = getRequester().inventoryAccept(stack);
 
                 if (mayInsert == 0)
                     continue;
 
                 ItemStack order = stack.copy();
                 order.setCount(mayInsert);
-                this.makeOrder(order, false);
+                makeOrder(order, false);
             }
         }
-        else if (this.requester.getMode() == RequesterMode.KEEP)
+        else if (requester.getMode() == RequesterMode.KEEP)
         {
-            for (ItemStack stack : this.requester.getRequests())
+            for (ItemStack stack : requester.getRequests())
             {
-                int contained = this.getRequester().inventoryContains(stack);
-                int mayInsert = this.getRequester().inventoryAccept(stack);
+                int contained = getRequester().inventoryContains(stack);
+                int mayInsert = getRequester().inventoryAccept(stack);
 
                 if (contained >= stack.getCount() || mayInsert == 0)
                     continue;
 
                 ItemStack order = stack.copy();
                 order.setCount(Math.min(stack.getCount() - contained, mayInsert));
-                this.makeOrder(order, false);
+                makeOrder(order, false);
             }
         }
     }
@@ -201,11 +206,11 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
             ItemStack stack = new ItemStack(payload.getCompoundTag("stack"));
 
             if (index >= getRequester().getRequests().size())
-                this.getRequester().addRequest(stack);
+                getRequester().addRequest(stack);
             else
-                this.getRequester().getRequests().set(index, stack);
+                getRequester().getRequests().set(index, stack);
         }
         else if ("MODE_CHANGE".equals(actionID))
-            this.getRequester().setMode(RequesterMode.values()[payload.getInteger("mode")]);
+            getRequester().setMode(RequesterMode.values()[payload.getInteger("mode")]);
     }
 }

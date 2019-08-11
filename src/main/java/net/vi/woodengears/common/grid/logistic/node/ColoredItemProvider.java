@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
+import net.vi.woodengears.common.grid.logistic.ColoredShipment;
 import net.vi.woodengears.common.grid.logistic.ColoredStack;
 import net.vi.woodengears.common.grid.logistic.ItemStackMethods;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
@@ -14,6 +15,7 @@ import net.voxelindustry.steamlayer.inventory.InventoryHandler;
 import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,12 +24,16 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
     @Getter(AccessLevel.PROTECTED)
     private ListMultimap<EnumDyeColor, ItemStack> colors;
 
+    private List<ColoredShipment<ItemStack>> coloredShipments;
+
     public ColoredItemProvider(TileLogicisticNode tile, ProviderType type, InventoryHandler handler,
                                InventoryBuffer buffer)
     {
         super(tile, type, handler, buffer);
 
-        this.colors = MultimapBuilder.enumKeys(EnumDyeColor.class).arrayListValues().build();
+        colors = MultimapBuilder.enumKeys(EnumDyeColor.class).arrayListValues().build();
+
+        coloredShipments = new ArrayList<>();
     }
 
     @Override
@@ -45,15 +51,15 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
     @Override
     public boolean contains(ColoredStack coloredStack)
     {
-        if (!this.hasColor(coloredStack.getColor()))
+        if (!hasColor(coloredStack.getColor()))
             return false;
 
-        this.wake();
+        wake();
 
         List<ItemStack> values = getValuesFromColor(coloredStack.getColor());
 
         int contained = 0;
-        for (ItemStack stack : this.getCompressedContents())
+        for (ItemStack stack : getCompressedContents())
         {
             if (stack.isEmpty())
                 continue;
@@ -69,15 +75,15 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
     @Override
     public int containedPart(ColoredStack coloredStack)
     {
-        if (!this.hasColor(coloredStack.getColor()))
+        if (!hasColor(coloredStack.getColor()))
             return 0;
 
-        this.wake();
+        wake();
 
         List<ItemStack> values = getValuesFromColor(coloredStack.getColor());
 
         int contained = 0;
-        for (ItemStack stack : this.getCompressedContents())
+        for (ItemStack stack : getCompressedContents())
         {
             if (stack.isEmpty())
                 continue;
@@ -94,22 +100,22 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
     @Override
     public List<ItemStack> extract(ColoredStack coloredStack)
     {
-        if (this.isBufferFull())
+        if (isBufferFull())
             return Collections.emptyList();
 
-        if (this.containedPart(coloredStack) == 0)
+        if (containedPart(coloredStack) == 0)
             return Collections.emptyList();
 
-        this.sleep();
+        sleep();
 
         List<ItemStack> values = getValuesFromColor(coloredStack.getColor());
 
         int extracted = 0;
         List<ItemStack> extractedStacks = new ArrayList<>();
 
-        for (int i = 0; i < this.getHandler().getSlots(); i++)
+        for (int i = 0; i < getHandler().getSlots(); i++)
         {
-            ItemStack stack = this.getHandler().getStackInSlot(i);
+            ItemStack stack = getHandler().getStackInSlot(i);
 
             if (values.stream().anyMatch(value -> ItemUtils.deepEquals(value, stack)))
             {
@@ -136,5 +142,17 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
     public boolean isColored()
     {
         return true;
+    }
+
+    @Override
+    public void addColoredShipment(ColoredShipment<ItemStack> shipment)
+    {
+        coloredShipments.add(shipment);
+    }
+
+    @Override
+    public Collection<ColoredShipment<ItemStack>> getColoredShipments()
+    {
+        return coloredShipments;
     }
 }

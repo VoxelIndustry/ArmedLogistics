@@ -4,14 +4,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.IItemHandler;
+import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
+import net.vi.woodengears.common.serializer.LogisticShipmentSerializer;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -24,6 +28,8 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     private InventoryBuffer        buffer;
     private NonNullList<ItemStack> handlerMirror;
     private NonNullList<ItemStack> compressedStacks;
+
+    private List<LogisticShipment<ItemStack>> shipments;
 
     @Getter
     private ProviderType       providerType;
@@ -42,12 +48,14 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
         this.buffer = buffer;
 
         if (tile instanceof IItemFilter)
-            this.filter = (IItemFilter) tile;
+            filter = (IItemFilter) tile;
 
-        this.providerType = type;
+        providerType = type;
 
         handlerMirror = NonNullList.withSize(handler.getSlots(), ItemStack.EMPTY);
         compressedStacks = NonNullList.create();
+
+        shipments = new ArrayList<>();
     }
 
     @Override
@@ -59,7 +67,7 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Override
     public void wake()
     {
-        if (this.isAwake())
+        if (isAwake())
             return;
 
         boolean isDirty = false;
@@ -86,24 +94,24 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
 
         if (isDirty || isDirtyFromExternal)
         {
-            this.compressedStacks.clear();
+            compressedStacks.clear();
 
             for (int i = 0; i < handler.getSlots(); i++)
             {
                 ItemStack stack = handler.getStackInSlot(i);
 
-                if (!this.filter.filter(stack))
+                if (!filter.filter(stack))
                     continue;
 
                 Optional<ItemStack> found =
-                        this.compressedStacks.stream().filter(candidate -> ItemUtils.deepEquals(candidate, stack)).findFirst();
+                        compressedStacks.stream().filter(candidate -> ItemUtils.deepEquals(candidate, stack)).findFirst();
                 if (found.isPresent())
                     found.get().grow(stack.getCount());
                 else
-                    this.compressedStacks.add(stack.copy());
+                    compressedStacks.add(stack.copy());
             }
 
-            this.isDirtyFromExternal = false;
+            isDirtyFromExternal = false;
         }
 
         super.wake();
@@ -115,10 +123,10 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
         if (value.isEmpty())
             return 0;
 
-        this.wake();
+        wake();
 
         int quantity = 0;
-        for (ItemStack stack : this.compressedStacks)
+        for (ItemStack stack : compressedStacks)
         {
             if (stack.isEmpty())
                 continue;
@@ -140,9 +148,9 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
         if (value.isEmpty())
             return false;
 
-        this.wake();
+        wake();
 
-        for (ItemStack stack : this.compressedStacks)
+        for (ItemStack stack : compressedStacks)
         {
             if (stack.isEmpty())
                 continue;
@@ -155,9 +163,9 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Override
     public boolean anyMatch(Predicate<ItemStack> matcher)
     {
-        this.wake();
+        wake();
 
-        for (ItemStack stack : this.compressedStacks)
+        for (ItemStack stack : compressedStacks)
         {
             if (matcher.test(stack))
                 return true;
@@ -168,9 +176,9 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Override
     public ItemStack firstMatching(Predicate<ItemStack> matcher)
     {
-        this.wake();
+        wake();
 
-        for (ItemStack stack : this.compressedStacks)
+        for (ItemStack stack : compressedStacks)
         {
             if (matcher.test(stack))
                 return stack;
@@ -181,11 +189,11 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Override
     public List<ItemStack> allMatching(Predicate<ItemStack> matcher)
     {
-        this.wake();
+        wake();
 
         ArrayList<ItemStack> stacks = new ArrayList<>(handler.getSlots());
 
-        for (ItemStack stack : this.compressedStacks)
+        for (ItemStack stack : compressedStacks)
         {
             if (matcher.test(stack))
                 stacks.add(stack);
@@ -200,16 +208,16 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
         if (buffer.isFull())
             return ItemStack.EMPTY;
 
-        if (this.containedPart(value) == 0)
+        if (containedPart(value) == 0)
             return ItemStack.EMPTY;
 
-        this.sleep();
+        sleep();
 
         int extracted = 0;
 
-        for (int i = 0; i < this.handler.getSlots(); i++)
+        for (int i = 0; i < handler.getSlots(); i++)
         {
-            ItemStack stack = this.handler.getStackInSlot(i);
+            ItemStack stack = handler.getStackInSlot(i);
 
             if (ItemUtils.deepEquals(stack, value))
             {
@@ -248,7 +256,7 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Override
     public NonNullList<ItemStack> getCompressedContents()
     {
-        return this.compressedStacks;
+        return compressedStacks;
     }
 
     @Override
@@ -260,6 +268,39 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     @Override
     public void markDirty()
     {
-        this.isDirtyFromExternal = true;
+        isDirtyFromExternal = true;
+    }
+
+    @Override
+    public void addShipment(LogisticShipment<ItemStack> shipment)
+    {
+        shipments.add(shipment);
+    }
+
+    @Override
+    public Collection<LogisticShipment<ItemStack>> getShipments()
+    {
+        return shipments;
+    }
+
+    public NBTTagCompound toNBT(NBTTagCompound tag)
+    {
+        int i = 0;
+        for (LogisticShipment<ItemStack> shipment : shipments)
+        {
+            tag.setTag("shipment" + i, LogisticShipmentSerializer.itemShipmentToNBT(shipment));
+            i++;
+        }
+        tag.setInteger("shipmentCount", i);
+
+        return tag;
+    }
+
+    public void fromNBT(NBTTagCompound tag)
+    {
+        int count = tag.getInteger("shipmentCount");
+
+        for (int i = 0; i < count; i++)
+            shipments.add(LogisticShipmentSerializer.itemShipmentFromNBT(tag.getCompoundTag("shipment" + i)));
     }
 }

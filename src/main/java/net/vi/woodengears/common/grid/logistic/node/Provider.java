@@ -1,7 +1,9 @@
 package net.vi.woodengears.common.grid.logistic.node;
 
+import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -44,4 +46,8 @@ public interface Provider<T> extends LogisticNode
     ProviderType getProviderType();
 
     void markDirty();
+
+    void addShipment(LogisticShipment<T> shipment);
+
+    Collection<LogisticShipment<T>> getShipments();
 }

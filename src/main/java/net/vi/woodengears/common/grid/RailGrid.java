@@ -93,6 +93,7 @@ public class RailGrid extends CableGrid
                 EntityLogisticArm arm = new EntityLogisticArm(provider.getWorld(), shipment, reservoir, reservoirToProvider, providerToRequester, requesterToReservoir);
                 provider.getWorld().spawnEntity(arm);
 
+                shipment.setArmID(arm.getUniqueID());
                 shipped.add(shipment);
             }
             //  Stream.of(stackNetwork.getShipments().toArray(new LogisticShipment[0])).forEach(this.stackNetwork::completeShipment);

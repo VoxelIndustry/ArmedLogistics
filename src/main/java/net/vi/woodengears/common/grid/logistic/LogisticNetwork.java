@@ -50,16 +50,16 @@ public class LogisticNetwork<T>
         this.typeClass = typeClass;
         this.functions = functions;
 
-        this.providers = MultimapBuilder.enumKeys(ProviderType.class).arrayListValues().build();
-        this.requesters = new ArrayList<>();
+        providers = MultimapBuilder.enumKeys(ProviderType.class).arrayListValues().build();
+        requesters = new ArrayList<>();
 
-        this.compressedStacks = NonNullList.create();
+        compressedStacks = NonNullList.create();
 
-        this.stackOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
-        this.coloredOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
+        stackOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
+        coloredOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
 
-        this.shipments = new ArrayList<>();
-        this.coloredShipments = new ArrayList<>();
+        shipments = new ArrayList<>();
+        coloredShipments = new ArrayList<>();
     }
 
     public void tick()
@@ -67,18 +67,18 @@ public class LogisticNetwork<T>
         if (providers.isEmpty())
             return;
 
-        this.providers.values().forEach(Provider::networkTick);
-        
-        this.processOrders();
-        this.processColoredOrders();
+        providers.values().forEach(Provider::networkTick);
+
+        processOrders();
+        processColoredOrders();
     }
 
     private List<Provider<T>> getSortedProviders(ProviderType type, BlockPos destination)
     {
-        if (this.getGrid() == null)
-            return this.providers.get(type);
+        if (getGrid() == null)
+            return providers.get(type);
         else
-            return this.providers.get(type).stream()
+            return providers.get(type).stream()
                     .filter(provider -> !provider.isBufferFull())
                     .sorted(Comparator.comparingInt(provider -> grid.getDistanceBetween(provider.getRailPos(),
                             destination))).collect(Collectors.toList());
@@ -109,8 +109,13 @@ public class LogisticNetwork<T>
 
                     T extracted = provider.extract(functions.changeQuantity(stackOrder.getOrdered(), toExtract));
 
-                    stackOrder.getShippedParts().add(createShipment(extracted, provider.getRailPos(),
-                            stackOrder.getDestination().getRailPos()));
+                    LogisticShipment<T> shipment = createShipment(extracted, provider.getRailPos(),
+                            stackOrder.getDestination().getRailPos());
+
+                    provider.addShipment(shipment);
+                    stackOrder.getDestination().addShipment(shipment);
+
+                    stackOrder.getShippedParts().add(shipment);
                     toExtract -= functions.getQuantity(extracted);
 
                     if (toExtract == 0)
@@ -157,8 +162,13 @@ public class LogisticNetwork<T>
 
                     for (T value : extracted)
                     {
-                        coloredOrder.getShippedParts().add(createColoredShipment(value, coloredOrder.getOrdered(),
-                                provider.getRailPos(), coloredOrder.getDestination().getRailPos()));
+                        ColoredShipment<T> shipment = createColoredShipment(value, coloredOrder.getOrdered(),
+                                provider.getRailPos(), coloredOrder.getDestination().getRailPos());
+
+                        coloredProvider.addColoredShipment(shipment);
+                        coloredOrder.getDestination().addColoredShipment(shipment);
+
+                        coloredOrder.getShippedParts().add(shipment);
                     }
                     toExtract -= extracted.stream().mapToInt(functions::getQuantity).sum();
 
@@ -181,7 +191,7 @@ public class LogisticNetwork<T>
     {
         LogisticShipment<T> shipment = new LogisticShipment<>(from, to, toShip);
 
-        this.shipments.add(shipment);
+        shipments.add(shipment);
         return shipment;
     }
 
@@ -189,7 +199,7 @@ public class LogisticNetwork<T>
     {
         ColoredShipment<T> shipment = new ColoredShipment<>(from, to, coloredStack, toShip);
 
-        this.coloredShipments.add(shipment);
+        coloredShipments.add(shipment);
         return shipment;
     }
 
@@ -199,7 +209,7 @@ public class LogisticNetwork<T>
         order.setState(OrderState.SUBMITTED);
         order.getDestination().addOrder(order);
 
-        this.stackOrders.add(order);
+        stackOrders.add(order);
         return order;
     }
 
@@ -211,20 +221,20 @@ public class LogisticNetwork<T>
         // TODO : Colored requesters
         //order.getDestination().addOrder(order);
 
-        this.coloredOrders.add(order);
+        coloredOrders.add(order);
         return order;
     }
 
     public List<T> getCompressedStacks()
     {
-        if (this.needContentsRefresh)
+        if (needContentsRefresh)
         {
-            this.compressedStacks = providers.values().stream().map(Provider::getCompressedContents)
+            compressedStacks = providers.values().stream().map(Provider::getCompressedContents)
                     .reduce(new ArrayList<>(), functions::accumulateList);
-            this.needContentsRefresh = false;
+            needContentsRefresh = false;
         }
 
-        return this.compressedStacks;
+        return compressedStacks;
     }
 
     public boolean containsProvider(Provider<T> provider)
@@ -247,9 +257,9 @@ public class LogisticNetwork<T>
 
     public void completeShipment(LogisticShipment<T> shipment)
     {
-        this.shipments.remove(shipment);
+        shipments.remove(shipment);
 
-        this.stackOrders.forEach(order ->
+        stackOrders.forEach(order ->
         {
             order.getShippedParts().remove(shipment);
 
@@ -259,5 +269,21 @@ public class LogisticNetwork<T>
                 order.getDestination().removeOrder(order);
             }
         });
+    }
+
+    public void completeColoredShipment(ColoredShipment<T> shipment)
+    {
+      /*  coloredShipments.remove(shipment);
+
+        coloredOrders.forEach(order ->
+        {
+            order.getShippedParts().remove(shipment);
+
+            if (order.getShippedParts().isEmpty() && order.getState() == OrderState.SHIPPING)
+            {
+                order.setState(OrderState.COMPLETED);
+                order.getDestination().removeOrder(order);
+            }
+        });*/
     }
 }
