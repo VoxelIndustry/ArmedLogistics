@@ -25,11 +25,15 @@ public interface Requester<T> extends LogisticNode
 
     void addShipment(LogisticShipment<T> shipment);
 
+    boolean removeShipment(LogisticShipment<T> shipment);
+
     Collection<LogisticShipment<T>> getShipments();
 
     void deliverShipment(LogisticShipment<T> shipment);
 
     void addColoredShipment(ColoredShipment<T> shipment);
+
+    boolean removeColoredShipment(ColoredShipment<T> shipment);
 
     Collection<ColoredShipment<T>> getColoredShipments();
 

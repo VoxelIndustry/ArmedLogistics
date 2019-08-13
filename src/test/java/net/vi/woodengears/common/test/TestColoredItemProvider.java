@@ -22,14 +22,14 @@ public class TestColoredItemProvider extends ColoredItemProvider
     public TestColoredItemProvider(BlockPos pos, ProviderType type, InventoryHandler handler, InventoryBuffer buffer,
                                    ListMultimap<EnumDyeColor, ItemStack> colors)
     {
-        super(null, type, handler, buffer);
+        super(null, type, handler, null, buffer);
 
         this.pos = pos;
 
-        this.getColors().putAll(colors);
+        getColors().putAll(colors);
 
-        this.wake();
-        this.sleep();
+        wake();
+        sleep();
     }
 
     public TestColoredItemProvider(InventoryHandler handler, InventoryBuffer buffer,
@@ -41,7 +41,7 @@ public class TestColoredItemProvider extends ColoredItemProvider
     @Override
     public BlockPos getRailPos()
     {
-        return this.pos;
+        return pos;
     }
 
     public static Builder build()
@@ -59,10 +59,10 @@ public class TestColoredItemProvider extends ColoredItemProvider
 
         private Builder()
         {
-            this.stacks = new ArrayList<>();
-            this.pos = BlockPos.ORIGIN;
-            this.colors = MultimapBuilder.enumKeys(EnumDyeColor.class).arrayListValues().build();
-            this.type = ProviderType.ACTIVE_PROVIDER;
+            stacks = new ArrayList<>();
+            pos = BlockPos.ORIGIN;
+            colors = MultimapBuilder.enumKeys(EnumDyeColor.class).arrayListValues().build();
+            type = ProviderType.ACTIVE_PROVIDER;
         }
 
         public Builder stacks(ItemStack... stacks)
@@ -79,13 +79,13 @@ public class TestColoredItemProvider extends ColoredItemProvider
 
         public Builder buffer(int maxType, int maxCount)
         {
-            this.buffer = new InventoryBuffer(maxType, maxCount);
+            buffer = new InventoryBuffer(maxType, maxCount);
             return this;
         }
 
         public Builder color(EnumDyeColor color, ItemStack... stacks)
         {
-            this.colors.putAll(color, Arrays.asList(stacks));
+            colors.putAll(color, Arrays.asList(stacks));
             return this;
         }
 
@@ -98,7 +98,7 @@ public class TestColoredItemProvider extends ColoredItemProvider
         public TestColoredItemProvider create()
         {
             if (buffer == null)
-                this.buffer = new InventoryBuffer(this.stacks.size(), this.stacks.size() * 128);
+                buffer = new InventoryBuffer(stacks.size(), stacks.size() * 128);
 
             return new TestColoredItemProvider(pos, type, new InventoryHandler(NonNullList.from(ItemStack.EMPTY,
                     stacks.toArray(new ItemStack[0]))), buffer, colors);

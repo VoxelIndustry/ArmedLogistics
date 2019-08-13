@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.vi.woodengears.common.grid.logistic.ColoredShipment;
 import net.vi.woodengears.common.grid.logistic.ColoredStack;
 import net.vi.woodengears.common.grid.logistic.ItemStackMethods;
+import net.vi.woodengears.common.grid.logistic.LogisticNetwork;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.steamlayer.inventory.InventoryHandler;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class ColoredItemProvider extends BaseItemProvider implements ColoredProvider<ItemStack>
 {
@@ -26,10 +28,13 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
 
     private List<ColoredShipment<ItemStack>> coloredShipments;
 
-    public ColoredItemProvider(TileLogicisticNode tile, ProviderType type, InventoryHandler handler,
+    public ColoredItemProvider(TileLogicisticNode tile,
+                               ProviderType type,
+                               InventoryHandler handler,
+                               Supplier<LogisticNetwork<ItemStack>> networkSupplier,
                                InventoryBuffer buffer)
     {
-        super(tile, type, handler, buffer);
+        super(tile, type, handler, networkSupplier, buffer);
 
         colors = MultimapBuilder.enumKeys(EnumDyeColor.class).arrayListValues().build();
 
@@ -148,6 +153,12 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
     public void addColoredShipment(ColoredShipment<ItemStack> shipment)
     {
         coloredShipments.add(shipment);
+    }
+
+    @Override
+    public boolean removeColoredShipment(ColoredShipment<ItemStack> shipment)
+    {
+        return coloredShipments.remove(shipment);
     }
 
     @Override

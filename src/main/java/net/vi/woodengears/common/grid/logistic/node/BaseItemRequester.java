@@ -8,6 +8,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.common.grid.logistic.ColoredShipment;
+import net.vi.woodengears.common.grid.logistic.LogisticNetwork;
 import net.vi.woodengears.common.grid.logistic.LogisticOrder;
 import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.serializer.LogisticShipmentSerializer;
@@ -17,8 +18,9 @@ import net.voxelindustry.steamlayer.utils.ItemUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class BaseItemRequester extends BaseLogisticNode implements Requester<ItemStack>
+public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Requester<ItemStack>
 {
     @Getter(AccessLevel.PROTECTED)
     private InventoryBuffer buffer;
@@ -37,8 +39,12 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
     private List<LogisticShipment<ItemStack>> shipments;
     private List<ColoredShipment<ItemStack>>  coloredShipments;
 
-    public BaseItemRequester(TileLogicisticNode tile, InventoryBuffer buffer)
+    public BaseItemRequester(TileLogicisticNode tile,
+                             Supplier<LogisticNetwork<ItemStack>> networkSupplier,
+                             InventoryBuffer buffer)
     {
+        super(networkSupplier);
+
         this.tile = tile;
 
         this.buffer = buffer;
@@ -211,6 +217,12 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
     }
 
     @Override
+    public boolean removeShipment(LogisticShipment<ItemStack> shipment)
+    {
+        return shipments.remove(shipment);
+    }
+
+    @Override
     public Collection<LogisticShipment<ItemStack>> getShipments()
     {
         return shipments;
@@ -220,6 +232,12 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
     public void addColoredShipment(ColoredShipment<ItemStack> shipment)
     {
         coloredShipments.add(shipment);
+    }
+
+    @Override
+    public boolean removeColoredShipment(ColoredShipment<ItemStack> shipment)
+    {
+        return coloredShipments.remove(shipment);
     }
 
     @Override
@@ -250,6 +268,13 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
         tile.getCable().getGridObject().getStackNetwork().completeColoredShipment(shipment);
     }
 
+    public void makeOrder(ItemStack stack, boolean addRequest)
+    {
+        if (addRequest)
+            addRequest(stack);
+        getNetworkSupplier().get().makeOrder(this, stack);
+    }
+
     public NBTTagCompound toNBT(NBTTagCompound tag)
     {
         int i = 0;
@@ -268,6 +293,12 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
         }
         tag.setInteger("coloredShipmentCount", i);
 
+        tag.setInteger("requesterMode", getMode().ordinal());
+
+        for (int index = 0; index < getRequests().size(); index++)
+            tag.setTag("request" + index, getRequests().get(index).writeToNBT(new NBTTagCompound()));
+        tag.setInteger("requests", getRequests().size());
+
         return tag;
     }
 
@@ -282,5 +313,11 @@ public class BaseItemRequester extends BaseLogisticNode implements Requester<Ite
 
         for (int i = 0; i < count; i++)
             coloredShipments.add(LogisticShipmentSerializer.coloredItemShipmentFromNBT(tag.getCompoundTag("shipment" + i)));
+
+        setMode(RequesterMode.values()[tag.getInteger("requesterMode")]);
+
+        int requestCount = tag.getInteger("requests");
+        for (int index = 0; index < requestCount; index++)
+            addRequest(new ItemStack(tag.getCompoundTag("request" + index)));
     }
 }

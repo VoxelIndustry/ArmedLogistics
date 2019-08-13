@@ -8,6 +8,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.IItemHandler;
+import net.vi.woodengears.common.grid.logistic.LogisticNetwork;
 import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.serializer.LogisticShipmentSerializer;
@@ -19,8 +20,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemStack>
+public class BaseItemProvider extends BaseLogisticNode<ItemStack> implements Provider<ItemStack>
 {
     @Getter(AccessLevel.PROTECTED)
     private IItemHandler           handler;
@@ -40,9 +42,14 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
 
     private boolean isDirtyFromExternal;
 
-    public BaseItemProvider(TileLogicisticNode tile, ProviderType type, IItemHandler handler,
+    public BaseItemProvider(TileLogicisticNode tile,
+                            ProviderType type,
+                            IItemHandler handler,
+                            Supplier<LogisticNetwork<ItemStack>> networkSupplier,
                             InventoryBuffer buffer)
     {
+        super(networkSupplier);
+
         this.tile = tile;
         this.handler = handler;
         this.buffer = buffer;
@@ -275,6 +282,12 @@ public class BaseItemProvider extends BaseLogisticNode implements Provider<ItemS
     public void addShipment(LogisticShipment<ItemStack> shipment)
     {
         shipments.add(shipment);
+    }
+
+    @Override
+    public boolean removeShipment(LogisticShipment<ItemStack> shipment)
+    {
+        return shipments.remove(shipment);
     }
 
     @Override

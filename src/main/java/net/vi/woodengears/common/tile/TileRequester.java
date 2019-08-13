@@ -44,7 +44,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
         buffer = new InventoryBuffer(8, 8 * 64);
         wrappedInventory = new WrappedInventory();
 
-        requester = new BaseItemRequester(this, buffer);
+        requester = new BaseItemRequester(this, () -> getCable().getGridObject().getStackNetwork(), buffer);
         requester.setMode(RequesterMode.KEEP);
 
         getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
@@ -95,12 +95,6 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
 
         buffer.writeNBT(tag);
 
-        tag.setInteger("requesterMode", requester.getMode().ordinal());
-
-        for (int index = 0; index < requester.getRequests().size(); index++)
-            tag.setTag("request" + index, requester.getRequests().get(index).writeToNBT(new NBTTagCompound()));
-        tag.setInteger("requests", requester.getRequests().size());
-
         requester.toNBT(tag);
         return tag;
     }
@@ -111,13 +105,6 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
         super.readFromNBT(tag);
 
         buffer.readNBT(tag);
-
-        requester.setMode(RequesterMode.values()[tag.getInteger("requesterMode")]);
-
-        int requestCount = tag.getInteger("requests");
-        for (int index = 0; index < requestCount; index++)
-            requester.addRequest(new ItemStack(tag.getCompoundTag("request" + index)));
-
         requester.fromNBT(tag);
     }
 
@@ -138,21 +125,6 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     {
         for (ItemStack stack : buffer.getStacks())
             InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
-    }
-
-    private void makeOrder(ItemStack stack)
-    {
-        if (getCable() == null || getCable().getGrid() == -1 || getConnectedInventory() == null)
-            return;
-
-        makeOrder(stack, true);
-    }
-
-    private void makeOrder(ItemStack stack, boolean addRequest)
-    {
-        if (addRequest)
-            getRequester().addRequest(stack);
-        getCable().getGridObject().getStackNetwork().makeOrder(getRequester(), stack);
     }
 
     public void randomTick()
@@ -177,7 +149,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
 
                 ItemStack order = stack.copy();
                 order.setCount(mayInsert);
-                makeOrder(order, false);
+                requester.makeOrder(order, false);
             }
         }
         else if (requester.getMode() == RequesterMode.KEEP)
@@ -192,7 +164,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
 
                 ItemStack order = stack.copy();
                 order.setCount(Math.min(stack.getCount() - contained, mayInsert));
-                makeOrder(order, false);
+                requester.makeOrder(order, false);
             }
         }
     }

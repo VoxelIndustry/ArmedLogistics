@@ -30,6 +30,7 @@ public interface Provider<T> extends LogisticNode
     /**
      * Remove the value from the provider and place it in a buffer for later retrieval by the grid.
      * A provider do not expose the buffer values for contains or matchers checks.
+     *
      * @param value
      * @return the value extracted. The quantity may be less than asked.
      */
@@ -48,6 +49,8 @@ public interface Provider<T> extends LogisticNode
     void markDirty();
 
     void addShipment(LogisticShipment<T> shipment);
+
+    boolean removeShipment(LogisticShipment<T> shipment);
 
     Collection<LogisticShipment<T>> getShipments();
 }

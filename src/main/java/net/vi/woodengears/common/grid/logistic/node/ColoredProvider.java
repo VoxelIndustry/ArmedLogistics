@@ -27,5 +27,7 @@ public interface ColoredProvider<T> extends Provider<T>
 
     void addColoredShipment(ColoredShipment<T> shipment);
 
+    boolean removeColoredShipment(ColoredShipment<T> shipment);
+
     Collection<ColoredShipment<T>> getColoredShipments();
 }

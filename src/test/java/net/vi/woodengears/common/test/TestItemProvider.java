@@ -18,12 +18,12 @@ public class TestItemProvider extends BaseItemProvider
 
     public TestItemProvider(BlockPos pos, ProviderType type, InventoryHandler handler, InventoryBuffer buffer)
     {
-        super(null, type, handler, buffer);
+        super(null, type, handler, null, buffer);
 
         this.pos = pos;
 
-        this.wake();
-        this.sleep();
+        wake();
+        sleep();
     }
 
     public TestItemProvider(InventoryHandler handler, InventoryBuffer buffer)
@@ -34,7 +34,7 @@ public class TestItemProvider extends BaseItemProvider
     @Override
     public BlockPos getRailPos()
     {
-        return this.pos;
+        return pos;
     }
 
     public static Builder build()
@@ -51,9 +51,9 @@ public class TestItemProvider extends BaseItemProvider
 
         private Builder()
         {
-            this.stacks = new ArrayList<>();
-            this.pos = BlockPos.ORIGIN;
-            this.type = ProviderType.ACTIVE_PROVIDER;
+            stacks = new ArrayList<>();
+            pos = BlockPos.ORIGIN;
+            type = ProviderType.ACTIVE_PROVIDER;
         }
 
         public Builder stacks(ItemStack... stacks)
@@ -70,7 +70,7 @@ public class TestItemProvider extends BaseItemProvider
 
         public Builder buffer(int maxType, int maxCount)
         {
-            this.buffer = new InventoryBuffer(maxType, maxCount);
+            buffer = new InventoryBuffer(maxType, maxCount);
             return this;
         }
 
@@ -83,7 +83,7 @@ public class TestItemProvider extends BaseItemProvider
         public TestItemProvider create()
         {
             if (buffer == null)
-                this.buffer = new InventoryBuffer(this.stacks.size(), this.stacks.size() * 128);
+                buffer = new InventoryBuffer(stacks.size(), stacks.size() * 128);
 
             return new TestItemProvider(pos, type, new InventoryHandler(NonNullList.from(ItemStack.EMPTY,
                     stacks.toArray(new ItemStack[0]))), buffer);

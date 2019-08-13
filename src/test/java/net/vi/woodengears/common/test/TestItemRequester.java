@@ -15,7 +15,7 @@ public class TestItemRequester extends BaseItemRequester
 
     public TestItemRequester(BlockPos pos)
     {
-        super(null, new InventoryBuffer(2, 128));
+        super(null, null, new InventoryBuffer(2, 128));
 
         this.pos = pos;
     }
@@ -23,6 +23,6 @@ public class TestItemRequester extends BaseItemRequester
     @Override
     public BlockPos getRailPos()
     {
-        return this.pos;
+        return pos;
     }
 }

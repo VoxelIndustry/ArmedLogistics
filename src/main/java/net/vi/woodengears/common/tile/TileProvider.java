@@ -43,15 +43,16 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     {
         super("provider");
 
-        this.wrappedInventory = new WrappedInventory();
-        this.buffer = new InventoryBuffer(8, 8 * 64);
+        wrappedInventory = new WrappedInventory();
+        buffer = new InventoryBuffer(8, 8 * 64);
 
-        this.provider = new BaseItemProvider(this, ProviderType.PASSIVE_PROVIDER, this.wrappedInventory, this.buffer);
+        provider = new BaseItemProvider(this, ProviderType.PASSIVE_PROVIDER, wrappedInventory,
+                () -> getCable().getGridObject().getStackNetwork(), buffer);
 
-        this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
+        getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
 
-        this.whitelistProperty = new BaseProperty<>(true, "whitelistProperty");
-        this.filters = new ItemStack[9];
+        whitelistProperty = new BaseProperty<>(true, "whitelistProperty");
+        filters = new ItemStack[9];
         Arrays.fill(filters, ItemStack.EMPTY);
     }
 
@@ -60,10 +61,10 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     {
         super.addInfo(list);
 
-        if (!this.buffer.isEmpty())
+        if (!buffer.isEmpty())
         {
             list.addText("Buffer:");
-            this.buffer.getStacks().forEach(stack ->
+            buffer.getStacks().forEach(stack ->
             {
                 if (!stack.isEmpty())
                     list.addItem(stack);
@@ -74,20 +75,23 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     @Override
     public void update()
     {
-        if (this.isClient())
+        if (isClient())
             return;
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
-        this.buffer.writeNBT(tag);
+        buffer.writeNBT(tag);
 
-        tag.setBoolean("whitelist", this.whitelistProperty.getValue());
-        tag.setBoolean("filteredShown", this.showFiltereds);
+        tag.setBoolean("whitelist", whitelistProperty.getValue());
+        tag.setBoolean("filteredShown", showFiltereds);
 
-        for (int i = 0; i < this.filters.length; i++)
-            tag.setTag("filter" + i, this.filters[i].writeToNBT(new NBTTagCompound()));
+        for (int i = 0; i < filters.length; i++)
+            tag.setTag("filter" + i, filters[i].writeToNBT(new NBTTagCompound()));
+
+        provider.toNBT(tag);
+
         return super.writeToNBT(tag);
     }
 
@@ -96,12 +100,14 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     {
         super.readFromNBT(tag);
 
-        this.buffer.readNBT(tag);
-        this.whitelistProperty.setValue(tag.getBoolean("whitelist"));
-        this.showFiltereds = tag.getBoolean("filteredShown");
+        buffer.readNBT(tag);
+        whitelistProperty.setValue(tag.getBoolean("whitelist"));
+        showFiltereds = tag.getBoolean("filteredShown");
 
         for (int i = 0; i < 9; i++)
-            this.filters[i] = new ItemStack(tag.getCompoundTag("filter" + i));
+            filters[i] = new ItemStack(tag.getCompoundTag("filter" + i));
+
+        provider.fromNBT(tag);
     }
 
     @Override
@@ -120,7 +126,7 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
 
     public void dropBuffer()
     {
-        for (ItemStack stack : this.buffer.getStacks())
+        for (ItemStack stack : buffer.getStacks())
             InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
     }
 
@@ -129,35 +135,35 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
     {
         if ("WHITELIST_SWITCH".equals(actionID))
         {
-            this.whitelistProperty.setValue(payload.getBoolean("whitelist"));
-            this.markDirty();
-            this.provider.markDirty();
+            whitelistProperty.setValue(payload.getBoolean("whitelist"));
+            markDirty();
+            provider.markDirty();
         }
         else if ("FILTER_CHANGE".equals(actionID))
         {
-            this.filters[payload.getInteger("index")] = new ItemStack(payload.getCompoundTag("stack"));
-            this.markDirty();
-            this.provider.markDirty();
+            filters[payload.getInteger("index")] = new ItemStack(payload.getCompoundTag("stack"));
+            markDirty();
+            provider.markDirty();
         }
         else if ("FILTERED_SHOW_CHANGE".equals(actionID))
         {
-            this.setShowFiltereds(payload.getBoolean("state"));
-            this.markDirty();
+            setShowFiltereds(payload.getBoolean("state"));
+            markDirty();
         }
     }
 
     @Override
     public boolean filter(ItemStack stack)
     {
-        if (this.getWhitelistProperty().getValue() && this.doesFiltersContains(stack))
+        if (getWhitelistProperty().getValue() && doesFiltersContains(stack))
             return true;
         else
-            return !this.getWhitelistProperty().getValue() && !this.doesFiltersContains(stack);
+            return !getWhitelistProperty().getValue() && !doesFiltersContains(stack);
     }
 
     private boolean doesFiltersContains(ItemStack stack)
     {
-        for (ItemStack filter : this.filters)
+        for (ItemStack filter : filters)
         {
             if (filter.isEmpty())
                 continue;
