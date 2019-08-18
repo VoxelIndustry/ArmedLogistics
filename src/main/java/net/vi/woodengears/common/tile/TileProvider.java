@@ -7,7 +7,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ITickable;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
 import net.vi.woodengears.common.grid.logistic.node.IItemFilter;
@@ -21,7 +20,7 @@ import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.Arrays;
 
-public class TileProvider extends TileLogicisticNode implements ITickable, IActionReceiver, IItemFilter
+public class TileProvider extends TileLogicisticNode implements IActionReceiver, IItemFilter
 {
     @Getter
     private BaseItemProvider provider;
@@ -70,13 +69,6 @@ public class TileProvider extends TileLogicisticNode implements ITickable, IActi
                     list.addItem(stack);
             });
         }
-    }
-
-    @Override
-    public void update()
-    {
-        if (isClient())
-            return;
     }
 
     @Override

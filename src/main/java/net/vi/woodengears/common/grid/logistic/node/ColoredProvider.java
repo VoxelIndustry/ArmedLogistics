@@ -1,13 +1,11 @@
 package net.vi.woodengears.common.grid.logistic.node;
 
 import net.minecraft.item.EnumDyeColor;
-import net.vi.woodengears.common.grid.logistic.ColoredShipment;
 import net.vi.woodengears.common.grid.logistic.ColoredStack;
 
-import java.util.Collection;
 import java.util.List;
 
-public interface ColoredProvider<T> extends Provider<T>
+public interface ColoredProvider<T> extends Provider<T>, ColoredLogisticNode<T>
 {
     @Override
     default boolean isColored()
@@ -24,10 +22,4 @@ public interface ColoredProvider<T> extends Provider<T>
     int containedPart(ColoredStack coloredStack);
 
     List<T> extract(ColoredStack coloredStack);
-
-    void addColoredShipment(ColoredShipment<T> shipment);
-
-    boolean removeColoredShipment(ColoredShipment<T> shipment);
-
-    Collection<ColoredShipment<T>> getColoredShipments();
 }

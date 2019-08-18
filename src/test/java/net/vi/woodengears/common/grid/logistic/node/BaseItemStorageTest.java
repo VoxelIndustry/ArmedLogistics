@@ -1,0 +1,87 @@
+package net.vi.woodengears.common.grid.logistic.node;
+
+import net.minecraft.item.ItemStack;
+import net.vi.woodengears.common.test.ItemStackMatcher;
+import net.vi.woodengears.common.test.TestItemStorage;
+import net.vi.woodengears.common.test.WGTestExt;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+
+import static net.minecraft.init.Items.APPLE;
+import static net.minecraft.init.Items.COAL;
+import static net.minecraft.item.ItemStack.EMPTY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(WGTestExt.class)
+public class BaseItemStorageTest
+{
+    @Test
+    void insertablePart_givenHalfStackWithSufficientSpace_thenShouldReturnGivenStackCount()
+    {
+        TestItemStorage storage = TestItemStorage.build()
+                .stacks(EMPTY)
+                .create();
+
+        ItemStack apple32 = new ItemStack(APPLE, 32);
+        assertThat(storage.insertablePart(apple32)).isEqualTo(apple32.getCount());
+    }
+
+    @Test
+    void insertablePart_givenStackWithNotEnoughSpace_thenShouldReturnOnlyInsertableCount()
+    {
+        TestItemStorage storage = TestItemStorage.build()
+                .stacks(new ItemStack(APPLE, 32), new ItemStack(COAL))
+                .create();
+
+        ItemStack apple64 = new ItemStack(APPLE, 64);
+        assertThat(storage.insertablePart(apple64)).isEqualTo(32);
+    }
+
+    @Test
+    void insert_givenStackWithEmptyStorage_thenShouldStoreFullStackAtFirstSlot()
+    {
+        InventoryBuffer buffer = spy(new InventoryBuffer(2, 128));
+
+        TestItemStorage storage = TestItemStorage.build()
+                .stacks(EMPTY)
+                .storageBuffer(buffer)
+                .create();
+
+        ItemStack apple32 = new ItemStack(APPLE, 32);
+        ItemStack insert = storage.insert(apple32);
+
+        ItemStackMatcher.assertEqualsStrict(insert, apple32);
+        ItemStackMatcher.assertEqualsStrict(storage.getHandler().getStackInSlot(0), apple32);
+
+        ArgumentCaptor<ItemStack> captor = ArgumentCaptor.forClass(ItemStack.class);
+        verify(buffer).remove(captor.capture());
+        ItemStackMatcher.assertEqualsStrict(captor.getValue(), apple32);
+    }
+
+    @Test
+    void insert_givenStackWithHalfFullStorage_withEnoughSpace_thenShouldStoreFullStackInTwoSlots()
+    {
+        InventoryBuffer buffer = spy(new InventoryBuffer(2, 128));
+
+        TestItemStorage storage = TestItemStorage.build()
+                .stacks(new ItemStack(APPLE, 32), EMPTY, EMPTY)
+                .storageBuffer(buffer)
+                .create();
+
+        ItemStack apple64 = new ItemStack(APPLE, 64);
+        ItemStack insert = storage.insert(apple64);
+
+        ItemStackMatcher.assertEqualsStrict(insert, apple64);
+        ItemStackMatcher.assertEqualsStrict(storage.getHandler().getStackInSlot(0), apple64);
+        ItemStackMatcher.assertEqualsStrict(storage.getHandler().getStackInSlot(1), new ItemStack(APPLE, 32));
+
+        ArgumentCaptor<ItemStack> captor = ArgumentCaptor.forClass(ItemStack.class);
+        verify(buffer).remove(captor.capture());
+        ItemStackMatcher.assertEqualsStrict(captor.getValue(), apple64);
+    }
+}

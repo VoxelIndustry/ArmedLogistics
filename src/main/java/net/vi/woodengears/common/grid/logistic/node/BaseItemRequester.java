@@ -20,7 +20,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Requester<ItemStack>
+import static net.vi.woodengears.common.grid.logistic.node.RequesterMode.KEEP;
+
+public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Requester<ItemStack>, ColoredLogisticNode<ItemStack>
 {
     @Getter(AccessLevel.PROTECTED)
     private InventoryBuffer buffer;
@@ -46,8 +48,8 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
         super(networkSupplier);
 
         this.tile = tile;
-
         this.buffer = buffer;
+
         requests = new ArrayList<>();
         currentOrders = new ArrayList<>();
 
@@ -104,10 +106,7 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
 
     public void removeRequest(ItemStack value, int quantity)
     {
-        if (quantity == 0)
-            return;
-
-        if (mode == RequesterMode.KEEP)
+        if (quantity == 0 || mode == KEEP)
             return;
 
         int index = -1;
@@ -161,22 +160,26 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
         {
             for (ItemStack stack : buffer.getStacks())
             {
-                for (int i = 0; i < inventory.getSlots(); i++)
-                {
-                    if (stack.isEmpty())
-                        break;
-                    ItemStack remainder = inventory.insertItem(i, stack, true);
+                if (stack.isEmpty())
+                    break;
 
-                    if (!remainder.isEmpty() && remainder.getCount() == stack.getCount())
+                ItemStack toInsert = stack.copy();
+                for (int slot = 0; slot < inventory.getSlots(); slot++)
+                {
+                    ItemStack remainder = inventory.insertItem(slot, toInsert, true);
+
+                    if (remainder.getCount() == stack.getCount())
                         continue;
 
-                    remainder = inventory.insertItem(i, stack.copy(), false);
+                    remainder = inventory.insertItem(slot, toInsert.copy(), false);
 
-                    ItemStack inserted = stack.copy();
-                    if (!remainder.isEmpty())
-                        inserted.shrink(remainder.getCount());
+                    toInsert.shrink(remainder.getCount());
 
-                    buffer.remove(stack);
+                    if (toInsert.isEmpty())
+                    {
+                        buffer.remove(stack);
+                        break;
+                    }
                 }
             }
         }
@@ -258,7 +261,7 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
     }
 
     @Override
-    public void deliverShipment(ColoredShipment<ItemStack> shipment)
+    public void deliverColoredShipment(ColoredShipment<ItemStack> shipment)
     {
         coloredShipments.remove(shipment);
 

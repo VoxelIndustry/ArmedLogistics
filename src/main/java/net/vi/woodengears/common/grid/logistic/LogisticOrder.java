@@ -2,7 +2,7 @@ package net.vi.woodengears.common.grid.logistic;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.vi.woodengears.common.grid.logistic.node.Requester;
+import net.vi.woodengears.common.grid.logistic.node.LogisticNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,17 +10,17 @@ import java.util.List;
 @Getter
 public class LogisticOrder<T>
 {
-    private T                         ordered;
+    private T                         content;
     @Setter
     private OrderState                state;
-    private Requester<T>              destination;
+    private LogisticNode<T>           source;
     private List<LogisticShipment<T>> shippedParts;
 
-    protected LogisticOrder(T ordered, Requester<T> destination)
+    protected LogisticOrder(T content, LogisticNode<T> source)
     {
-        this.ordered = ordered;
-        this.destination = destination;
+        this.content = content;
+        this.source = source;
 
-        this.shippedParts = new ArrayList<>();
+        shippedParts = new ArrayList<>();
     }
 }

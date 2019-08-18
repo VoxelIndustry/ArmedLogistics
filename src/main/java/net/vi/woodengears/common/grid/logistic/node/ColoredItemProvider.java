@@ -166,4 +166,10 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
     {
         return coloredShipments;
     }
+
+    @Override
+    public void deliverColoredShipment(ColoredShipment<ItemStack> shipment)
+    {
+
+    }
 }

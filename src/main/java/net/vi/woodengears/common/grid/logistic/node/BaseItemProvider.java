@@ -9,6 +9,7 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.common.grid.logistic.LogisticNetwork;
+import net.vi.woodengears.common.grid.logistic.LogisticOrder;
 import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.serializer.LogisticShipmentSerializer;
@@ -35,6 +36,7 @@ public class BaseItemProvider extends BaseLogisticNode<ItemStack> implements Pro
 
     @Getter
     private ProviderType       providerType;
+    @Getter(AccessLevel.PROTECTED)
     private TileLogicisticNode tile;
     @Getter
     @Setter
@@ -294,6 +296,24 @@ public class BaseItemProvider extends BaseLogisticNode<ItemStack> implements Pro
     public Collection<LogisticShipment<ItemStack>> getShipments()
     {
         return shipments;
+    }
+
+    @Override
+    public void deliverShipment(LogisticShipment<ItemStack> shipment)
+    {
+
+    }
+
+    @Override
+    public void addOrder(LogisticOrder<ItemStack> order)
+    {
+
+    }
+
+    @Override
+    public void removeOrder(LogisticOrder<ItemStack> order)
+    {
+
     }
 
     public NBTTagCompound toNBT(NBTTagCompound tag)

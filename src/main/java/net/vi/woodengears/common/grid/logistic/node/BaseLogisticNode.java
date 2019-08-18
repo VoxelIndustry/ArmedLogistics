@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 @Getter
 @RequiredArgsConstructor
-public abstract class BaseLogisticNode<T> implements LogisticNode
+public abstract class BaseLogisticNode<T> implements LogisticNode<T>
 {
     private final Supplier<LogisticNetwork<T>> networkSupplier;
 

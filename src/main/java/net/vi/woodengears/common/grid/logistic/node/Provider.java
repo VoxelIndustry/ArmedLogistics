@@ -1,13 +1,11 @@
 package net.vi.woodengears.common.grid.logistic.node;
 
-import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-public interface Provider<T> extends LogisticNode
+public interface Provider<T> extends LogisticNode<T>
 {
     /**
      * Query the provider with the specified value and return the quantity currently available.
@@ -47,10 +45,4 @@ public interface Provider<T> extends LogisticNode
     ProviderType getProviderType();
 
     void markDirty();
-
-    void addShipment(LogisticShipment<T> shipment);
-
-    boolean removeShipment(LogisticShipment<T> shipment);
-
-    Collection<LogisticShipment<T>> getShipments();
 }

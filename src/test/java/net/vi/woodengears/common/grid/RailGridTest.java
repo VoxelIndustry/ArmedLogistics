@@ -18,7 +18,7 @@ class RailGridTest
     @BeforeAll
     void setup()
     {
-        this.instance = GridManager.createGetInstance("woodengears:test");
+        instance = GridManager.createGetInstance("woodengears:test");
     }
 
     @Test
@@ -102,7 +102,7 @@ class RailGridTest
         assertThat(path.getFrom()).isEqualTo(from.getBlockPos()).isEqualTo(new BlockPos(0, 0, 0));
         assertThat(path.getTo()).isEqualTo(to.getBlockPos()).isEqualTo(new BlockPos(0, 0, 1));
 
-        assertThat(path.getPoints()).containsOnly(to.getBlockPos());
+        assertThat(path.getPoints()).containsOnly(from.getBlockPos(), to.getBlockPos());
     }
 }
 

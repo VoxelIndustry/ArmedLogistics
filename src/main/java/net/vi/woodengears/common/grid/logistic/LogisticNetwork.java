@@ -8,15 +8,21 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.vi.woodengears.common.grid.RailGrid;
+import net.vi.woodengears.common.grid.logistic.node.ColoredLogisticNode;
 import net.vi.woodengears.common.grid.logistic.node.ColoredProvider;
 import net.vi.woodengears.common.grid.logistic.node.Provider;
 import net.vi.woodengears.common.grid.logistic.node.Requester;
+import net.vi.woodengears.common.grid.logistic.node.Storage;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.stream.Collectors;
+
+import static net.vi.woodengears.common.grid.logistic.OrderState.*;
+import static net.vi.woodengears.common.grid.logistic.ProviderType.STORAGE;
+import static net.vi.woodengears.common.grid.logistic.ProviderType.VALUES;
 
 public class LogisticNetwork<T>
 {
@@ -26,10 +32,14 @@ public class LogisticNetwork<T>
 
     private PriorityQueue<LogisticOrder<T>> stackOrders;
     private PriorityQueue<ColoredOrder<T>>  coloredOrders;
+
+    private PriorityQueue<LogisticOrder<T>> removalOrders;
+    private PriorityQueue<ColoredOrder<T>>  coloredRemovalOrders;
+
     @Getter
-    private List<LogisticShipment<T>>       shipments;
+    private List<LogisticShipment<T>> shipments;
     @Getter
-    private List<ColoredShipment<T>>        coloredShipments;
+    private List<ColoredShipment<T>>  coloredShipments;
 
     @Getter
     @Setter
@@ -57,6 +67,8 @@ public class LogisticNetwork<T>
 
         stackOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
         coloredOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
+        removalOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
+        coloredRemovalOrders = new PriorityQueue<>(Comparator.comparingInt(order -> order.getState().ordinal()));
 
         shipments = new ArrayList<>();
         coloredShipments = new ArrayList<>();
@@ -71,6 +83,9 @@ public class LogisticNetwork<T>
 
         processOrders();
         processColoredOrders();
+
+        processRemovalOrders();
+        processColoredRemovalOrders();
     }
 
     private List<Provider<T>> getSortedProviders(ProviderType type, BlockPos destination)
@@ -86,105 +101,165 @@ public class LogisticNetwork<T>
 
     private void processOrders()
     {
-        stackOrders.removeIf(order -> order.getState() == OrderState.COMPLETED);
+        stackOrders.removeIf(order -> order.getState() == COMPLETED);
 
         for (LogisticOrder<T> stackOrder : stackOrders)
         {
-            if (stackOrder.getState() != OrderState.SUBMITTED && stackOrder.getState() != OrderState.SHORTAGE)
+            if (stackOrder.getState() != SUBMITTED && stackOrder.getState() != SHORTAGE)
                 continue;
 
-            int toExtract = functions.getQuantity(stackOrder.getOrdered());
+            int toExtract = functions.getQuantity(stackOrder.getContent());
 
-            for (ProviderType type : ProviderType.VALUES)
+            for (ProviderType type : VALUES)
             {
-                for (Provider<T> provider : getSortedProviders(type, stackOrder.getDestination().getRailPos()))
-                {
-                    if (provider.isBufferFull())
-                        continue;
-
-                    int part = provider.containedPart(stackOrder.getOrdered());
-
-                    if (part == 0)
-                        continue;
-
-                    T extracted = provider.extract(functions.changeQuantity(stackOrder.getOrdered(), toExtract));
-
-                    LogisticShipment<T> shipment = createShipment(extracted, provider.getRailPos(),
-                            stackOrder.getDestination().getRailPos());
-
-                    provider.addShipment(shipment);
-                    stackOrder.getDestination().addShipment(shipment);
-
-                    stackOrder.getShippedParts().add(shipment);
-                    toExtract -= functions.getQuantity(extracted);
-
-                    if (toExtract == 0)
-                        break;
-                }
+                toExtract = getToExtract(stackOrder, toExtract, type);
                 if (toExtract == 0)
                     break;
             }
 
             if (toExtract == 0)
-                stackOrder.setState(OrderState.SHIPPING);
+                stackOrder.setState(SHIPPING);
 
-            if (toExtract > 0 && stackOrder.getState() == OrderState.SUBMITTED)
-                stackOrder.setState(OrderState.SHORTAGE);
+            if (toExtract > 0 && stackOrder.getState() == SUBMITTED)
+                stackOrder.setState(SHORTAGE);
         }
+    }
+
+    private int getToExtract(LogisticOrder<T> stackOrder, int toExtract, ProviderType type)
+    {
+        for (Provider<T> provider : getSortedProviders(type, stackOrder.getSource().getRailPos()))
+        {
+            if (provider.isBufferFull())
+                continue;
+
+            int part = provider.containedPart(stackOrder.getContent());
+
+            if (part == 0)
+                continue;
+
+            T extracted = provider.extract(functions.changeQuantity(stackOrder.getContent(), toExtract));
+
+            LogisticShipment<T> shipment = createShipment(extracted, provider.getRailPos(),
+                    stackOrder.getSource().getRailPos());
+
+            provider.addShipment(shipment);
+            stackOrder.getSource().addShipment(shipment);
+
+            stackOrder.getShippedParts().add(shipment);
+            toExtract -= functions.getQuantity(extracted);
+
+            if (toExtract == 0)
+                break;
+        }
+        return toExtract;
     }
 
     private void processColoredOrders()
     {
-        coloredOrders.removeIf(order -> order.getState() == OrderState.COMPLETED);
+        coloredOrders.removeIf(order -> order.getState() == COMPLETED);
 
         for (ColoredOrder<T> coloredOrder : coloredOrders)
         {
-            if (coloredOrder.getState() != OrderState.SUBMITTED && coloredOrder.getState() != OrderState.SHORTAGE)
+            if (coloredOrder.getState() != SUBMITTED && coloredOrder.getState() != SHORTAGE)
                 continue;
 
-            int toExtract = coloredOrder.getOrdered().getQuantity();
+            int toExtract = coloredOrder.getContent().getQuantity();
 
-            for (ProviderType type : ProviderType.VALUES)
+            for (ProviderType type : VALUES)
             {
-                for (Provider<T> provider : getSortedProviders(type, coloredOrder.getDestination().getRailPos()))
-                {
-                    if (!provider.isColored() || provider.isBufferFull())
-                        continue;
-
-                    ColoredProvider<T> coloredProvider = (ColoredProvider<T>) provider;
-                    int part = coloredProvider.containedPart(coloredOrder.getOrdered());
-
-                    if (part == 0)
-                        continue;
-
-                    ColoredStack stack = new ColoredStack(coloredOrder.getOrdered().getColor(), toExtract);
-                    List<T> extracted = coloredProvider.extract(stack);
-
-                    for (T value : extracted)
-                    {
-                        ColoredShipment<T> shipment = createColoredShipment(value, coloredOrder.getOrdered(),
-                                provider.getRailPos(), coloredOrder.getDestination().getRailPos());
-
-                        coloredProvider.addColoredShipment(shipment);
-                        coloredOrder.getDestination().addColoredShipment(shipment);
-
-                        coloredOrder.getShippedParts().add(shipment);
-                    }
-                    toExtract -= extracted.stream().mapToInt(functions::getQuantity).sum();
-
-                    if (toExtract == 0)
-                        break;
-                }
+                toExtract = getColoredToExtract(coloredOrder, toExtract, type);
                 if (toExtract == 0)
                     break;
             }
 
             if (toExtract == 0)
-                coloredOrder.setState(OrderState.SHIPPING);
+                coloredOrder.setState(SHIPPING);
 
-            if (toExtract > 0 && coloredOrder.getState() == OrderState.SUBMITTED)
-                coloredOrder.setState(OrderState.SHORTAGE);
+            if (toExtract > 0 && coloredOrder.getState() == SUBMITTED)
+                coloredOrder.setState(SHORTAGE);
         }
+    }
+
+    private int getColoredToExtract(ColoredOrder<T> coloredOrder, int toExtract, ProviderType type)
+    {
+        for (Provider<T> provider : getSortedProviders(type, coloredOrder.getSource().getRailPos()))
+        {
+            if (!provider.isColored() || provider.isBufferFull())
+                continue;
+
+            ColoredProvider<T> coloredProvider = (ColoredProvider<T>) provider;
+            int part = coloredProvider.containedPart(coloredOrder.getContent());
+
+            if (part == 0)
+                continue;
+
+            ColoredStack stack = new ColoredStack(coloredOrder.getContent().getColor(), toExtract);
+            List<T> extracted = coloredProvider.extract(stack);
+
+            for (T value : extracted)
+            {
+                ColoredShipment<T> shipment = createColoredShipment(value, coloredOrder.getContent(),
+                        provider.getRailPos(), coloredOrder.getSource().getRailPos());
+
+                coloredProvider.addColoredShipment(shipment);
+                ((ColoredLogisticNode<T>) coloredOrder.getSource()).addColoredShipment(shipment);
+
+                coloredOrder.getShippedParts().add(shipment);
+            }
+            toExtract -= extracted.stream().mapToInt(functions::getQuantity).sum();
+
+            if (toExtract == 0)
+                break;
+        }
+        return toExtract;
+    }
+
+    private void processRemovalOrders()
+    {
+        removalOrders.removeIf(order -> order.getState() == COMPLETED);
+
+        for (LogisticOrder<T> removalOrder : removalOrders)
+        {
+            if (removalOrder.getState() != SUBMITTED && removalOrder.getState() != SHORTAGE)
+                continue;
+
+            int toInsert = functions.getQuantity(removalOrder.getContent());
+
+            for (Provider<T> provider : getSortedProviders(STORAGE, removalOrder.getSource().getRailPos()))
+            {
+                Storage<T> storage = (Storage<T>) provider;
+
+                int part = storage.insertablePart(removalOrder.getContent());
+
+                if (part == 0)
+                    continue;
+
+                T inserted = storage.insert(functions.changeQuantity(removalOrder.getContent(), part));
+
+                LogisticShipment<T> shipment = createShipment(inserted, provider.getRailPos(),
+                        removalOrder.getSource().getRailPos());
+
+                provider.addShipment(shipment);
+                removalOrder.getSource().addShipment(shipment);
+
+                removalOrder.getShippedParts().add(shipment);
+                toInsert -= functions.getQuantity(inserted);
+
+                if (toInsert == 0)
+                    break;
+            }
+
+            if (toInsert == 0)
+                removalOrder.setState(SHIPPING);
+
+            if (toInsert > 0 && removalOrder.getState() == SUBMITTED)
+                removalOrder.setState(SHORTAGE);
+        }
+    }
+
+    private void processColoredRemovalOrders()
+    {
+
     }
 
     private LogisticShipment<T> createShipment(T toShip, BlockPos from, BlockPos to)
@@ -206,8 +281,8 @@ public class LogisticNetwork<T>
     public LogisticOrder<T> makeOrder(Requester<T> requester, T stack)
     {
         LogisticOrder<T> order = new LogisticOrder<>(stack, requester);
-        order.setState(OrderState.SUBMITTED);
-        order.getDestination().addOrder(order);
+        order.setState(SUBMITTED);
+        requester.addOrder(order);
 
         stackOrders.add(order);
         return order;
@@ -215,13 +290,31 @@ public class LogisticNetwork<T>
 
     public ColoredOrder<T> makeOrder(Requester<T> requester, EnumDyeColor color, int quantity)
     {
-        ColoredOrder<T> order = new ColoredOrder<>(new ColoredStack(color, quantity),
-                requester);
-        order.setState(OrderState.SUBMITTED);
+        ColoredOrder<T> order = new ColoredOrder<>(new ColoredStack(color, quantity), requester);
+        order.setState(SUBMITTED);
         // TODO : Colored requesters
         //order.getDestination().addOrder(order);
 
         coloredOrders.add(order);
+        return order;
+    }
+
+    public LogisticOrder<T> makeRemovalOrder(Provider<T> provider, T stack)
+    {
+        LogisticOrder<T> order = new LogisticOrder<>(stack, provider);
+        order.setState(SUBMITTED);
+        provider.addOrder(order);
+
+        removalOrders.add(order);
+        return order;
+    }
+
+    public ColoredOrder<T> makeRemovalOrder(Provider<T> provider, EnumDyeColor color, int quantity)
+    {
+        ColoredOrder<T> order = new ColoredOrder<>(new ColoredStack(color, quantity), provider);
+        order.setState(SUBMITTED);
+
+        coloredRemovalOrders.add(order);
         return order;
     }
 
@@ -263,10 +356,10 @@ public class LogisticNetwork<T>
         {
             order.getShippedParts().remove(shipment);
 
-            if (order.getShippedParts().isEmpty() && order.getState() == OrderState.SHIPPING)
+            if (order.getShippedParts().isEmpty() && order.getState() == SHIPPING)
             {
-                order.setState(OrderState.COMPLETED);
-                order.getDestination().removeOrder(order);
+                order.setState(COMPLETED);
+                order.getSource().removeOrder(order);
             }
         });
     }
