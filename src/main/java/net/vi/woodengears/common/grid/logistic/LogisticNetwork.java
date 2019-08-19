@@ -304,15 +304,18 @@ public class LogisticNetwork<T>
         LogisticOrder<T> order = new LogisticOrder<>(stack, provider);
         order.setState(SUBMITTED);
         provider.addOrder(order);
+        provider.extract(stack);
 
         removalOrders.add(order);
         return order;
     }
 
-    public ColoredOrder<T> makeRemovalOrder(Provider<T> provider, EnumDyeColor color, int quantity)
+    public ColoredOrder<T> makeRemovalOrder(ColoredProvider<T> provider, EnumDyeColor color, int quantity)
     {
         ColoredOrder<T> order = new ColoredOrder<>(new ColoredStack(color, quantity), provider);
         order.setState(SUBMITTED);
+
+        provider.extract(order.getContent());
 
         coloredRemovalOrders.add(order);
         return order;

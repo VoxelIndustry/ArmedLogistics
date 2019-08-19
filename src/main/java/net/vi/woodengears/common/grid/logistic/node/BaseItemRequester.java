@@ -25,7 +25,7 @@ import static net.vi.woodengears.common.grid.logistic.node.RequesterMode.KEEP;
 public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Requester<ItemStack>, ColoredLogisticNode<ItemStack>
 {
     @Getter(AccessLevel.PROTECTED)
-    private InventoryBuffer buffer;
+    private IItemHandler handler;
 
     private TileLogicisticNode tile;
 
@@ -42,13 +42,13 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
     private List<ColoredShipment<ItemStack>>  coloredShipments;
 
     public BaseItemRequester(TileLogicisticNode tile,
-                             Supplier<LogisticNetwork<ItemStack>> networkSupplier,
-                             InventoryBuffer buffer)
+                             IItemHandler handler,
+                             Supplier<LogisticNetwork<ItemStack>> networkSupplier)
     {
         super(networkSupplier);
 
         this.tile = tile;
-        this.buffer = buffer;
+        this.handler = handler;
 
         requests = new ArrayList<>();
         currentOrders = new ArrayList<>();
@@ -64,26 +64,32 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
     }
 
     @Override
-    public int insert(ItemStack value)
+    public int insert(ItemStack stack)
     {
-        emptyBuffer();
-        if (buffer.isFull())
+        if (stack.isEmpty())
             return 0;
 
         sleep();
 
-        int added = buffer.add(value).getCount();
+        ItemStack toInsert = stack.copy();
+        for (int slot = 0; slot < getHandler().getSlots(); slot++)
+        {
+            ItemStack remainder = getHandler().insertItem(slot, toInsert, true);
 
-        removeRequest(value, added);
+            if (remainder.getCount() == stack.getCount())
+                continue;
 
-        emptyBuffer();
-        return added;
-    }
+            ItemStack insert = toInsert.copy();
+            insert.shrink(remainder.getCount());
+            getHandler().insertItem(slot, insert, false);
+            
+            toInsert.shrink(insert.getCount());
 
-    @Override
-    public boolean isBufferFull()
-    {
-        return buffer.isFull();
+            if (toInsert.isEmpty())
+                break;
+        }
+
+        return stack.getCount() - toInsert.getCount();
     }
 
     @Override
@@ -151,38 +157,6 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
     public void removeRequest(int index)
     {
         requests.remove(index);
-    }
-
-    public void emptyBuffer()
-    {
-        IItemHandler inventory = tile.getConnectedInventory();
-        if (inventory != null)
-        {
-            for (ItemStack stack : buffer.getStacks())
-            {
-                if (stack.isEmpty())
-                    break;
-
-                ItemStack toInsert = stack.copy();
-                for (int slot = 0; slot < inventory.getSlots(); slot++)
-                {
-                    ItemStack remainder = inventory.insertItem(slot, toInsert, true);
-
-                    if (remainder.getCount() == stack.getCount())
-                        continue;
-
-                    remainder = inventory.insertItem(slot, toInsert.copy(), false);
-
-                    toInsert.shrink(remainder.getCount());
-
-                    if (toInsert.isEmpty())
-                    {
-                        buffer.remove(stack);
-                        break;
-                    }
-                }
-            }
-        }
     }
 
     public int inventoryAccept(ItemStack stack)

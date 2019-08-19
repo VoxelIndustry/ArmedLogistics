@@ -16,9 +16,9 @@ public class TestItemStorage extends BaseItemStorage
 {
     private BlockPos pos;
 
-    public TestItemStorage(BlockPos pos, InventoryHandler handler, InventoryBuffer providerBuffer, InventoryBuffer storageBuffer)
+    public TestItemStorage(BlockPos pos, InventoryHandler handler, InventoryBuffer providerBuffer)
     {
-        super(null, ProviderType.STORAGE, handler, null, providerBuffer, storageBuffer);
+        super(null, ProviderType.STORAGE, handler, null, providerBuffer);
 
         this.pos = pos;
 
@@ -26,9 +26,9 @@ public class TestItemStorage extends BaseItemStorage
         sleep();
     }
 
-    public TestItemStorage(InventoryHandler handler, InventoryBuffer providerBuffer, InventoryBuffer storageBuffer)
+    public TestItemStorage(InventoryHandler handler, InventoryBuffer providerBuffer)
     {
-        this(BlockPos.ORIGIN, handler, providerBuffer, storageBuffer);
+        this(BlockPos.ORIGIN, handler, providerBuffer);
     }
 
     @Override
@@ -44,10 +44,10 @@ public class TestItemStorage extends BaseItemStorage
 
     public static class Builder
     {
-        private List<ItemStack> stacks;
-        private BlockPos        pos;
-        private InventoryBuffer providerBuffer;
-        private InventoryBuffer storageBuffer;
+        private List<ItemStack>  stacks;
+        private BlockPos         pos;
+        private InventoryBuffer  buffer;
+        private InventoryHandler inventory;
 
         private Builder()
         {
@@ -61,39 +61,39 @@ public class TestItemStorage extends BaseItemStorage
             return this;
         }
 
+        public Builder inventory(InventoryHandler inventoryHandler)
+        {
+            inventory = inventoryHandler;
+            return this;
+        }
+
         public Builder pos(BlockPos pos)
         {
             this.pos = pos;
             return this;
         }
 
-        public Builder providerBuffer(int maxType, int maxCount)
+        public Builder buffer(int maxType, int maxCount)
         {
-            providerBuffer = new InventoryBuffer(maxType, maxCount);
+            buffer(new InventoryBuffer(maxType, maxCount));
             return this;
         }
 
-        public Builder storageBuffer(int maxType, int maxCount)
+        public Builder buffer(InventoryBuffer buffer)
         {
-            storageBuffer(new InventoryBuffer(maxType, maxCount));
-            return this;
-        }
-
-        public Builder storageBuffer(InventoryBuffer buffer)
-        {
-            storageBuffer = buffer;
+            this.buffer = buffer;
             return this;
         }
 
         public TestItemStorage create()
         {
-            if (providerBuffer == null)
-                providerBuffer = new InventoryBuffer(stacks.size(), stacks.size() * 128);
-            if (storageBuffer == null)
-                storageBuffer = new InventoryBuffer(stacks.size(), stacks.size() * 128);
+            if (buffer == null)
+                buffer = new InventoryBuffer(stacks.size(), stacks.size() * 128);
+            if (inventory == null)
+                inventory = new InventoryHandler(NonNullList.from(ItemStack.EMPTY,
+                        stacks.toArray(new ItemStack[0])));
 
-            return new TestItemStorage(pos, new InventoryHandler(NonNullList.from(ItemStack.EMPTY,
-                    stacks.toArray(new ItemStack[0]))), providerBuffer, storageBuffer);
+            return new TestItemStorage(pos, inventory, buffer);
         }
     }
 }

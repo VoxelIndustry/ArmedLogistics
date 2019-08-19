@@ -1,7 +1,5 @@
 package net.vi.woodengears.common.grid.logistic.node;
 
-import lombok.AccessLevel;
-import lombok.Getter;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.common.grid.logistic.LogisticNetwork;
@@ -12,19 +10,13 @@ import java.util.function.Supplier;
 
 public class BaseItemStorage extends BaseItemProvider implements Storage<ItemStack>
 {
-    @Getter(AccessLevel.PROTECTED)
-    private InventoryBuffer storageBuffer;
-
     public BaseItemStorage(TileLogicisticNode tile,
                            ProviderType type,
                            IItemHandler handler,
                            Supplier<LogisticNetwork<ItemStack>> networkSupplier,
-                           InventoryBuffer providerBuffer,
-                           InventoryBuffer storageBuffer)
+                           InventoryBuffer providerBuffer)
     {
         super(tile, type, handler, networkSupplier, providerBuffer);
-
-        this.storageBuffer = storageBuffer;
     }
 
     @Override
@@ -52,46 +44,34 @@ public class BaseItemStorage extends BaseItemProvider implements Storage<ItemSta
     }
 
     @Override
-    public ItemStack insert(ItemStack value)
+    public ItemStack insert(ItemStack stack)
     {
-        emptyBuffer();
-        if (storageBuffer.isFull())
+        if (stack.isEmpty())
             return ItemStack.EMPTY;
 
         sleep();
 
-        ItemStack added = storageBuffer.add(value);
-
-        emptyBuffer();
-        return added;
-    }
-
-    public void emptyBuffer()
-    {
-        for (ItemStack stack : storageBuffer.getStacks())
+        ItemStack toInsert = stack.copy();
+        for (int slot = 0; slot < getHandler().getSlots(); slot++)
         {
-            if (stack.isEmpty())
+            ItemStack remainder = getHandler().insertItem(slot, toInsert, true);
+
+            if (remainder.getCount() == stack.getCount())
+                continue;
+
+            ItemStack insert = toInsert.copy();
+            insert.shrink(remainder.getCount());
+            getHandler().insertItem(slot, insert, false);
+
+            toInsert.shrink(insert.getCount());
+
+            if (toInsert.isEmpty())
                 break;
-
-            ItemStack toInsert = stack.copy();
-            for (int slot = 0; slot < getHandler().getSlots(); slot++)
-            {
-                ItemStack remainder = getHandler().insertItem(slot, toInsert, true);
-
-                if (remainder.getCount() == stack.getCount())
-                    continue;
-
-                remainder = getHandler().insertItem(slot, toInsert.copy(), false);
-
-                toInsert.shrink(toInsert.getCount() - remainder.getCount());
-
-                if (toInsert.isEmpty())
-                    break;
-            }
-
-            ItemStack inserted = stack.copy();
-            inserted.shrink(toInsert.getCount());
-            storageBuffer.remove(inserted);
         }
+
+        ItemStack inserted = stack.copy();
+        stack.shrink(toInsert.getCount());
+
+        return inserted;
     }
 }

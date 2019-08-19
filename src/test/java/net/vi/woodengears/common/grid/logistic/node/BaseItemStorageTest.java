@@ -4,6 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.vi.woodengears.common.test.ItemStackMatcher;
 import net.vi.woodengears.common.test.TestItemStorage;
 import net.vi.woodengears.common.test.WGTestExt;
+import net.voxelindustry.steamlayer.inventory.InventoryHandler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +14,7 @@ import static net.minecraft.init.Items.APPLE;
 import static net.minecraft.init.Items.COAL;
 import static net.minecraft.item.ItemStack.EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -45,11 +47,9 @@ public class BaseItemStorageTest
     @Test
     void insert_givenStackWithEmptyStorage_thenShouldStoreFullStackAtFirstSlot()
     {
-        InventoryBuffer buffer = spy(new InventoryBuffer(2, 128));
-
+        InventoryHandler inventory = spy(new InventoryHandler(1));
         TestItemStorage storage = TestItemStorage.build()
-                .stacks(EMPTY)
-                .storageBuffer(buffer)
+                .inventory(inventory)
                 .create();
 
         ItemStack apple32 = new ItemStack(APPLE, 32);
@@ -59,21 +59,22 @@ public class BaseItemStorageTest
         ItemStackMatcher.assertEqualsStrict(storage.getHandler().getStackInSlot(0), apple32);
 
         ArgumentCaptor<ItemStack> captor = ArgumentCaptor.forClass(ItemStack.class);
-        verify(buffer).remove(captor.capture());
+        verify(inventory).insertItem(eq(0), captor.capture(), eq(false));
         ItemStackMatcher.assertEqualsStrict(captor.getValue(), apple32);
     }
 
     @Test
     void insert_givenStackWithHalfFullStorage_withEnoughSpace_thenShouldStoreFullStackInTwoSlots()
     {
-        InventoryBuffer buffer = spy(new InventoryBuffer(2, 128));
+        InventoryHandler inventory = spy(new InventoryHandler(2));
+        inventory.setStackInSlot(0, new ItemStack(APPLE, 32));
 
         TestItemStorage storage = TestItemStorage.build()
-                .stacks(new ItemStack(APPLE, 32), EMPTY, EMPTY)
-                .storageBuffer(buffer)
+                .inventory(inventory)
                 .create();
 
         ItemStack apple64 = new ItemStack(APPLE, 64);
+        ItemStack apple32 = new ItemStack(APPLE, 32);
         ItemStack insert = storage.insert(apple64);
 
         ItemStackMatcher.assertEqualsStrict(insert, apple64);
@@ -81,7 +82,9 @@ public class BaseItemStorageTest
         ItemStackMatcher.assertEqualsStrict(storage.getHandler().getStackInSlot(1), new ItemStack(APPLE, 32));
 
         ArgumentCaptor<ItemStack> captor = ArgumentCaptor.forClass(ItemStack.class);
-        verify(buffer).remove(captor.capture());
-        ItemStackMatcher.assertEqualsStrict(captor.getValue(), apple64);
+        verify(inventory).insertItem(eq(0), captor.capture(), eq(false));
+        verify(inventory).insertItem(eq(1), captor.capture(), eq(false));
+        ItemStackMatcher.assertEqualsStrict(captor.getAllValues().get(0), apple32);
+        ItemStackMatcher.assertEqualsStrict(captor.getAllValues().get(1), apple32);
     }
 }

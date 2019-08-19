@@ -45,7 +45,7 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
         wrappedInventory = new WrappedInventory();
         buffer = new InventoryBuffer(8, 8 * 64);
 
-        provider = new BaseItemProvider(this, ProviderType.PASSIVE_PROVIDER, wrappedInventory,
+        provider = new BaseItemProvider(this, getProviderType(), wrappedInventory,
                 () -> getCable().getGridObject().getStackNetwork(), buffer);
 
         getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
@@ -53,6 +53,11 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
         whitelistProperty = new BaseProperty<>(true, "whitelistProperty");
         filters = new ItemStack[9];
         Arrays.fill(filters, ItemStack.EMPTY);
+    }
+
+    protected ProviderType getProviderType()
+    {
+        return ProviderType.PASSIVE_PROVIDER;
     }
 
     @Override

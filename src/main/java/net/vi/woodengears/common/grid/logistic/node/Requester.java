@@ -8,8 +8,6 @@ public interface Requester<T> extends LogisticNode<T>
 {
     int insert(T value);
 
-    boolean isBufferFull();
-
     void addRequest(T value);
 
     RequesterMode getMode();

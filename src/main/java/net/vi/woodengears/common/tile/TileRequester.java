@@ -44,7 +44,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
         buffer = new InventoryBuffer(8, 8 * 64);
         wrappedInventory = new WrappedInventory();
 
-        requester = new BaseItemRequester(this, () -> getCable().getGridObject().getStackNetwork(), buffer);
+        requester = new BaseItemRequester(this, wrappedInventory, () -> getCable().getGridObject().getStackNetwork());
         requester.setMode(RequesterMode.KEEP);
 
         getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));

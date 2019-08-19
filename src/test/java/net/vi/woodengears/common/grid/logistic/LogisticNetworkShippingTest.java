@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static net.minecraft.init.Items.APPLE;
 import static net.minecraft.init.Items.POTATO;
+import static net.minecraft.item.ItemStack.EMPTY;
 import static net.vi.woodengears.common.grid.logistic.OrderState.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,7 +29,9 @@ public class LogisticNetworkShippingTest
         ItemStack apple2 = new ItemStack(APPLE, 2);
 
         BaseItemProvider provider1 = TestItemProvider.build().stacks(apple2).create();
-        BaseItemRequester requester = new TestItemRequester();
+        BaseItemRequester requester = TestItemRequester.build()
+                .stacks(EMPTY)
+                .create();
 
         grid.addProvider(provider1);
 
@@ -54,7 +57,9 @@ public class LogisticNetworkShippingTest
         BaseItemProvider provider1 = TestItemProvider.build().stacks(apple2).create();
         BaseItemProvider provider2 = TestItemProvider.build().stacks(apple4).create();
 
-        BaseItemRequester requester = new TestItemRequester();
+        BaseItemRequester requester = TestItemRequester.build()
+                .stacks(EMPTY)
+                .create();
 
         grid.addProvider(provider1);
         grid.addProvider(provider2);
@@ -84,7 +89,9 @@ public class LogisticNetworkShippingTest
         BaseItemProvider provider1 = TestItemProvider.build().stacks(apple2, potato2).create();
         BaseItemProvider provider2 = TestItemProvider.build().stacks(apple4).create();
 
-        BaseItemRequester requester = new TestItemRequester();
+        BaseItemRequester requester = TestItemRequester.build()
+                .stacks(EMPTY)
+                .create();
 
         grid.addProvider(provider1);
         grid.addProvider(provider2);
@@ -108,7 +115,9 @@ public class LogisticNetworkShippingTest
         BaseItemProvider provider = TestItemProvider.build().stacks(apple4).buffer(1, 1).create();
         grid.addProvider(provider);
 
-        BaseItemRequester requester = new TestItemRequester();
+        BaseItemRequester requester = TestItemRequester.build()
+                .stacks(EMPTY)
+                .create();
         LogisticOrder<ItemStack> order = grid.makeOrder(requester, new ItemStack(APPLE));
         grid.tick();
 

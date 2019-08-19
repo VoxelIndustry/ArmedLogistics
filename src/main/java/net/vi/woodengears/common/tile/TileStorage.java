@@ -1,12 +1,13 @@
 package net.vi.woodengears.common.tile;
 
-import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.items.IItemHandler;
+import net.vi.woodengears.common.grid.logistic.ProviderType;
+import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
+import net.vi.woodengears.common.grid.logistic.node.BaseItemStorage;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
@@ -15,7 +16,7 @@ import net.voxelindustry.steamlayer.tile.ITileInfoList;
 public class TileStorage extends TileLogicisticNode
 {
     @Getter
-    private BaseProperty<IItemHandler> cachedInventoryProperty;
+    private BaseItemProvider provider;
 
     private WrappedInventory wrappedInventory;
     private InventoryBuffer  buffer;
@@ -24,12 +25,13 @@ public class TileStorage extends TileLogicisticNode
     {
         super("storage");
 
-        this.cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
+        buffer = new InventoryBuffer(8, 8 * 64);
+        wrappedInventory = new WrappedInventory();
 
-        this.buffer = new InventoryBuffer(8, 8 * 64);
-        this.wrappedInventory = new WrappedInventory();
+        provider = new BaseItemStorage(this, ProviderType.STORAGE, wrappedInventory,
+                () -> getCable().getGridObject().getStackNetwork(), buffer);
 
-        this.getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
+        getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
     }
 
     @Override
@@ -37,10 +39,10 @@ public class TileStorage extends TileLogicisticNode
     {
         super.addInfo(list);
 
-        if (!this.buffer.isEmpty())
+        if (!buffer.isEmpty())
         {
             list.addText("Buffer:");
-            this.buffer.getStacks().forEach(stack ->
+            buffer.getStacks().forEach(stack ->
             {
                 if (!stack.isEmpty())
                     list.addItem(stack);
@@ -51,11 +53,10 @@ public class TileStorage extends TileLogicisticNode
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
-        super.writeToNBT(tag);
+        buffer.writeNBT(tag);
 
-        this.buffer.writeNBT(tag);
-
-        return tag;
+        provider.toNBT(tag);
+        return super.writeToNBT(tag);
     }
 
     @Override
@@ -63,7 +64,8 @@ public class TileStorage extends TileLogicisticNode
     {
         super.readFromNBT(tag);
 
-        this.buffer.readNBT(tag);
+        buffer.readNBT(tag);
+        provider.fromNBT(tag);
     }
 
     @Override
@@ -73,13 +75,13 @@ public class TileStorage extends TileLogicisticNode
                 .player(player).inventory(8, 103).hotbar(8, 161)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
-                .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
+                .syncInventory(this::getConnectedInventory, getCachedInventoryProperty()::setValue, 10)
                 .create();
     }
 
     public void dropBuffer()
     {
-        for (ItemStack stack : this.buffer.getStacks())
+        for (ItemStack stack : buffer.getStacks())
             InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), stack);
     }
 }
