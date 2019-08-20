@@ -13,6 +13,7 @@ import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.vi.woodengears.common.tile.TileRequester;
+import net.vi.woodengears.common.tile.TileStorage;
 import net.voxelindustry.steamlayer.grid.CableGrid;
 import net.voxelindustry.steamlayer.grid.ITileNode;
 import org.apache.commons.lang3.tuple.Pair;
@@ -35,6 +36,7 @@ public class RailGrid extends CableGrid
 
     private Map<ITileRail, TileArmReservoir> reservoirMap;
     private Map<ITileRail, TileProvider>     providerMap;
+    private Map<ITileRail, TileStorage>      storageMap;
     private Map<ITileRail, TileRequester>    requesterMap;
 
     @Getter
@@ -48,6 +50,7 @@ public class RailGrid extends CableGrid
 
         reservoirMap = new HashMap<>();
         providerMap = new HashMap<>();
+        storageMap = new HashMap<>();
         requesterMap = new HashMap<>();
 
         shipped = new ArrayList<>();
@@ -64,7 +67,7 @@ public class RailGrid extends CableGrid
     {
         super.tick();
 
-        if (providerMap.isEmpty() || reservoirMap.isEmpty() || requesterMap.isEmpty())
+        if (providerMap.isEmpty() || reservoirMap.isEmpty() || (storageMap.isEmpty() && requesterMap.isEmpty()))
             return;
 
         stackNetwork.tick();
@@ -113,6 +116,7 @@ public class RailGrid extends CableGrid
         super.onMerge(grid);
 
         ((RailGrid) grid).providerMap.forEach(this::addProvider);
+        ((RailGrid) grid).storageMap.forEach(this::addStorage);
         ((RailGrid) grid).requesterMap.forEach(this::addRequester);
         ((RailGrid) grid).reservoirMap.forEach(this::addReservoir);
     }
@@ -126,6 +130,11 @@ public class RailGrid extends CableGrid
         {
             if (hasCable(rail))
                 addProvider(rail, provider);
+        });
+        ((RailGrid) grid).storageMap.forEach((rail, storage) ->
+        {
+            if (hasCable(rail))
+                addStorage(rail, storage);
         });
         ((RailGrid) grid).requesterMap.forEach((rail, requester) ->
         {
@@ -179,6 +188,22 @@ public class RailGrid extends CableGrid
         requesterMap.remove(rail);
     }
 
+    public void addStorage(ITileRail pipe, TileStorage handler)
+    {
+        if (storageMap.containsKey(pipe))
+            return;
+        storageMap.put(pipe, handler);
+        stackNetwork.addProvider(handler.getProvider());
+    }
+
+    public void removeStorage(ITileRail pipe)
+    {
+        TileStorage removed = storageMap.remove(pipe);
+
+        if (removed != null)
+            stackNetwork.removeProvider(removed.getProvider());
+    }
+
     @Override
     public boolean removeCable(ITileNode cable)
     {
@@ -187,6 +212,7 @@ public class RailGrid extends CableGrid
             removeReservoir((ITileRail) cable);
             removeProvider((ITileRail) cable);
             removeRequester((ITileRail) cable);
+            removeStorage((ITileRail) cable);
             return true;
         }
         return false;

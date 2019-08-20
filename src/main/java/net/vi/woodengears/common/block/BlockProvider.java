@@ -14,6 +14,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.gui.GuiType;
+import net.vi.woodengears.common.tile.TileActiveProvider;
 import net.vi.woodengears.common.tile.TileProvider;
 
 public class BlockProvider extends BlockTileBase<TileProvider>
@@ -21,10 +22,14 @@ public class BlockProvider extends BlockTileBase<TileProvider>
     public static final PropertyDirection FACING = PropertyDirection.create("facing",
             facing -> facing != EnumFacing.UP);
 
+    private boolean isActive;
+
     public BlockProvider(boolean isActive)
     {
         super("provider_" + (isActive ? "active" : "passive"), Material.PISTON, TileProvider.class);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+        setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+
+        this.isActive = isActive;
     }
 
     @Override
@@ -32,29 +37,32 @@ public class BlockProvider extends BlockTileBase<TileProvider>
     {
         super.onNeighborChange(world, pos, neighbor);
 
-        this.getWorldTile(world, pos).checkInventory();
+        getWorldTile(world, pos).checkInventory();
     }
 
     @Override
     public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY,
                                             float hitZ, int meta, EntityLivingBase placer)
     {
-        return this.getDefaultState().withProperty(FACING, facing.getOpposite());
+        return getDefaultState().withProperty(FACING, facing.getOpposite());
     }
 
+    @Override
     protected BlockStateContainer createBlockState()
     {
         return new BlockStateContainer(this, FACING);
     }
 
+    @Override
     public IBlockState getStateFromMeta(int meta)
     {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & 7));
+        return getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & 7));
     }
 
     /**
      * Convert the BlockState into the correct metadata value
      */
+    @Override
     public int getMetaFromState(IBlockState state)
     {
         int i = 0;
@@ -66,6 +74,8 @@ public class BlockProvider extends BlockTileBase<TileProvider>
     @Override
     public TileEntity createNewTileEntity(World w, int meta)
     {
+        if (isActive)
+            return new TileActiveProvider();
         return new TileProvider();
     }
 

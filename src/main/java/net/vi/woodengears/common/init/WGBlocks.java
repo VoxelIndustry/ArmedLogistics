@@ -9,8 +9,17 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.vi.woodengears.WoodenGears;
-import net.vi.woodengears.common.block.*;
-import net.vi.woodengears.common.tile.*;
+import net.vi.woodengears.common.block.BlockArmReservoir;
+import net.vi.woodengears.common.block.BlockCable;
+import net.vi.woodengears.common.block.BlockProvider;
+import net.vi.woodengears.common.block.BlockRequester;
+import net.vi.woodengears.common.block.BlockStorage;
+import net.vi.woodengears.common.tile.TileActiveProvider;
+import net.vi.woodengears.common.tile.TileArmReservoir;
+import net.vi.woodengears.common.tile.TileCable;
+import net.vi.woodengears.common.tile.TileProvider;
+import net.vi.woodengears.common.tile.TileRequester;
+import net.vi.woodengears.common.tile.TileStorage;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -43,6 +52,7 @@ public class WGBlocks
         registerTile(TileArmReservoir.class, "armreservoir");
         registerTile(TileCable.class, "cable");
         registerTile(TileProvider.class, "provider");
+        registerTile(TileActiveProvider.class, "activeprovider");
         registerTile(TileRequester.class, "requester");
         registerTile(TileStorage.class, "storage");
     }
