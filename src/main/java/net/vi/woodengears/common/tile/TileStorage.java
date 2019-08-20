@@ -6,7 +6,6 @@ import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
-import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
 import net.vi.woodengears.common.grid.logistic.node.BaseItemStorage;
 import net.vi.woodengears.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
@@ -16,7 +15,7 @@ import net.voxelindustry.steamlayer.tile.ITileInfoList;
 public class TileStorage extends TileLogicisticNode
 {
     @Getter
-    private BaseItemProvider provider;
+    private BaseItemStorage provider;
 
     private WrappedInventory wrappedInventory;
     private InventoryBuffer  buffer;

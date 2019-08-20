@@ -17,6 +17,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.vi.woodengears.common.block.BlockProvider;
 import net.vi.woodengears.common.block.BlockRequester;
+import net.vi.woodengears.common.block.BlockStorage;
 import net.vi.woodengears.common.grid.Path;
 import net.vi.woodengears.common.grid.logistic.LogisticShipment;
 import net.vi.woodengears.common.serializer.LogisticShipmentSerializer;
@@ -24,9 +25,11 @@ import net.vi.woodengears.common.serializer.Vec3dListSerializer;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.vi.woodengears.common.tile.TileRequester;
+import net.vi.woodengears.common.tile.TileStorage;
 
 import java.util.List;
 
+import static net.minecraft.item.ItemStack.EMPTY;
 import static net.vi.woodengears.common.entity.LogisticArmBlockCause.NONE;
 import static net.vi.woodengears.common.entity.LogisticArmState.*;
 
@@ -55,7 +58,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     private int         dropIndex   = 0;
 
     @Getter
-    private ItemStack stack = ItemStack.EMPTY;
+    private ItemStack stack = EMPTY;
 
     public EntityLogisticArm(World worldIn)
     {
@@ -131,51 +134,56 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
                 }
             }
             else if (armState == MOVING_TO_PROVIDER)
-                armState = PICKING_FROM_PROVIDER;
-            else if (armState == MOVING_TO_REQUESTER)
-                armState = GIVING_TO_REQUESTER;
+                armState = PICKING;
+            else if (armState == MOVING_TO_DESTINATION)
+                armState = GIVING;
             else if (index == steps.size())
                 completeShipment();
         }
 
-        if (armState == PICKING_FROM_PROVIDER || armState == GIVING_TO_REQUESTER)
+        if (armState == PICKING || armState == GIVING)
         {
             if (pickupCount < 80)
                 pickupCount++;
             else
             {
                 pickupCount = 0;
-                armState = armState == PICKING_FROM_PROVIDER ? MOVING_TO_REQUESTER : MOVING_TO_RESERVOIR;
+                armState = armState == PICKING ? MOVING_TO_DESTINATION : MOVING_RESERVOIR;
             }
         }
 
-        if (pickupCount == 40)
+        if (pickupCount == 40 && !world.isRemote)
         {
-            if (isOverProvider() && armState == PICKING_FROM_PROVIDER)
+            if (isOverProvider() && armState == PICKING)
             {
-                if (!world.isRemote)
-                {
-                    TileEntity provider = world.getTileEntity(new BlockPos(this).down());
+                TileEntity provider = world.getTileEntity(new BlockPos(this).down());
 
-                    if (!(provider instanceof TileProvider))
-                        return;
+                if (!(provider instanceof TileProvider))
+                    return;
 
-                    setItemStack(((TileProvider) provider).getProvider().fromBuffer(shipment.getContent()));
-                }
+                setItemStack(((TileProvider) provider).getProvider().fromBuffer(shipment.getContent()));
             }
-            else if (isOverRequester() && armState == GIVING_TO_REQUESTER)
+            else if (isOverRequester() && armState == GIVING)
             {
-                if (!world.isRemote)
-                {
-                    TileEntity requester = world.getTileEntity(new BlockPos(this).down());
+                TileEntity requester = world.getTileEntity(new BlockPos(this).down());
 
-                    if (!(requester instanceof TileRequester))
-                        return;
+                if (!(requester instanceof TileRequester))
+                    return;
 
-                    ((TileRequester) requester).getRequester().insert(stack);
-                    ((TileRequester) requester).getRequester().deliverShipment(shipment);
-                    setItemStack(ItemStack.EMPTY);
-                }
+                ((TileRequester) requester).getRequester().insert(stack);
+                ((TileRequester) requester).getRequester().deliverShipment(shipment);
+                setItemStack(EMPTY);
+            }
+            else if (isOverStorage() && armState == GIVING)
+            {
+                TileEntity storage = world.getTileEntity(new BlockPos(this).down());
+
+                if (!(storage instanceof TileStorage))
+                    return;
+
+                ((TileStorage) storage).getProvider().insert(stack);
+                ((TileStorage) storage).getProvider().deliverShipment(shipment);
+                setItemStack(EMPTY);
             }
         }
     }
@@ -184,9 +192,9 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     {
         if (!armState.isMoving())
             return false;
-        if (armState.ordinal() < PICKING_FROM_PROVIDER.ordinal())
+        if (armState.ordinal() < PICKING.ordinal())
             return index < pickupIndex;
-        if (armState.ordinal() < GIVING_TO_REQUESTER.ordinal())
+        if (armState.ordinal() < GIVING.ordinal())
             return index < dropIndex;
         return index < steps.size();
     }
@@ -211,6 +219,12 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     {
         Block block = world.getBlockState(new BlockPos(this).down()).getBlock();
         return block instanceof BlockRequester;
+    }
+
+    public boolean isOverStorage()
+    {
+        Block block = world.getBlockState(new BlockPos(this).down()).getBlock();
+        return block instanceof BlockStorage;
     }
 
     public boolean isBottomBlockCable()
@@ -242,7 +256,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     protected void entityInit()
     {
         dataManager.register(DAMAGE, 0.0F);
-        dataManager.register(ITEM, ItemStack.EMPTY);
+        dataManager.register(ITEM, EMPTY);
         dataManager.register(PATH_INDEX, 1);
     }
 

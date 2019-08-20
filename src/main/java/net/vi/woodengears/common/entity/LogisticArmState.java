@@ -4,10 +4,10 @@ public enum LogisticArmState
 {
     BLOCKED,
     MOVING_TO_PROVIDER,
-    PICKING_FROM_PROVIDER,
-    MOVING_TO_REQUESTER,
-    GIVING_TO_REQUESTER,
-    MOVING_TO_RESERVOIR,
+    PICKING,
+    MOVING_TO_DESTINATION,
+    GIVING,
+    MOVING_RESERVOIR,
     COMPLETED;
 
     public boolean isBlocked()
@@ -22,6 +22,6 @@ public enum LogisticArmState
 
     public boolean isMoving()
     {
-        return this == MOVING_TO_PROVIDER || this == MOVING_TO_REQUESTER || this == MOVING_TO_RESERVOIR;
+        return this == MOVING_TO_PROVIDER || this == MOVING_TO_DESTINATION || this == MOVING_RESERVOIR;
     }
 }

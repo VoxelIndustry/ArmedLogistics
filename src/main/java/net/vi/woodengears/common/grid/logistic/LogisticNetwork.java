@@ -234,16 +234,15 @@ public class LogisticNetwork<T>
                 if (part == 0)
                     continue;
 
-                T inserted = storage.insert(functions.changeQuantity(removalOrder.getContent(), part));
+                T insertable = functions.changeQuantity(removalOrder.getContent(), part);
+                LogisticShipment<T> shipment = createShipment(insertable, removalOrder.getSource().getRailPos(),
+                        storage.getRailPos());
 
-                LogisticShipment<T> shipment = createShipment(inserted, provider.getRailPos(),
-                        removalOrder.getSource().getRailPos());
-
-                provider.addShipment(shipment);
+                storage.addShipment(shipment);
                 removalOrder.getSource().addShipment(shipment);
 
                 removalOrder.getShippedParts().add(shipment);
-                toInsert -= functions.getQuantity(inserted);
+                toInsert -= functions.getQuantity(insertable);
 
                 if (toInsert == 0)
                     break;
