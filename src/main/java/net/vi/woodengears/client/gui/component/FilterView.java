@@ -29,13 +29,13 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
     public FilterView(Supplier<Boolean> whitelistGetter, Consumer<Boolean> whitelistSetter,
                       ItemStack[] filterArray, BiConsumer<Integer, ItemStack> onFilterChange)
     {
-        this.setSize(164, 38);
-        this.setID("filterview");
+        setSize(164, 38);
+        setID("filterview");
 
-        this.filtersPanel = new GuiAbsolutePane();
+        filtersPanel = new GuiAbsolutePane();
         filtersPanel.setSize(164, 20);
         filtersPanel.setID("filters-panel");
-        this.addChild(filtersPanel, 0, 9);
+        addChild(filtersPanel, 0, 9);
 
         GuiLabel filterLabel = new GuiLabel(I18n.format(WoodenGears.MODID + ".gui.filter.title"));
         filterLabel.setExpandToText(true);
@@ -43,21 +43,23 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
         filterLabel.setTextAlignment(RectAlignment.LEFT_CENTER);
         filterLabel.setTextPadding(RectBox.build().left(2).right(2).top(1).create());
         filterLabel.setID("filter-label");
-        this.addChild(filterLabel, 1, 1);
+        addChild(filterLabel, 1, 1);
 
-        this.switchButton = new GuiButton();
+        switchButton = new GuiButton();
+        switchButton.setExpandToLabel(false);
         switchButton.setSize(148, 10);
         switchButton.setID("filter-switch-button");
         switchButton.getLabel().setTextPadding(RectBox.build().top(1).create());
         switchButton.setOnActionEvent(e -> whitelistSetter.accept(!whitelistGetter.get()));
-        this.addChild(switchButton, 7, 28);
 
-        this.refreshWhitelist(whitelistGetter.get());
+        addChild(switchButton, 7, 28);
 
-        this.filters = new ItemStackView[9];
+        refreshWhitelist(whitelistGetter.get());
+
+        filters = new ItemStackView[9];
         for (int i = 0; i < 9; i++)
         {
-            final int finalIndex = i;
+            int finalIndex = i;
 
             MutableItemStackView view = new MutableItemStackView(filterArray[i].copy(), false, this);
             view.setSize(18, 18);
@@ -67,23 +69,23 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
             filtersPanel.addChild(view, i * 18 + 1, 1);
         }
 
-        this.setFocusable(true);
-        this.getEventDispatcher().addHandler(HoverEvent.TYPE, this::onHover);
-        this.getEventDispatcher().addHandler(KeyEvent.PRESS, this::onKeyPressed);
-        this.getEventDispatcher().addHandler(KeyEvent.RELEASE, this::onKeyReleased);
+        setFocusable(true);
+        getEventDispatcher().addHandler(HoverEvent.TYPE, this::onHover);
+        getEventDispatcher().addHandler(KeyEvent.PRESS, this::onKeyPressed);
+        getEventDispatcher().addHandler(KeyEvent.RELEASE, this::onKeyReleased);
     }
 
     public void setFilterStack(int index, ItemStack stack)
     {
-        this.filters[index].setItemStack(stack);
+        filters[index].setItemStack(stack);
     }
 
     private void onKeyPressed(KeyEvent.Press event)
     {
         if (BrokkGuiPlatform.getInstance().getKeyboardUtil().isCtrlKeyDown() &&
-                !this.getStyleClass().contains("copypasting"))
+                !getStyleClass().contains("copypasting"))
         {
-            this.addStyleClass("copypasting");
+            addStyleClass("copypasting");
 
             if (selected != null)
                 selected.addStyleClass("selected");
@@ -93,9 +95,9 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
     private void onKeyReleased(KeyEvent.Release event)
     {
         if (!BrokkGuiPlatform.getInstance().getKeyboardUtil().isCtrlKeyDown() &&
-                this.getStyleClass().contains("copypasting"))
+                getStyleClass().contains("copypasting"))
         {
-            this.removeStyleClass("copypasting");
+            removeStyleClass("copypasting");
 
             if (selected != null)
                 selected.removeStyleClass("selected");
@@ -109,14 +111,14 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
 
         if (event.isEntering())
         {
-            this.addStyleClass("copypasting");
+            addStyleClass("copypasting");
 
             if (selected != null)
                 selected.addStyleClass("selected");
         }
-        else if (this.getStyleClass().contains("copypasting"))
+        else if (getStyleClass().contains("copypasting"))
         {
-            this.removeStyleClass("copypasting");
+            removeStyleClass("copypasting");
             if (selected != null)
                 selected.removeStyleClass("selected");
         }
@@ -126,17 +128,17 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
     {
         if (whitelist)
         {
-            this.addStyleClass("whitelist");
-            this.removeStyleClass("blacklist");
+            addStyleClass("whitelist");
+            removeStyleClass("blacklist");
 
-            this.switchButton.setText(I18n.format(WoodenGears.MODID + ".gui.filter.whitelist"));
+            switchButton.setText(I18n.format(WoodenGears.MODID + ".gui.filter.whitelist"));
         }
         else
         {
-            this.addStyleClass("blacklist");
-            this.removeStyleClass("whitelist");
+            addStyleClass("blacklist");
+            removeStyleClass("whitelist");
 
-            this.switchButton.setText(I18n.format(WoodenGears.MODID + ".gui.filter.blacklist"));
+            switchButton.setText(I18n.format(WoodenGears.MODID + ".gui.filter.blacklist"));
         }
     }
 
@@ -144,7 +146,7 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
     public void setClipboard(MutableItemStackView value)
     {
         if (value != null)
-            this.addStyleClass("copypasting");
+            addStyleClass("copypasting");
 
         if (value == selected)
             return;
@@ -167,7 +169,7 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
 
     private void showCopiedPopup(MutableItemStackView node)
     {
-        PopupHandler.getInstance(this.getWindow()).addPopup(new MiniStatePopup(node,
+        PopupHandler.getInstance(getWindow()).addPopup(new MiniStatePopup(node,
                 I18n.format("woodengears.gui.copy")));
     }
 }
