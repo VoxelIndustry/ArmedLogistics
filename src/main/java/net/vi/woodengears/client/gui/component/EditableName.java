@@ -24,41 +24,41 @@ public class EditableName extends GuiAbsolutePane
     {
         this.nameSetter = nameSetter;
 
-        this.setWidthRatio(1);
-        this.setHeight(9);
+        setHeight(9);
 
-        this.nameLabel = new GuiLabel(nameGetter.get());
+        nameLabel = new GuiLabel(nameGetter.get());
         nameLabel.setExpandToText(true);
-        this.addChild(nameLabel, 0, 0);
+        addChild(nameLabel, 0, 0);
 
-        this.editButton = new GuiButton();
+        editButton = new GuiButton();
         editButton.setID("edit-button");
         editButton.setSize(9, 9);
-        this.addChild(editButton);
+        editButton.setzLevel(10);
+        addChild(editButton);
         RelativeBindingHelper.bindToPos(editButton, nameLabel, nameLabel.getWidthProperty(), null);
 
-        this.nameField = new GuiTextfield();
+        nameField = new GuiTextfield();
         nameField.setID("edit-field");
         nameField.setVisible(false);
         nameField.setHeight(9);
         nameField.setTextPadding(RectBox.EMPTY);
-        this.addChild(nameField, 0, 0);
+        addChild(nameField, 0, 0);
 
         editButton.setOnActionEvent(e ->
         {
             if (nameLabel.isVisible())
-                this.startEditing();
+                startEditing();
             else
-                this.stopEditing();
+                stopEditing();
         });
 
-        this.nameField.getEventDispatcher().addHandler(KeyEvent.PRESS, e ->
+        nameField.getEventDispatcher().addHandler(KeyEvent.PRESS, e ->
         {
             if (nameLabel.isVisible())
                 return;
             if (e.getKey() != Keyboard.KEY_RETURN && e.getKey() != Keyboard.KEY_NUMPADENTER)
                 return;
-            this.stopEditing();
+            stopEditing();
         });
     }
 

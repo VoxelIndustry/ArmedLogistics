@@ -1,0 +1,15 @@
+.tab:active:first-child {
+    background-texture: url("woodengears:textures/gui/tab/tab_begin.png");
+}
+
+.tab:active {
+    background-texture: url("woodengears:textures/gui/tab/tab_middle.png");
+}
+
+.tab:first-child {
+    background-texture: url("woodengears:textures/gui/tab/tab_begin_inactive.png");
+}
+
+.tab {
+    background-texture: url("woodengears:textures/gui/tab/tab_inactive.png");
+}

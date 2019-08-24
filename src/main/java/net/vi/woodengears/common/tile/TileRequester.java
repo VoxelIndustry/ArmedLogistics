@@ -112,7 +112,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     public BuiltContainer createContainer(EntityPlayer player)
     {
         return new ContainerBuilder("requester", player)
-                .player(player).inventory(8, 129).hotbar(8, 187)
+                .player(player).inventory(8, 161).hotbar(8, 219)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)

@@ -30,29 +30,36 @@ public class BlockStorage extends BlockTileBase<TileStorage>
     {
         super.onNeighborChange(world, pos, neighbor);
 
-        this.getWorldTile(world, pos).checkInventory();
+        getWorldTile(world, pos).checkInventory();
     }
 
     @Override
     public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY,
                                             float hitZ, int meta, EntityLivingBase placer)
     {
-        return this.getDefaultState().withProperty(FACING, facing.getOpposite());
+        EnumFacing placingFacing = facing.getOpposite();
+
+        if (placingFacing == EnumFacing.UP)
+            placingFacing = EnumFacing.DOWN;
+        return getDefaultState().withProperty(FACING, placingFacing);
     }
 
+    @Override
     protected BlockStateContainer createBlockState()
     {
         return new BlockStateContainer(this, FACING);
     }
 
+    @Override
     public IBlockState getStateFromMeta(int meta)
     {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & 7));
+        return getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & 7));
     }
 
     /**
      * Convert the BlockState into the correct metadata value
      */
+    @Override
     public int getMetaFromState(IBlockState state)
     {
         int i = 0;

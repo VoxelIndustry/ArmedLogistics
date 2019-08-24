@@ -26,70 +26,81 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
     {
         super(player, provider);
 
-        this.setWidth(176);
-        this.setHeight(216);
-
-        mainPanel.setBackgroundTexture(BACKGROUND);
+        setBodyDimension(176, 216, 0);
 
         inventoryView = new InventoryView(this, provider);
         inventoryView.getShowFiltered().setValue(provider.isShowFiltereds());
         inventoryView.getShowFiltered().addListener(this::onFilteredShownChange);
-        this.getContainer().addSyncCallback("filteredShown", this::onFilteredShownSync);
+        getContainer().addSyncCallback("filteredShown", this::onFilteredShownSync);
 
-        mainPanel.addChild(inventoryView, 6, 57);
+        body.addChild(inventoryView, 6, 57);
 
-        this.updateStatusStyle();
-        this.getListeners().attach(provider.getConnectedInventoryProperty(), obs -> updateStatusStyle());
+        updateStatusStyle();
+        getListeners().attach(provider.getConnectedInventoryProperty(), obs -> updateStatusStyle());
 
-        this.filterView = new FilterView(provider.getWhitelistProperty()::getValue, this::onWhitelistChange,
+        filterView = new FilterView(provider.getWhitelistProperty()::getValue, this::onWhitelistChange,
                 provider.getFilters(), this::onFilterChange);
-        this.getContainer().addSyncCallback("filters", this::onFilterSync);
+        getContainer().addSyncCallback("filters", this::onFilterSync);
 
-        mainPanel.addChild(filterView, 6, 17);
+        body.addChild(filterView, 6, 17);
 
-        this.getListeners().attach(provider.getWhitelistProperty(),
+        getListeners().attach(provider.getWhitelistProperty(),
                 (obs, oldValue, newValue) ->
                 {
                     filterView.refreshWhitelist(newValue);
 
                     if (!inventoryView.getShowFiltered().getValue())
-                        inventoryView.refreshStacks(this.getTile().getCachedInventoryProperty().getValue());
+                        inventoryView.refreshStacks(getTile().getCachedInventoryProperty().getValue());
                 });
 
-        this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/provider.css");
-        this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/inventoryview.css");
-        this.addStylesheet("/assets/" + WoodenGears.MODID + "/css/filterview.css");
+        addStylesheet("/assets/" + WoodenGears.MODID + "/css/provider.css");
+        addStylesheet("/assets/" + WoodenGears.MODID + "/css/inventoryview.css");
+        addStylesheet("/assets/" + WoodenGears.MODID + "/css/filterview.css");
+        addStylesheet("/assets/" + WoodenGears.MODID + "/css/tabheader.css");
+    }
+
+    @Override
+    protected Texture getBackgroundTexture()
+    {
+        return BACKGROUND;
+    }
+
+    @Override
+    protected void switchMainTab(boolean isVisible)
+    {
+        inventoryView.setVisible(isVisible);
+        filterView.setVisible(isVisible);
     }
 
     private void onFilteredShownSync(SyncedValue value)
     {
-        inventoryView.getShowFiltered().setValue(this.getTile().isShowFiltereds());
+        inventoryView.getShowFiltered().setValue(getTile().isShowFiltereds());
     }
 
     private void onFilteredShownChange(Observable obs)
     {
         if (getTile().isShowFiltereds() != inventoryView.getShowFiltered().getValue())
             new ServerActionBuilder("FILTERED_SHOW_CHANGE")
-                    .withBoolean("state", inventoryView.getShowFiltered().getValue()).toTile(this.getTile()).send();
+                    .withBoolean("state", inventoryView.getShowFiltered().getValue()).toTile(getTile()).send();
     }
 
     private void onFilterSync(SyncedValue value)
     {
-        for (int i = 0; i < this.getTile().getFilters().length; i++)
-            filterView.setFilterStack(i, this.getTile().getFilters()[i].copy());
+        for (int i = 0; i < getTile().getFilters().length; i++)
+            filterView.setFilterStack(i, getTile().getFilters()[i].copy());
 
         if (!inventoryView.getShowFiltered().getValue())
-            inventoryView.refreshStacks(this.getTile().getCachedInventoryProperty().getValue());
+            inventoryView.refreshStacks(getTile().getCachedInventoryProperty().getValue());
     }
 
     private void onWhitelistChange(boolean isWhitelist)
     {
-        new ServerActionBuilder("WHITELIST_SWITCH").withBoolean("whitelist", isWhitelist).toTile(this.getTile()).send();
+        new ServerActionBuilder("WHITELIST_SWITCH").withBoolean("whitelist", isWhitelist).toTile(getTile()).send();
     }
 
     private void onFilterChange(int index, ItemStack value)
     {
-        if (!ItemUtils.deepEquals(value, this.getTile().getFilters()[index]))
-            new ServerActionBuilder("FILTER_CHANGE").withInt("index", index).withItemStack("stack", value).toTile(this.getTile()).send();
+        if (!ItemUtils.deepEquals(value, getTile().getFilters()[index]))
+            new ServerActionBuilder("FILTER_CHANGE").withInt("index", index).withItemStack("stack", value).toTile(getTile()).send();
     }
 }

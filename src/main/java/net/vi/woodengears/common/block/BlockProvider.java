@@ -44,7 +44,11 @@ public class BlockProvider extends BlockTileBase<TileProvider>
     public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY,
                                             float hitZ, int meta, EntityLivingBase placer)
     {
-        return getDefaultState().withProperty(FACING, facing.getOpposite());
+        EnumFacing placingFacing = facing.getOpposite();
+
+        if (placingFacing == EnumFacing.UP)
+            placingFacing = EnumFacing.DOWN;
+        return getDefaultState().withProperty(FACING, placingFacing);
     }
 
     @Override

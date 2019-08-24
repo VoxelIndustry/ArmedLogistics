@@ -111,7 +111,7 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
     public BuiltContainer createContainer(EntityPlayer player)
     {
         return new ContainerBuilder("provider", player)
-                .player(player).inventory(8, 134).hotbar(8, 192)
+                .player(player).inventory(8, 166).hotbar(8, 224)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncBoolean(whitelistProperty::getValue, whitelistProperty::setValue)

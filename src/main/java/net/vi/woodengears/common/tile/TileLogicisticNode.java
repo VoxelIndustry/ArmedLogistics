@@ -2,6 +2,8 @@ package net.vi.woodengears.common.tile;
 
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -44,8 +46,8 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     {
         this.name = name;
 
-        this.connectedInventoryProperty = new BaseProperty<>(false, "connectedInventoryProperty");
-        this.cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
+        connectedInventoryProperty = new BaseProperty<>(false, "connectedInventoryProperty");
+        cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
     }
 
     @Override
@@ -53,31 +55,31 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     {
         super.addInfo(list);
 
-        if (this.cable != null)
+        if (cable != null)
             list.addText("Grid: " + cable.getGrid());
 
-        if (this.connectedInventoryProperty.getValue())
+        if (connectedInventoryProperty.getValue())
             list.addText("Inventory Connected");
     }
 
     @Override
     public void connectTrigger(EnumFacing facing, CableGrid grid)
     {
-        this.cable = (TileCable) this.world.getTileEntity(pos.offset(EnumFacing.UP, 2));
+        cable = (TileCable) world.getTileEntity(pos.offset(EnumFacing.UP, 2));
     }
 
     @Override
     public void disconnectTrigger(EnumFacing facing, CableGrid grid)
     {
-        this.cable = null;
+        cable = null;
     }
 
     @Override
     public void load()
     {
-        BlockPos railPos = this.getPos().offset(EnumFacing.UP, 2);
+        BlockPos railPos = getPos().offset(EnumFacing.UP, 2);
 
-        TileEntity rail = this.world.getTileEntity(railPos);
+        TileEntity rail = world.getTileEntity(railPos);
         if (rail instanceof TileCable && ((TileCable) rail).hasGrid())
             ((TileCable) rail).connectHandler(EnumFacing.DOWN, this, this);
 
@@ -86,32 +88,32 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
 
     public void disconnectGrid()
     {
-        if (this.cable != null)
+        if (cable != null)
             cable.disconnectHandler(EnumFacing.DOWN, this);
     }
 
     public void checkInventory()
     {
-        TileEntity tile = this.world.getTileEntity(this.pos.offset(this.getFacing()));
+        TileEntity tile = world.getTileEntity(pos.offset(getFacing()));
 
         if (tile != null && tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
-                this.getFacing().getOpposite()))
-            this.connectedInventoryProperty.setValue(true);
+                getFacing().getOpposite()))
+            connectedInventoryProperty.setValue(true);
         else
-            this.connectedInventoryProperty.setValue(false);
+            connectedInventoryProperty.setValue(false);
     }
 
     @Override
     public void onLoad()
     {
         super.onLoad();
-        if (!this.world.isRemote && cable == null)
+        if (!world.isRemote && cable == null)
             TileTickHandler.loadables.add(this);
     }
 
     public IItemHandler getConnectedInventory()
     {
-        TileEntity tile = this.world.getTileEntity(pos.offset(getFacing()));
+        TileEntity tile = world.getTileEntity(pos.offset(getFacing()));
 
         if (tile != null && tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
                 getFacing().getOpposite()))
@@ -124,25 +126,29 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     {
         super.readFromNBT(tag);
 
-        this.hasCustomName = tag.getBoolean("hasCustomName");
+        hasCustomName = tag.getBoolean("hasCustomName");
 
-        if (this.hasCustomName())
-            this.customName = tag.getString("customName");
+        if (hasCustomName())
+            customName = tag.getString("customName");
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
-        if (this.customName != null)
-            tag.setString("customName", this.customName);
-        tag.setBoolean("hasCustomName", this.hasCustomName);
+        if (customName != null)
+            tag.setString("customName", customName);
+        tag.setBoolean("hasCustomName", hasCustomName);
 
         return super.writeToNBT(tag);
     }
 
     public EnumFacing getFacing()
     {
-        return this.world.getBlockState(pos).getValue(BlockProvider.FACING);
+        IBlockState state = world.getBlockState(pos);
+
+        if (state.getBlock() == Blocks.AIR)
+            return EnumFacing.DOWN;
+        return state.getValue(BlockProvider.FACING);
     }
 
     public BlockPos getRailPos()
@@ -153,27 +159,27 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     @Override
     public String getName()
     {
-        if (this.hasCustomName())
-            return this.getCustomName();
-        return WoodenGears.MODID + ".gui." + this.name + ".name";
+        if (hasCustomName())
+            return getCustomName();
+        return WoodenGears.MODID + ".gui." + name + ".name";
     }
 
     public void setCustomName(String name)
     {
-        this.hasCustomName = true;
-        this.customName = name;
+        hasCustomName = true;
+        customName = name;
     }
 
     @Override
     public boolean hasCustomName()
     {
-        return this.hasCustomName;
+        return hasCustomName;
     }
 
     @Override
     public ITextComponent getDisplayName()
     {
-        return (this.hasCustomName() ? new TextComponentString(this.getName()) :
-                new TextComponentTranslation(this.getName()));
+        return (hasCustomName() ? new TextComponentString(getName()) :
+                new TextComponentTranslation(getName()));
     }
 }
