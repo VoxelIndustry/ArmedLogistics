@@ -10,10 +10,14 @@ import net.vi.woodengears.client.gui.component.RequestView;
 import net.vi.woodengears.client.gui.component.SOKCombo;
 import net.vi.woodengears.common.grid.logistic.node.RequesterMode;
 import net.vi.woodengears.common.tile.TileRequester;
+import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.paint.Texture;
 import net.voxelindustry.steamlayer.container.sync.SyncedValue;
 import net.voxelindustry.steamlayer.network.action.ServerActionBuilder;
 import net.voxelindustry.steamlayer.utils.ItemUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiRequester extends GuiLogisticNode<TileRequester>
 {
@@ -24,6 +28,9 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
 
     private final RequestView requestView;
     private final SOKCombo    sokCombo;
+    private final int         sokOffset;
+
+    private final List<GuiNode> elements = new ArrayList<>();
 
     public GuiRequester(EntityPlayer player, TileRequester requester)
     {
@@ -33,11 +40,8 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
         getContainer().addSyncCallback("mode", this::onModeSync);
         getMainPanel().addChild(sokCombo, 0, 4 + TAB_HEIGHT);
 
-        int offset = (int) sokCombo.getWidth() + 4;
-
-        setBodyDimension(176 + offset, 216, offset);
-
-        getContainer().inventorySlots.forEach(slot -> slot.xPos += offset / 2 + 1);
+        sokOffset = (int) sokCombo.getWidth() + 4;
+        getContainer().inventorySlots.forEach(slot -> slot.xPos += sokOffset / 2 + 1);
 
         inventoryView = new InventoryView(this, requester);
         body.addChild(inventoryView, 6, 52);
@@ -49,10 +53,21 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
         getContainer().addSyncCallback("requests", this::onRequestSync);
         body.addChild(requestView, 6, 20);
 
+        elements.add(inventoryView);
+        elements.add(requestView);
+        elements.add(sokCombo);
+
         addStylesheet("/assets/" + WoodenGears.MODID + "/css/inventoryview.css");
         addStylesheet("/assets/" + WoodenGears.MODID + "/css/requestview.css");
         addStylesheet("/assets/" + WoodenGears.MODID + "/css/sokcombo.css");
         addStylesheet("/assets/" + WoodenGears.MODID + "/css/tabheader.css");
+        addStylesheet("/assets/" + WoodenGears.MODID + "/css/facingtab.css");
+    }
+
+    @Override
+    public float getTabOffsetX()
+    {
+        return sokOffset;
     }
 
     @Override
@@ -62,11 +77,9 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
     }
 
     @Override
-    protected void switchMainTab(boolean isVisible)
+    protected int getSurvivalInventoryOffset()
     {
-        inventoryView.setVisible(isVisible);
-        requestView.setVisible(isVisible);
-        sokCombo.setVisible(isVisible);
+        return 88;
     }
 
     private void onModeChange(RequesterMode mode)
@@ -96,5 +109,11 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
             else
                 requestView.setRequestStack(i, getTile().getRequester().getRequests().get(i).copy());
         }
+    }
+
+    @Override
+    public List<GuiNode> getElements()
+    {
+        return elements;
     }
 }

@@ -9,6 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.vi.woodengears.client.gui.component.EditableName;
 import net.vi.woodengears.client.gui.component.InventoryView;
 import net.vi.woodengears.client.gui.tab.FacingTab;
+import net.vi.woodengears.client.gui.tab.IGuiTab;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
@@ -16,12 +17,17 @@ import net.voxelindustry.brokkgui.element.input.GuiToggleButton;
 import net.voxelindustry.brokkgui.element.input.GuiToggleGroup;
 import net.voxelindustry.brokkgui.paint.Texture;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
+import net.voxelindustry.brokkgui.shape.Rectangle;
 import net.voxelindustry.brokkgui.wrapper.container.BrokkGuiContainer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 
-public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends BrokkGuiContainer<BuiltContainer>
+public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends BrokkGuiContainer<BuiltContainer> implements IGuiTab
 {
-    public static final float TAB_HEIGHT = 32;
+    public static final float TAB_HEIGHT  = 32;
+    public static final float GUI_WIDTH   = 176;
+    public static final float GUI_HEIGHT  = 216;
+    public static final int   FONT_HEIGHT = Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT;
+
 
     @Getter
     private final T tile;
@@ -30,9 +36,11 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
     protected GuiAbsolutePane body;
     private   GuiAbsolutePane mainPanel;
 
-    private final GuiAbsolutePane[] tabs = new GuiAbsolutePane[]{new FacingTab()};
+    private final Rectangle survivalInventory;
 
-    private GuiNode lastPane = null;
+    private final IGuiTab[] tabs = new IGuiTab[]{new FacingTab(this)};
+
+    private IGuiTab lastTab = null;
 
     protected EditableName title;
 
@@ -54,20 +62,42 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
         title = new EditableName(tile.getDisplayName()::getFormattedText, tile::setCustomName);
         title.getWidthProperty().bind(BaseExpression.transform(body.getWidthProperty(), parentWidth -> parentWidth - 6 - 3));
         body.addChild(title, 6, 6);
+
+        survivalInventory = new Rectangle();
+        survivalInventory.setSize(162, 76);
+        survivalInventory.setID("survival-inventory");
+
+        body.addChild(survivalInventory, 7, 0);
+    }
+
+    @Override
+    public void initGui()
+    {
+        super.initGui();
+
+        if (lastTab == null)
+            refreshOffset(getTabOffsetX());
     }
 
     protected abstract Texture getBackgroundTexture();
 
-    protected abstract void switchMainTab(boolean isVisible);
+    protected abstract int getSurvivalInventoryOffset();
 
-    protected void setBodyDimension(float width, float height, float xOffset)
+    private void refreshSize(float width, float height, float xOffset)
     {
         body.setSize(width - xOffset, height);
         setSize(width, height + TAB_HEIGHT);
 
         mainPanel.setChildPos(tabHeaders, xOffset, 0);
         body.setxTranslate(xOffset);
-        setxOffset(-xOffset / 2);
+        setxOffset((int) -xOffset / 2);
+
+        survivalInventory.setyTranslate(height - getSurvivalInventoryOffset());
+    }
+
+    private void refreshOffset(float xOffset)
+    {
+        refreshSize(GUI_WIDTH + xOffset, GUI_HEIGHT, xOffset);
     }
 
     @Override
@@ -94,9 +124,14 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
         {
             if (!e.isSelected())
                 return;
-            switchMainTab(true);
-            lastPane.setVisible(false);
-            lastPane = null;
+            getElements().forEach(node -> node.setVisible(true));
+            getContainer().showAllSlots();
+            survivalInventory.setVisible(true);
+            lastTab.getElements().forEach(node -> node.setVisible(false));
+
+            if (lastTab.getTabOffsetX() != getTabOffsetX())
+                refreshOffset(getTabOffsetX());
+            lastTab = null;
         });
 
         for (int i = 0; i < tabs.length; i++)
@@ -112,19 +147,40 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
                 if (!e.isSelected())
                     return;
 
-                if (lastPane == null)
-                    switchMainTab(false);
+                IGuiTab newTab = tabs[finalIndex];
+
+                if (lastTab == null)
+                {
+                    getElements().forEach(node -> node.setVisible(false));
+
+                    getContainer().hideAllSlots();
+                    survivalInventory.setVisible(false);
+
+                    if (newTab.getTabOffsetX() != getTabOffsetX())
+                        refreshOffset(newTab.getTabOffsetX());
+                }
                 else
-                    lastPane.setVisible(false);
-                tabs[finalIndex].setVisible(true);
-                lastPane = tabs[finalIndex];
+                {
+                    lastTab.getElements().forEach(node -> node.setVisible(false));
+
+                    if (newTab.getTabOffsetX() != lastTab.getTabOffsetX())
+                        refreshOffset(newTab.getTabOffsetX());
+                }
+                newTab.getElements().forEach(node -> node.setVisible(true));
+
+                lastTab = newTab;
             });
 
             tabHeaders.addChild(tabButton, (i + 1) * 28, 4);
-            mainPanel.addChild(tabs[i], 0, 0);
-            RelativeBindingHelper.bindToPos(tabs[i], body);
-            RelativeBindingHelper.bindSizeRelative(tabs[i], body, 1, 1);
-            tabs[i].setVisible(false);
+
+            tabs[i].getElements().forEach(element ->
+            {
+                mainPanel.addChild(element, 0, 0);
+                RelativeBindingHelper.bindToPos(element, body);
+            });
+
+            RelativeBindingHelper.bindSizeRelative((GuiNode) tabs[i], body, 1, 1);
+            tabs[i].getElements().forEach(node -> node.setVisible(false));
         }
         tabHeaderGroup.setAllowNothing(false);
 

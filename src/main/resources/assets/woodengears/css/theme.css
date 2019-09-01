@@ -1,4 +1,4 @@
-label > text {
+text {
     shadow: false;
     color: #404040;
 }
@@ -17,5 +17,9 @@ label > text {
 
 #edit-field .text {
     color: #404040;
-    shadow-color: #8b8b8b;
+    shadow-color: #8B8B8B;
+}
+
+#survival-inventory {
+    background-texture: url("woodengears:textures/gui/survival_inventory.png");
 }

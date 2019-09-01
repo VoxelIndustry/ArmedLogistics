@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.common.grid.logistic.node.BaseItemRequester;
@@ -118,6 +119,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
                 .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
                 .syncList(getRequester()::getRequests, ItemStack.class, null, "requests")
                 .syncEnum(getRequester()::getMode, getRequester()::setMode, RequesterMode.class, "mode")
+                .syncEnumList(this::getAdjacentFacings, EnumFacing.class, null, "facings")
                 .create();
     }
 
@@ -184,5 +186,17 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
         }
         else if ("MODE_CHANGE".equals(actionID))
             getRequester().setMode(RequesterMode.values()[payload.getInteger("mode")]);
+        else if ("FACING_ADD".equals(actionID))
+        {
+            EnumFacing facing = EnumFacing.byIndex(payload.getInteger("facing"));
+            if (!getAdjacentFacings().contains(facing))
+                getAdjacentFacings().add(facing);
+            markDirty();
+        }
+        else if ("FACING_REMOVE".equals(actionID))
+        {
+            getAdjacentFacings().remove(EnumFacing.byIndex(payload.getInteger("facing")));
+            markDirty();
+        }
     }
 }

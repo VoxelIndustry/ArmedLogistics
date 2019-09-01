@@ -25,6 +25,9 @@ import net.voxelindustry.steamlayer.tile.ITileInfoList;
 import net.voxelindustry.steamlayer.tile.TileBase;
 import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class TileLogicisticNode extends TileBase implements IContainerProvider, ILoadable,
         IConnectionAware, IRailConnectable, IWorldNameable
 {
@@ -32,6 +35,9 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     private BaseProperty<Boolean>      connectedInventoryProperty;
     @Getter
     private BaseProperty<IItemHandler> cachedInventoryProperty;
+
+    @Getter
+    private List<EnumFacing> adjacentFacings;
 
     @Getter
     private TileCable cable;
@@ -48,6 +54,8 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
 
         connectedInventoryProperty = new BaseProperty<>(false, "connectedInventoryProperty");
         cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
+
+        adjacentFacings = new ArrayList<>();
     }
 
     @Override
@@ -130,6 +138,10 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
 
         if (hasCustomName())
             customName = tag.getString("customName");
+
+        int adjacentFacings = tag.getInteger("adjacentFacings");
+        for (int i = 0; i < adjacentFacings; i++)
+            getAdjacentFacings().add(EnumFacing.byIndex(tag.getInteger("adjacentFacing" + i)));
     }
 
     @Override
@@ -138,6 +150,10 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         if (customName != null)
             tag.setString("customName", customName);
         tag.setBoolean("hasCustomName", hasCustomName);
+
+        for (int i = 0; i < getAdjacentFacings().size(); i++)
+            tag.setInteger("adjacentFacing" + i, getAdjacentFacings().get(i).getIndex());
+        tag.setInteger("adjacentFacings", getAdjacentFacings().size());
 
         return super.writeToNBT(tag);
     }

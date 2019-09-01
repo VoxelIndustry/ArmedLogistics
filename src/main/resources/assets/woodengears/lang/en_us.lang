@@ -34,8 +34,25 @@ woodengears.gui.facing.west=at §lWest
 woodengears.gui.facing.up=§lAbove
 woodengears.gui.facing.down=§lBelow
 
+woodengears.gui.facinglist.north=North
+woodengears.gui.facinglist.south=South
+woodengears.gui.facinglist.east=East
+woodengears.gui.facinglist.west=West
+woodengears.gui.facinglist.up=Above
+woodengears.gui.facinglist.down=Below
+
+woodengears.gui.facinglist.relative.north=Front
+woodengears.gui.facinglist.relative.south=Back
+woodengears.gui.facinglist.relative.east=Left
+woodengears.gui.facinglist.relative.west=Right
+woodengears.gui.facinglist.relative.up=Above
+woodengears.gui.facinglist.relative.down=Below
+
 woodengears.gui.copy=Copied!
 woodengears.gui.paste=Pasted!
+
+woodengears.gui.slot.singular=Slot
+woodengears.gui.slot.plural=Slots
 
 # Blocks
 tile.woodengears.provider_active.name=Active Provider

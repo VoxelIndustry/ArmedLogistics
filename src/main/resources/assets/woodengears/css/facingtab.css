@@ -1,0 +1,51 @@
+.facing-slot {
+    background-texture: url("woodengears:textures/gui/tab-facing/facing_background.png");
+    border-color: black;
+    border-width: 1;
+}
+
+.facing-slot:hover {
+    background-texture: url("woodengears:textures/gui/tab-facing/facing_background_hover.png");
+}
+
+.facing-slot:active {
+    background-texture: url("woodengears:textures/gui/tab-facing/facing_background_selected.png");
+}
+
+
+.facing-slot:active:hover, .facing-slot.fakehover:active {
+    background-texture: url("woodengears:textures/gui/tab-facing/facing_background_selected_hover.png");
+}
+
+#facing-list {
+    background-color: #C6C6C6;
+    border-width: 4;
+    border-image-source: url("woodengears:textures/gui/background_generic.png");
+    border-image-slice: 40%;
+}
+
+.facing-line {
+    background-texture: url("woodengears:textures/gui/tab-facing/facing_line.png");
+    border-color: black;
+    border-width: 1;
+}
+
+.facing-line:hover, .facing-line.fakehover {
+    background-texture: url("woodengears:textures/gui/tab-facing/facing_line_hover.png");
+}
+
+.facing-line:first-child {
+    border-radius: 1 1 0 0;
+}
+
+.facing-line:last-child {
+    border-radius: 0 0 1 1;
+}
+
+.close-icon {
+    background-texture: url("woodengears:textures/gui/icon/close.png")
+}
+
+.close-icon:hover {
+    background-texture: url("woodengears:textures/gui/icon/close_hover.png")
+}

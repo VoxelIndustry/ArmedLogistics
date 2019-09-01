@@ -9,10 +9,14 @@ import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.client.gui.component.FilterView;
 import net.vi.woodengears.client.gui.component.InventoryView;
 import net.vi.woodengears.common.tile.TileProvider;
+import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.paint.Texture;
 import net.voxelindustry.steamlayer.container.sync.SyncedValue;
 import net.voxelindustry.steamlayer.network.action.ServerActionBuilder;
 import net.voxelindustry.steamlayer.utils.ItemUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiProvider extends GuiLogisticNode<TileProvider>
 {
@@ -22,11 +26,11 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
     private final InventoryView inventoryView;
     private final FilterView    filterView;
 
+    private final List<GuiNode> elements = new ArrayList<>();
+
     public GuiProvider(EntityPlayer player, TileProvider provider)
     {
         super(player, provider);
-
-        setBodyDimension(176, 216, 0);
 
         inventoryView = new InventoryView(this, provider);
         inventoryView.getShowFiltered().setValue(provider.isShowFiltereds());
@@ -53,10 +57,14 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
                         inventoryView.refreshStacks(getTile().getCachedInventoryProperty().getValue());
                 });
 
+        elements.add(inventoryView);
+        elements.add(filterView);
+
         addStylesheet("/assets/" + WoodenGears.MODID + "/css/provider.css");
         addStylesheet("/assets/" + WoodenGears.MODID + "/css/inventoryview.css");
         addStylesheet("/assets/" + WoodenGears.MODID + "/css/filterview.css");
         addStylesheet("/assets/" + WoodenGears.MODID + "/css/tabheader.css");
+        addStylesheet("/assets/" + WoodenGears.MODID + "/css/facingtab.css");
     }
 
     @Override
@@ -66,10 +74,15 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
     }
 
     @Override
-    protected void switchMainTab(boolean isVisible)
+    protected int getSurvivalInventoryOffset()
     {
-        inventoryView.setVisible(isVisible);
-        filterView.setVisible(isVisible);
+        return 83;
+    }
+
+    @Override
+    public List<GuiNode> getElements()
+    {
+        return elements;
     }
 
     private void onFilteredShownSync(SyncedValue value)

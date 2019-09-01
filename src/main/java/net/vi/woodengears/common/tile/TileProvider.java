@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
 import net.vi.woodengears.common.grid.logistic.ProviderType;
 import net.vi.woodengears.common.grid.logistic.node.BaseItemProvider;
 import net.vi.woodengears.common.grid.logistic.node.IItemFilter;
@@ -118,6 +119,7 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
                 .syncInventory(this::getConnectedInventory, getCachedInventoryProperty()::setValue, 10)
                 .syncArray(this::getFilters, ItemStack.class, null, "filters")
                 .syncBoolean(this::isShowFiltereds, this::setShowFiltereds, "filteredShown")
+                .syncEnumList(this::getAdjacentFacings, EnumFacing.class, null, "facings")
                 .create();
     }
 
@@ -145,6 +147,18 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
         else if ("FILTERED_SHOW_CHANGE".equals(actionID))
         {
             setShowFiltereds(payload.getBoolean("state"));
+            markDirty();
+        }
+        else if ("FACING_ADD".equals(actionID))
+        {
+            EnumFacing facing = EnumFacing.byIndex(payload.getInteger("facing"));
+            if (!getAdjacentFacings().contains(facing))
+                getAdjacentFacings().add(facing);
+            markDirty();
+        }
+        else if ("FACING_REMOVE".equals(actionID))
+        {
+            getAdjacentFacings().remove(EnumFacing.byIndex(payload.getInteger("facing")));
             markDirty();
         }
     }
