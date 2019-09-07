@@ -14,6 +14,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Integer.max;
 import static net.minecraft.util.EnumFacing.*;
 
 public class FacingTab extends GuiAbsolutePane implements IGuiTab
@@ -112,7 +113,7 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
             index++;
         }
 
-        facingList.setHeight(4 + facingList.getChildCount() * 12);
+        facingList.setHeight(max(48, 4 + facingList.getChildCount() * 12));
     }
 
     void removeFacing(EnumFacing facing)
