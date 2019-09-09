@@ -9,6 +9,7 @@ import net.vi.woodengears.client.gui.component.InventoryView;
 import net.vi.woodengears.client.gui.component.RequestView;
 import net.vi.woodengears.client.gui.component.SOKCombo;
 import net.vi.woodengears.common.grid.logistic.node.RequesterMode;
+import net.vi.woodengears.common.init.WGBlocks;
 import net.vi.woodengears.common.tile.TileRequester;
 import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.paint.Texture;
@@ -29,6 +30,8 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
     private final RequestView requestView;
     private final SOKCombo    sokCombo;
     private final int         sokOffset;
+
+    private ItemStack icon;
 
     private final List<GuiNode> elements = new ArrayList<>();
 
@@ -80,6 +83,14 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
     protected int getSurvivalInventoryOffset()
     {
         return 88;
+    }
+
+    @Override
+    public ItemStack getIcon()
+    {
+        if (icon == null)
+            icon = new ItemStack(WGBlocks.REQUESTER);
+        return icon;
     }
 
     private void onModeChange(RequesterMode mode)

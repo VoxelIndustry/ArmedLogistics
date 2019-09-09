@@ -1,6 +1,10 @@
 package net.vi.woodengears.client.gui.tab;
 
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.vi.woodengears.client.gui.GuiLogisticNode;
 import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
@@ -23,6 +27,10 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
 
     private GuiAbsolutePane facingList;
     private GuiLogisticNode gui;
+
+    private ItemStack icon = ItemStack.EMPTY;
+
+    private TabButton button;
 
     private EnumMap<EnumFacing, Pair<FacingSlot, FacingLine>> facingSlots = new EnumMap<>(EnumFacing.class);
 
@@ -77,6 +85,28 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
         }
 
         ((BuiltContainer) gui.getContainer()).addSyncCallback("facings", this::onFacingsSync);
+        gui.getListeners().attach(gui.getTile().getCachedInventoryProperty(), obs -> refreshIcon());
+    }
+
+    private void refreshIcon()
+    {
+        if (!gui.getTile().getConnectedInventoryProperty().getValue())
+            return;
+
+        BlockPos adjacentPos = gui.getTile().getPos().offset(gui.getTile().getFacing());
+        IBlockState state = Minecraft.getMinecraft().world.getBlockState(adjacentPos);
+        icon = state.getBlock().getItem(Minecraft.getMinecraft().world, adjacentPos, state);
+
+        if (button != null)
+            button.setIconStack(icon);
+    }
+
+    @Override
+    public void setButton(TabButton button)
+    {
+        this.button = button;
+
+        refreshIcon();
     }
 
     private void linkButtons(Pair<FacingSlot, FacingLine> buttons)
@@ -129,6 +159,12 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
     public List<GuiNode> getElements()
     {
         return elements;
+    }
+
+    @Override
+    public ItemStack getIcon()
+    {
+        return icon;
     }
 
     @Override

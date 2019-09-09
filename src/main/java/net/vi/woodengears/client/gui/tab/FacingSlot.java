@@ -23,7 +23,7 @@ public class FacingSlot extends GuiToggleButton
         addStyleClass("facing-slot");
 
         setText(name);
-        getLabel().setTextPadding(RectBox.build().top(2).create());
+        getLabel().setTextPadding(RectBox.build().top(3).create());
         getLabel().setTextAlignment(RectAlignment.MIDDLE_UP);
 
         setSize(52, 52);

@@ -8,6 +8,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.block.BlockArmReservoir;
 import net.vi.woodengears.common.block.BlockCable;
@@ -25,15 +26,27 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-@GameRegistry.ObjectHolder(WoodenGears.MODID)
+@ObjectHolder(WoodenGears.MODID)
 public class WGBlocks
 {
     public static Map<Block, ItemBlock> BLOCKS;
 
-    @GameRegistry.ObjectHolder("blockcable")
+    @ObjectHolder("blockcable")
     public static BlockCable CABLE;
 
-    @GameRegistry.ObjectHolder("armreservoir")
+    @ObjectHolder("provider_active")
+    public static BlockProvider PROVIDER;
+
+    @ObjectHolder("provider_passive")
+    public static BlockProvider ACTIVE_PROVIDER;
+
+    @ObjectHolder("requester")
+    public static BlockRequester REQUESTER;
+
+    @ObjectHolder("storage")
+    public static BlockStorage STORAGE;
+
+    @ObjectHolder("armreservoir")
     public static BlockArmReservoir ARM_RESERVOIR;
 
     public static void init()

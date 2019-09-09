@@ -8,6 +8,8 @@ import net.minecraft.item.ItemStack;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.client.gui.component.FilterView;
 import net.vi.woodengears.client.gui.component.InventoryView;
+import net.vi.woodengears.common.init.WGBlocks;
+import net.vi.woodengears.common.tile.TileActiveProvider;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.paint.Texture;
@@ -25,6 +27,8 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
     @Getter(AccessLevel.PROTECTED)
     private final InventoryView inventoryView;
     private final FilterView    filterView;
+
+    private ItemStack icon;
 
     private final List<GuiNode> elements = new ArrayList<>();
 
@@ -83,6 +87,19 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
     public List<GuiNode> getElements()
     {
         return elements;
+    }
+
+    @Override
+    public ItemStack getIcon()
+    {
+        if (icon == null)
+        {
+            if (getTile() instanceof TileActiveProvider)
+                icon = new ItemStack(WGBlocks.ACTIVE_PROVIDER);
+            else
+                icon = new ItemStack(WGBlocks.PROVIDER);
+        }
+        return icon;
     }
 
     private void onFilteredShownSync(SyncedValue value)

@@ -10,10 +10,10 @@ import net.vi.woodengears.client.gui.component.EditableName;
 import net.vi.woodengears.client.gui.component.InventoryView;
 import net.vi.woodengears.client.gui.tab.FacingTab;
 import net.vi.woodengears.client.gui.tab.IGuiTab;
+import net.vi.woodengears.client.gui.tab.TabButton;
 import net.vi.woodengears.common.tile.TileLogicisticNode;
 import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
-import net.voxelindustry.brokkgui.element.input.GuiToggleButton;
 import net.voxelindustry.brokkgui.element.input.GuiToggleGroup;
 import net.voxelindustry.brokkgui.paint.Texture;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
@@ -38,7 +38,7 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
 
     private final Rectangle survivalInventory;
 
-    private final IGuiTab[] tabs = new IGuiTab[]{new FacingTab(this)};
+    private final IGuiTab[] tabs;
 
     private IGuiTab lastTab = null;
 
@@ -57,6 +57,7 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
         body.setBackgroundTexture(getBackgroundTexture());
         mainPanel.addChild(body, 0, TAB_HEIGHT);
 
+        tabs = new IGuiTab[]{new FacingTab(this)};
         setupTabs();
 
         title = new EditableName(tile.getDisplayName()::getFormattedText, tile::setCustomName);
@@ -113,9 +114,7 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
 
         GuiToggleGroup tabHeaderGroup = new GuiToggleGroup();
 
-        GuiToggleButton mainTabButton = new GuiToggleButton();
-        mainTabButton.addStyleClass("tab");
-        mainTabButton.setSize(28, 32);
+        TabButton mainTabButton = new TabButton(getIcon());
         mainTabButton.setToggleGroup(tabHeaderGroup);
         tabHeaderGroup.setSelectedButton(mainTabButton);
         tabHeaders.addChild(mainTabButton, 0, 4);
@@ -136,10 +135,9 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
 
         for (int i = 0; i < tabs.length; i++)
         {
-            GuiToggleButton tabButton = new GuiToggleButton();
-            tabButton.addStyleClass("tab");
-            tabButton.setSize(28, 32);
+            TabButton tabButton = new TabButton(tabs[i].getIcon());
             tabButton.setToggleGroup(tabHeaderGroup);
+            tabs[i].setButton(tabButton);
 
             int finalIndex = i;
             tabButton.setOnSelectEvent(e ->
