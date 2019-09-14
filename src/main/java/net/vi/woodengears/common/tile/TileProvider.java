@@ -1,6 +1,7 @@
 package net.vi.woodengears.common.tile;
 
 import fr.ourten.teabeans.value.BaseProperty;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.entity.player.EntityPlayer;
@@ -26,8 +27,8 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
     @Getter
     private BaseItemProvider provider;
 
-    private WrappedInventory wrappedInventory;
-    private InventoryBuffer  buffer;
+    @Getter(AccessLevel.PROTECTED)
+    private InventoryBuffer buffer;
 
     @Getter
     private BaseProperty<Boolean> whitelistProperty;
@@ -43,17 +44,19 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
     {
         super("provider");
 
-        wrappedInventory = new WrappedInventory();
         buffer = new InventoryBuffer(8, 8 * 64);
 
-        provider = new BaseItemProvider(this, getProviderType(), wrappedInventory,
-                () -> getCable().getGridObject().getStackNetwork(), buffer);
-
-        getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
+        provider = createItemProvider();
 
         whitelistProperty = new BaseProperty<>(true, "whitelistProperty");
         filters = new ItemStack[9];
         Arrays.fill(filters, ItemStack.EMPTY);
+    }
+
+    protected BaseItemProvider createItemProvider()
+    {
+        return new BaseItemProvider(this, getProviderType(), getWrappedInventories(),
+                () -> getCable().getGridObject().getStackNetwork(), buffer);
     }
 
     protected ProviderType getProviderType()
@@ -115,8 +118,8 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
                 .player(player).inventory(8, 166).hotbar(8, 224)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
-                .syncBoolean(whitelistProperty::getValue, whitelistProperty::setValue)
-                .syncInventory(this::getConnectedInventory, getCachedInventoryProperty()::setValue, 10)
+                .syncBoolean(getWhitelistProperty()::getValue, getWhitelistProperty()::setValue)
+                .syncInventory(this::getWrappedInventories, getCachedInventoryProperty()::setValue, 10)
                 .syncArray(this::getFilters, ItemStack.class, null, "filters")
                 .syncBoolean(this::isShowFiltereds, this::setShowFiltereds, "filteredShown")
                 .syncEnumList(this::getAdjacentFacings, EnumFacing.class, null, "facings")
@@ -151,15 +154,21 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
         }
         else if ("FACING_ADD".equals(actionID))
         {
-            EnumFacing facing = EnumFacing.byIndex(payload.getInteger("facing"));
-            if (!getAdjacentFacings().contains(facing))
-                getAdjacentFacings().add(facing);
+            addFacing(EnumFacing.byIndex(payload.getInteger("facing")));
             markDirty();
+            provider.markDirty();
         }
         else if ("FACING_REMOVE".equals(actionID))
         {
-            getAdjacentFacings().remove(EnumFacing.byIndex(payload.getInteger("facing")));
+            removeFacing(EnumFacing.byIndex(payload.getInteger("facing")));
             markDirty();
+            provider.markDirty();
+        }
+        else if ("FACING_SET".equals(actionID))
+        {
+            setFacing(EnumFacing.byIndex(payload.getInteger("facing")), payload.getInteger("index"));
+            markDirty();
+            provider.markDirty();
         }
     }
 

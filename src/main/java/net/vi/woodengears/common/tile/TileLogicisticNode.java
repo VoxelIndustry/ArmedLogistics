@@ -12,7 +12,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.IWorldNameable;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.common.block.BlockProvider;
@@ -26,25 +25,30 @@ import net.voxelindustry.steamlayer.tile.TileBase;
 import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 
+import static net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY;
+
+@Getter
 public abstract class TileLogicisticNode extends TileBase implements IContainerProvider, ILoadable,
         IConnectionAware, IRailConnectable, IWorldNameable
 {
-    @Getter
     private BaseProperty<Boolean>      connectedInventoryProperty;
-    @Getter
     private BaseProperty<IItemHandler> cachedInventoryProperty;
 
-    @Getter
     private List<EnumFacing> adjacentFacings;
 
-    @Getter
+    private EnumMap<EnumFacing, IItemHandler> adjacentInventories;
+
+    private List<IItemHandler> inventories;
+    private WrappedInventories wrappedInventories;
+
+    private boolean hasLoaded;
+
     private TileCable cable;
 
-    @Getter
     private String  name;
-    @Getter
     private String  customName;
     private boolean hasCustomName;
 
@@ -56,6 +60,12 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
 
         adjacentFacings = new ArrayList<>();
+
+        adjacentInventories = new EnumMap<>(EnumFacing.class);
+        inventories = new ArrayList<>(6);
+
+        wrappedInventories = new WrappedInventories();
+        wrappedInventories.setWrappeds(getInventories());
     }
 
     @Override
@@ -91,7 +101,8 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         if (rail instanceof TileCable && ((TileCable) rail).hasGrid())
             ((TileCable) rail).connectHandler(EnumFacing.DOWN, this, this);
 
-        checkInventory();
+        hasLoaded = true;
+        addFacing(getFacing().getOpposite());
     }
 
     public void disconnectGrid()
@@ -100,15 +111,54 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
             cable.disconnectHandler(EnumFacing.DOWN, this);
     }
 
-    public void checkInventory()
+    public void onAdjacentRefresh()
     {
         TileEntity tile = world.getTileEntity(pos.offset(getFacing()));
 
-        if (tile != null && tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
-                getFacing().getOpposite()))
-            connectedInventoryProperty.setValue(true);
-        else
+        if (tile == null)
+        {
             connectedInventoryProperty.setValue(false);
+            return;
+        }
+
+        adjacentInventories.clear();
+        for (EnumFacing facing : EnumFacing.values())
+        {
+            if (tile.hasCapability(ITEM_HANDLER_CAPABILITY, facing))
+                adjacentInventories.put(facing, tile.getCapability(ITEM_HANDLER_CAPABILITY, facing));
+        }
+
+        if (!adjacentInventories.isEmpty())
+            connectedInventoryProperty.setValue(true);
+
+        inventories.clear();
+        for (EnumFacing facing : adjacentFacings)
+        {
+            if (adjacentInventories.containsKey(facing))
+                inventories.add(adjacentInventories.get(facing));
+        }
+    }
+
+    protected void addFacing(EnumFacing facing)
+    {
+        if (adjacentFacings.contains(facing))
+            return;
+        adjacentFacings.add(facing);
+        onAdjacentRefresh();
+    }
+
+    protected void removeFacing(EnumFacing facing)
+    {
+        adjacentFacings.remove(facing);
+        onAdjacentRefresh();
+    }
+
+    protected void setFacing(EnumFacing facing, int index)
+    {
+        if (adjacentFacings.contains(facing))
+            return;
+        adjacentFacings.set(index, facing);
+        onAdjacentRefresh();
     }
 
     @Override
@@ -117,16 +167,6 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         super.onLoad();
         if (!world.isRemote && cable == null)
             TileTickHandler.loadables.add(this);
-    }
-
-    public IItemHandler getConnectedInventory()
-    {
-        TileEntity tile = world.getTileEntity(pos.offset(getFacing()));
-
-        if (tile != null && tile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
-                getFacing().getOpposite()))
-            return tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
-        return null;
     }
 
     @Override
@@ -142,6 +182,9 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         int adjacentFacings = tag.getInteger("adjacentFacings");
         for (int i = 0; i < adjacentFacings; i++)
             getAdjacentFacings().add(EnumFacing.byIndex(tag.getInteger("adjacentFacing" + i)));
+
+        if (isServer() && hasLoaded)
+            onAdjacentRefresh();
     }
 
     @Override

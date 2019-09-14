@@ -18,11 +18,14 @@ import net.vi.woodengears.common.tile.TileStorage;
 
 public class BlockStorage extends BlockTileBase<TileStorage>
 {
-    public static final PropertyDirection FACING = BlockProvider.FACING;
+    public static final PropertyDirection FACING = PropertyDirection.create("facing",
+            facing -> facing != EnumFacing.UP);
 
     public BlockStorage()
     {
         super("storage", Material.PISTON, TileStorage.class);
+
+        setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
     }
 
     @Override
@@ -30,7 +33,7 @@ public class BlockStorage extends BlockTileBase<TileStorage>
     {
         super.onNeighborChange(world, pos, neighbor);
 
-        getWorldTile(world, pos).checkInventory();
+        getWorldTile(world, pos).onAdjacentRefresh();
     }
 
     @Override

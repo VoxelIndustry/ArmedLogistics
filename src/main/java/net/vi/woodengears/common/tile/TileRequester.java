@@ -29,8 +29,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     @Getter
     private BaseProperty<IItemHandler> cachedInventoryProperty;
 
-    private WrappedInventory wrappedInventory;
-    private InventoryBuffer  buffer;
+    private InventoryBuffer buffer;
 
     @Getter
     @Setter
@@ -43,12 +42,9 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
         cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
 
         buffer = new InventoryBuffer(8, 8 * 64);
-        wrappedInventory = new WrappedInventory();
 
-        requester = new BaseItemRequester(this, wrappedInventory, () -> getCable().getGridObject().getStackNetwork());
+        requester = new BaseItemRequester(this, getWrappedInventories(), () -> getCable().getGridObject().getStackNetwork());
         requester.setMode(RequesterMode.KEEP);
-
-        getConnectedInventoryProperty().addListener(obs -> wrappedInventory.setWrapped(getConnectedInventory()));
     }
 
     @Override
@@ -116,7 +112,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
                 .player(player).inventory(8, 161).hotbar(8, 219)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
-                .syncInventory(this::getConnectedInventory, cachedInventoryProperty::setValue, 10)
+                .syncInventory(this::getWrappedInventories, getCachedInventoryProperty()::setValue, 10)
                 .syncList(getRequester()::getRequests, ItemStack.class, null, "requests")
                 .syncEnum(getRequester()::getMode, getRequester()::setMode, RequesterMode.class, "mode")
                 .syncEnumList(this::getAdjacentFacings, EnumFacing.class, null, "facings")
@@ -136,8 +132,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
         if (!requester.getCurrentOrders().isEmpty())
             return;
 
-        IItemHandler inventory = getConnectedInventory();
-        if (inventory == null)
+        if (!getConnectedInventoryProperty().getValue())
             return;
 
         if (requester.getMode() == RequesterMode.ONCE || requester.getMode() == RequesterMode.CONTINUOUS)

@@ -30,7 +30,7 @@ public class BlockRequester extends BlockTileBase<TileRequester>
     {
         super.onNeighborChange(world, pos, neighbor);
 
-        getWorldTile(world, pos).checkInventory();
+        getWorldTile(world, pos).onAdjacentRefresh();
     }
 
     @Override

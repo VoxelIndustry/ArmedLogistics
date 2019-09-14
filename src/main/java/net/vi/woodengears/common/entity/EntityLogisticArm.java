@@ -181,8 +181,8 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
                 if (!(storage instanceof TileStorage))
                     return;
 
-                ((TileStorage) storage).getProvider().insert(stack);
-                ((TileStorage) storage).getProvider().deliverShipment(shipment);
+                ((TileStorage) storage).getStorage().insert(stack);
+                ((TileStorage) storage).getStorage().deliverShipment(shipment);
                 setItemStack(EMPTY);
             }
         }

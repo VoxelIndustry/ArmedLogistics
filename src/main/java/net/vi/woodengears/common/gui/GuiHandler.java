@@ -12,6 +12,7 @@ import net.vi.woodengears.client.gui.GuiRequester;
 import net.vi.woodengears.common.tile.TileArmReservoir;
 import net.vi.woodengears.common.tile.TileProvider;
 import net.vi.woodengears.common.tile.TileRequester;
+import net.vi.woodengears.common.tile.TileStorage;
 import net.voxelindustry.brokkgui.wrapper.impl.BrokkGuiManager;
 import net.voxelindustry.steamlayer.container.IContainerProvider;
 
@@ -45,6 +46,9 @@ public class GuiHandler implements IGuiHandler
             case REQUESTER:
                 return BrokkGuiManager.getBrokkGuiContainer(WoodenGears.MODID, new GuiRequester(player,
                         (TileRequester) world.getTileEntity(new BlockPos(x, y, z))));
+            case STORAGE:
+                return BrokkGuiManager.getBrokkGuiContainer(WoodenGears.MODID, new GuiProvider(player,
+                        (TileStorage) world.getTileEntity(new BlockPos(x, y, z))));
         }
         return null;
     }

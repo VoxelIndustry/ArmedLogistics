@@ -82,7 +82,7 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
             ItemStack insert = toInsert.copy();
             insert.shrink(remainder.getCount());
             getHandler().insertItem(slot, insert, false);
-            
+
             toInsert.shrink(insert.getCount());
 
             if (toInsert.isEmpty())
@@ -161,12 +161,10 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
 
     public int inventoryAccept(ItemStack stack)
     {
-        IItemHandler inventory = tile.getConnectedInventory();
-
         int canInsert = 0;
-        for (int i = 0; i < inventory.getSlots(); i++)
+        for (int i = 0; i < handler.getSlots(); i++)
         {
-            canInsert += stack.getCount() - inventory.insertItem(i, stack, true).getCount();
+            canInsert += stack.getCount() - handler.insertItem(i, stack, true).getCount();
             if (canInsert >= stack.getCount())
                 return stack.getCount();
         }
@@ -175,12 +173,10 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
 
     public int inventoryContains(ItemStack stack)
     {
-        IItemHandler inventory = tile.getConnectedInventory();
-
         int contained = 0;
-        for (int i = 0; i < inventory.getSlots(); i++)
+        for (int i = 0; i < handler.getSlots(); i++)
         {
-            ItemStack inSlot = inventory.getStackInSlot(i);
+            ItemStack inSlot = handler.getStackInSlot(i);
             if (ItemUtils.deepEquals(stack, inSlot))
                 contained += inSlot.getCount();
         }
@@ -228,7 +224,7 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
     {
         shipments.remove(shipment);
 
-        if (tile.getCable() == null || tile.getCable().getGrid() == -1 || tile.getConnectedInventory() == null)
+        if (tile.getCable() == null || tile.getCable().getGrid() == -1)
             return;
 
         tile.getCable().getGridObject().getStackNetwork().completeShipment(shipment);
@@ -239,7 +235,7 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
     {
         coloredShipments.remove(shipment);
 
-        if (tile.getCable() == null || tile.getCable().getGrid() == -1 || tile.getConnectedInventory() == null)
+        if (tile.getCable() == null || tile.getCable().getGrid() == -1)
             return;
 
         tile.getCable().getGridObject().getStackNetwork().completeColoredShipment(shipment);

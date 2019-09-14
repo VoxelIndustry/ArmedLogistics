@@ -37,7 +37,7 @@ public class BlockProvider extends BlockTileBase<TileProvider>
     {
         super.onNeighborChange(world, pos, neighbor);
 
-        getWorldTile(world, pos).checkInventory();
+        getWorldTile(world, pos).onAdjacentRefresh();
     }
 
     @Override

@@ -11,6 +11,7 @@ import net.vi.woodengears.client.gui.component.InventoryView;
 import net.vi.woodengears.common.init.WGBlocks;
 import net.vi.woodengears.common.tile.TileActiveProvider;
 import net.vi.woodengears.common.tile.TileProvider;
+import net.vi.woodengears.common.tile.TileStorage;
 import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.paint.Texture;
 import net.voxelindustry.steamlayer.container.sync.SyncedValue;
@@ -94,7 +95,9 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
     {
         if (icon == null)
         {
-            if (getTile() instanceof TileActiveProvider)
+            if (getTile() instanceof TileStorage)
+                icon = new ItemStack(WGBlocks.STORAGE);
+            else if (getTile() instanceof TileActiveProvider)
                 icon = new ItemStack(WGBlocks.ACTIVE_PROVIDER);
             else
                 icon = new ItemStack(WGBlocks.PROVIDER);
