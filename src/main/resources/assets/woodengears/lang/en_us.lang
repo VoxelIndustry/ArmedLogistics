@@ -34,12 +34,12 @@ woodengears.gui.facing.west=at §lWest
 woodengears.gui.facing.up=§lAbove
 woodengears.gui.facing.down=§lBelow
 
-woodengears.gui.facinglist.north=North
-woodengears.gui.facinglist.south=South
-woodengears.gui.facinglist.east=East
-woodengears.gui.facinglist.west=West
-woodengears.gui.facinglist.up=Above
-woodengears.gui.facinglist.down=Below
+woodengears.gui.facinglist.cardinal.north=North
+woodengears.gui.facinglist.cardinal.south=South
+woodengears.gui.facinglist.cardinal.east=East
+woodengears.gui.facinglist.cardinal.west=West
+woodengears.gui.facinglist.cardinal.up=Up
+woodengears.gui.facinglist.cardinal.down=Down
 
 woodengears.gui.facinglist.relative.north=Front
 woodengears.gui.facinglist.relative.south=Back
@@ -47,6 +47,10 @@ woodengears.gui.facinglist.relative.east=Left
 woodengears.gui.facinglist.relative.west=Right
 woodengears.gui.facinglist.relative.up=Above
 woodengears.gui.facinglist.relative.down=Below
+woodengears.gui.facinglist.title=Faces
+
+woodengears.gui.facingtab.name=Facing Configuration
+woodengears.gui.facingtab.noinv=No Inventory
 
 woodengears.gui.copy=Copied!
 woodengears.gui.paste=Pasted!

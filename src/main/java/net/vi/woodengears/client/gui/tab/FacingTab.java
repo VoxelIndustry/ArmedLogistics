@@ -2,11 +2,14 @@ package net.vi.woodengears.client.gui.tab;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.vi.woodengears.WoodenGears;
 import net.vi.woodengears.client.gui.GuiLogisticNode;
 import net.voxelindustry.brokkgui.component.GuiNode;
+import net.voxelindustry.brokkgui.element.GuiLabel;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.sync.SyncedValue;
@@ -18,7 +21,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.Integer.max;
 import static net.minecraft.util.EnumFacing.*;
 
 public class FacingTab extends GuiAbsolutePane implements IGuiTab
@@ -31,6 +33,7 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
     private ItemStack icon = ItemStack.EMPTY;
 
     private TabButton button;
+    private GuiLabel  invLabel;
 
     private EnumMap<EnumFacing, Pair<FacingSlot, FacingLine>> facingSlots = new EnumMap<>(EnumFacing.class);
 
@@ -42,12 +45,13 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
 
         setSize(176, 80);
 
-        facingSlots.put(UP, Pair.of(new FacingSlot("TOP", 2), new FacingLine(this, UP)));
-        facingSlots.put(DOWN, Pair.of(new FacingSlot("BOTTOM", 2), new FacingLine(this, DOWN)));
-        facingSlots.put(NORTH, Pair.of(new FacingSlot("NORTH", 2), new FacingLine(this, NORTH)));
-        facingSlots.put(SOUTH, Pair.of(new FacingSlot("SOUTH", 2), new FacingLine(this, SOUTH)));
-        facingSlots.put(EAST, Pair.of(new FacingSlot("EAST", 2), new FacingLine(this, EAST)));
-        facingSlots.put(WEST, Pair.of(new FacingSlot("WEST", 2), new FacingLine(this, WEST)));
+        invLabel = new GuiLabel("");
+        invLabel.setExpandToText(true);
+        invLabel.setHeight(9);
+        addChild(invLabel, 6, 6);
+
+        for (EnumFacing facing : values())
+            facingSlots.put(facing, Pair.of(new FacingSlot(facing, I18n.format(WoodenGears.MODID + ".gui.facinglist.cardinal." + facing.getName2()), 2), new FacingLine(this, facing)));
 
         facingSlots.values().forEach(this::linkButtons);
 
@@ -60,12 +64,16 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
         addChild(facingSlots.get(DOWN).getLeft(), 114, 133);
 
         facingList = new GuiAbsolutePane();
-        facingList.setSize(56, 48);
+        facingList.setSize(56, 16);
         facingList.setxTranslate(-60);
         facingList.setyTranslate(4);
         facingList.setID("facing-list");
-
         elements.add(facingList);
+
+        GuiLabel facingListTitle = new GuiLabel(I18n.format("woodengears.gui.facinglist.title"));
+        facingListTitle.setExpandToText(true);
+        facingListTitle.setID("facing-list-title");
+        facingList.addChild(facingListTitle, 2, 2);
 
         for (Map.Entry<EnumFacing, Pair<FacingSlot, FacingLine>> facingSlot : facingSlots.entrySet())
         {
@@ -85,17 +93,22 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
         }
 
         ((BuiltContainer) gui.getContainer()).addSyncCallback("facings", this::onFacingsSync);
-        gui.getListeners().attach(gui.getTile().getCachedInventoryProperty(), obs -> refreshIcon());
+        gui.getListeners().attach(gui.getTile().getCachedInventoryProperty(), obs -> refreshConnectedInv());
     }
 
-    private void refreshIcon()
+    private void refreshConnectedInv()
     {
         if (!gui.getTile().getConnectedInventoryProperty().getValue())
+        {
+            invLabel.setText(I18n.format(WoodenGears.MODID + ".gui.facingtab.noinv"));
             return;
+        }
 
         BlockPos adjacentPos = gui.getTile().getPos().offset(gui.getTile().getFacing());
         IBlockState state = Minecraft.getMinecraft().world.getBlockState(adjacentPos);
         icon = state.getBlock().getItem(Minecraft.getMinecraft().world, adjacentPos, state);
+
+        invLabel.setText(state.getBlock().getLocalizedName());
 
         if (button != null)
             button.setIconStack(icon);
@@ -106,7 +119,7 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
     {
         this.button = button;
 
-        refreshIcon();
+        refreshConnectedInv();
     }
 
     private void linkButtons(Pair<FacingSlot, FacingLine> buttons)
@@ -134,16 +147,16 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
             facingSlot.getValue().getLeft().getSelectedProperty().setValue(gui.getTile().getAdjacentFacings().contains(facingSlot.getKey()));
         }
 
-        facingList.clearChilds();
+        facingList.removeChildrenOfType(FacingLine.class);
 
         int index = 0;
         for (EnumFacing facing : gui.getTile().getAdjacentFacings())
         {
-            facingList.addChild(facingSlots.get(facing).getRight(), 2, 2 + index * 12);
+            facingList.addChild(facingSlots.get(facing).getRight(), 2, 14 + index * 12);
             index++;
         }
 
-        facingList.setHeight(max(48, 4 + facingList.getChildCount() * 12));
+        facingList.setHeight(4 + facingList.getChildCount() * 12);
     }
 
     void removeFacing(EnumFacing facing)
@@ -165,6 +178,12 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
     public ItemStack getIcon()
     {
         return icon;
+    }
+
+    @Override
+    public String getName()
+    {
+        return I18n.format(WoodenGears.MODID + ".gui.facingtab.name");
     }
 
     @Override

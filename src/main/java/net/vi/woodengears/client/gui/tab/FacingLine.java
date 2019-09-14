@@ -14,9 +14,10 @@ public class FacingLine extends GuiLabel
 
     public FacingLine(FacingTab facingTab, EnumFacing facing)
     {
-        super(I18n.format(WoodenGears.MODID + ".gui.facinglist." + facing.name().toLowerCase()));
+        super(I18n.format(WoodenGears.MODID + ".gui.facinglist.cardinal." + facing.name().toLowerCase()));
 
         addStyleClass("facing-line");
+        addStyleClass("facing-" + facing.getName2());
 
         setSize(52, 11);
         setTextPadding(TEXT_PADDING);
