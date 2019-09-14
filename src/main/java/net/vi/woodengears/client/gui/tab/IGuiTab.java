@@ -11,6 +11,8 @@ public interface IGuiTab
 
     ItemStack getIcon();
 
+    String getName();
+
     default float getTabOffsetX()
     {
         return 0;

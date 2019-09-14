@@ -107,6 +107,17 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
         return mainPanel;
     }
 
+    @Override
+    public String getName()
+    {
+        return getTile().getDisplayName().getFormattedText();
+    }
+
+    public IGuiTab getCurrentTab()
+    {
+        return lastTab == null ? this : lastTab;
+    }
+
     private void setupTabs()
     {
         tabHeaders = new GuiAbsolutePane();
@@ -114,7 +125,7 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
 
         GuiToggleGroup tabHeaderGroup = new GuiToggleGroup();
 
-        TabButton mainTabButton = new TabButton(getIcon());
+        TabButton mainTabButton = new TabButton(getIcon(), getName());
         mainTabButton.setToggleGroup(tabHeaderGroup);
         tabHeaderGroup.setSelectedButton(mainTabButton);
         tabHeaders.addChild(mainTabButton, 0, 4);
@@ -126,6 +137,7 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
             getElements().forEach(node -> node.setVisible(true));
             getContainer().showAllSlots();
             survivalInventory.setVisible(true);
+            title.setVisible(true);
             lastTab.getElements().forEach(node -> node.setVisible(false));
 
             if (lastTab.getTabOffsetX() != getTabOffsetX())
@@ -135,7 +147,7 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
 
         for (int i = 0; i < tabs.length; i++)
         {
-            TabButton tabButton = new TabButton(tabs[i].getIcon());
+            TabButton tabButton = new TabButton(tabs[i].getIcon(), tabs[i].getName());
             tabButton.setToggleGroup(tabHeaderGroup);
             tabs[i].setButton(tabButton);
 
@@ -153,6 +165,7 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
 
                     getContainer().hideAllSlots();
                     survivalInventory.setVisible(false);
+                    title.setVisible(false);
 
                     if (newTab.getTabOffsetX() != getTabOffsetX())
                         refreshOffset(newTab.getTabOffsetX());
