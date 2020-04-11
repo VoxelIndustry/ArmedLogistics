@@ -1,0 +1,70 @@
+package net.voxelindustry.armedlogistics.common.tile;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.EnumFacing;
+import net.voxelindustry.armedlogistics.common.block.BlockArmReservoir;
+import net.voxelindustry.armedlogistics.common.grid.IRailConnectable;
+import net.voxelindustry.armedlogistics.common.grid.RailGrid;
+import net.voxelindustry.armedlogistics.common.init.WGItems;
+import net.voxelindustry.steamlayer.container.BuiltContainer;
+import net.voxelindustry.steamlayer.container.ContainerBuilder;
+import net.voxelindustry.steamlayer.container.IContainerProvider;
+import net.voxelindustry.steamlayer.grid.CableGrid;
+import net.voxelindustry.steamlayer.grid.IConnectionAware;
+import net.voxelindustry.steamlayer.tile.ITileInfoList;
+
+public class TileArmReservoir extends TileInventoryBase implements IContainerProvider, IRailConnectable,
+        IConnectionAware
+{
+    private RailGrid grid;
+
+    public TileArmReservoir()
+    {
+        super("armreservoir", 6);
+    }
+
+    @Override
+    public void addInfo(ITileInfoList list)
+    {
+        super.addInfo(list);
+
+        list.addText("Facing:" + this.getFacing());
+        if (this.grid != null)
+            list.addText("Grid: " + grid.getIdentifier());
+    }
+
+    @Override
+    public BuiltContainer createContainer(EntityPlayer player)
+    {
+        return new ContainerBuilder("armreservoir", player)
+                .player(player).inventory(8, 96).hotbar(8, 154)
+                .tile(this.getInventory())
+                .filterSlotLine(0, 54, 52, 4, EnumFacing.Axis.X, stack -> stack.getItem() == WGItems.LOGISTIC_ARM)
+                .fuelSlot(4, 72, 74)
+                .fuelSlot(5, 90, 74)
+                .create();
+    }
+
+    @Override
+    public void connectTrigger(EnumFacing facing, CableGrid grid)
+    {
+        this.grid = (RailGrid) grid;
+    }
+
+    @Override
+    public void disconnectTrigger(EnumFacing facing, CableGrid grid)
+    {
+        this.grid = null;
+    }
+
+    @Override
+    public boolean canConnect(TileCable cable, EnumFacing from)
+    {
+        return from == this.getFacing();
+    }
+
+    public EnumFacing getFacing()
+    {
+        return this.world.getBlockState(pos).getValue(BlockArmReservoir.FACING);
+    }
+}
