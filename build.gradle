@@ -1,79 +1,152 @@
 buildscript {
     repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
         jcenter()
-        maven { url = "http://files.minecraftforge.net/maven" }
+        mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
-
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'maven-publish'
+apply plugin: 'java-library'
 
 version = "1.0"
-group = "net.voxelindustry.woodengears"
-archivesBaseName = "woodengears"
+group = "net.voxelindustry.armedlogistics"
+archivesBaseName = "armedlogistics"
 
-sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
-}
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
-    version = "1.12.2-${project.forge_version}"
-    runDir = "run"
+    mappings channel: 'snapshot', version: '20191011-1.14.3'
 
-    mappings = "stable_39"
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', ''
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                armedlogistics {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', ''
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                armedlogistics {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'armedlogistics', '--all', '--output', file('src/generated/resources/')
+
+            mods {
+                armedlogistics {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"     : "armedlogistics",
+                "Specification-Vendor"    : "voxelindustry",
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : "${version}",
+                "Implementation-Vendor"   : "voxelindustry",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+def reobfFile = file("$buildDir/reobfJar/output.jar")
+def reobfArtifact = artifacts.add('default', reobfFile) {
+    type 'jar'
+    builtBy 'reobfJar'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact reobfArtifact
+        }
+    }
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
 }
 
 repositories {
+    jcenter()
+
     maven { // TOP
         name 'tterrag maven'
-        url "http://maven.tterrag.com/"
+        url "https://maven.tterrag.com/"
     }
 
     maven { // JEI
         name = 'progwml6 maven'
-        url = "http://dvs1.progwml6.com/files/maven"
+        url = "https://dvs1.progwml6.com/files/maven"
     }
     maven {
         name = 'ourten'
-        url = 'http://maven.ferenyr.info/artifactory/libs-release'
+        url = 'https://maven.ferenyr.info/artifactory/libs-release'
     }
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.8'
+    minecraft "net.minecraftforge:forge:${project.forge_version}"
 
-    compile "net.voxelindustry:Gizmos:${project.gizmos_version}"
-    deobfCompile "mcjty.theoneprobe:TheOneProbe-1.12:${project.top_version}"
-    deobfCompile "mezz.jei:jei_1.12.2:${project.jei_version}"
+    compileOnly 'org.projectlombok:lombok:1.18.12'
 
-    deobfCompile "net.voxelindustry:steamlayer-core:${project.steamlayer_version}"
-    deobfCompile "net.voxelindustry:brokkgui-binding-mc1.12:${project.brokkgui_version}"
+    api fg.deobf("mcjty.theoneprobe:TheOneProbe-1.14:${project.top_version}") {
+        transitive = false
+    }
+    api fg.deobf("mezz.jei:jei-1.14.4:${project.jei_version}")
+
+    api "net.voxelindustry:brokkgui-core:${project.brokkgui_version}"
+    api fg.deobf("net.voxelindustry:brokkgui-binding-mc1.14:${project.brokkgui_version}")
+    api fg.deobf("net.voxelindustry:steamlayer-core:${project.steamlayer_version}")
+    api fg.deobf("net.voxelindustry:gizmos-1.14:${project.gizmos_version}")
     compile "fr.ourten:teabeans:${project.teabeans_version}"
 
     testCompile('org.junit.jupiter:junit-jupiter-api:5.3.2')
-    testCompile('org.mockito:mockito-core:2.24.0')
-    testCompile('org.mockito:mockito-junit-jupiter:2.24.0')
-    testCompile('org.assertj:assertj-core:3.10.0')
+    testCompile('org.mockito:mockito-core:3.3.3')
+    testCompile('org.mockito:mockito-junit-jupiter:3.3.3')
+    testCompile('org.assertj:assertj-core:3.15.0')
 
-    testCompileOnly 'org.projectlombok:lombok:1.18.6'
+    testCompileOnly 'org.projectlombok:lombok:1.18.12'
 
-    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.3.2')
-}
-
-processResources {
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
-
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-
-        expand 'version': project.version, 'mcversion': project.minecraft.version
-    }
-
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-    }
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.6.1')
 }
