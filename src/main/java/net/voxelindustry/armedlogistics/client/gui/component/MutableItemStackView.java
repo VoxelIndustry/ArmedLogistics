@@ -9,7 +9,7 @@ import net.voxelindustry.brokkgui.skin.GuiSkinBase;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackView;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackViewBehavior;
 import net.voxelindustry.brokkgui.wrapper.elements.ItemStackViewSkin;
-import net.voxelindustry.steamlayer.utils.ItemUtils;
+import net.voxelindustry.steamlayer.common.utils.ItemUtils;
 
 public class MutableItemStackView extends ItemStackView
 {
@@ -48,7 +48,7 @@ public class MutableItemStackView extends ItemStackView
             model.getEventDispatcher().addHandler(ClickEvent.Left.TYPE, this::onLeftClick);
             model.getEventDispatcher().addHandler(ClickEvent.Right.TYPE, this::onRightClick);
 
-            this.view = model;
+            view = model;
         }
 
         private void onLeftClick(ClickEvent.Left event)
@@ -111,7 +111,7 @@ public class MutableItemStackView extends ItemStackView
 
         private ItemStack getHeldStack()
         {
-            return Minecraft.getMinecraft().player.inventory.getItemStack();
+            return Minecraft.getInstance().player.inventory.getItemStack();
         }
     }
 }

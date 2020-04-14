@@ -2,13 +2,12 @@ package net.voxelindustry.armedlogistics.client.gui;
 
 import lombok.Getter;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 import net.voxelindustry.armedlogistics.common.tile.TileArmReservoir;
 import net.voxelindustry.brokkgui.data.RectAlignment;
 import net.voxelindustry.brokkgui.element.GuiLabel;
-import net.voxelindustry.brokkgui.paint.Texture;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
+import net.voxelindustry.brokkgui.sprite.Texture;
 import net.voxelindustry.brokkgui.wrapper.container.BrokkGuiContainer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 
@@ -20,21 +19,21 @@ public class GuiArmReservoir extends BrokkGuiContainer<BuiltContainer>
     @Getter
     private final TileArmReservoir armReservoir;
 
-    public GuiArmReservoir(EntityPlayer player, TileArmReservoir armReservoir)
+    public GuiArmReservoir(BuiltContainer container)
     {
-        super(armReservoir.createContainer(player));
+        super(container);
 
-        this.setxRelativePos(0.5f);
-        this.setyRelativePos(0.5f);
+        setxRelativePos(0.5f);
+        setyRelativePos(0.5f);
 
-        this.setWidth(176);
-        this.setHeight(178);
+        setWidth(176);
+        setHeight(178);
 
-        this.armReservoir = armReservoir;
+        armReservoir = (TileArmReservoir) container.getMainTile();
 
         GuiAbsolutePane mainPanel = new GuiAbsolutePane();
         mainPanel.setBackgroundTexture(BACKGROUND);
-        this.setMainPanel(mainPanel);
+        setMainPanel(mainPanel);
 
         GuiLabel title = new GuiLabel(armReservoir.getDisplayName().getFormattedText());
         mainPanel.addChild(title, 6, 6);
@@ -59,6 +58,6 @@ public class GuiArmReservoir extends BrokkGuiContainer<BuiltContainer>
         blockedLabel.setTextAlignment(RectAlignment.MIDDLE_CENTER);
         mainPanel.addChild(blockedLabel, 176 / 2 - 55, 9 + 9 + 4 + 9 + 4 + 4.5f);
 
-        this.addStylesheet("/assets/" + ArmedLogistics.MODID + "/css/armreservoir.css");
+        addStylesheet("/assets/" + ArmedLogistics.MODID + "/css/armreservoir.css");
     }
 }

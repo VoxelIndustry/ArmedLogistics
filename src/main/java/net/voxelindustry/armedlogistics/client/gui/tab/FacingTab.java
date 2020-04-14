@@ -1,10 +1,10 @@
 package net.voxelindustry.armedlogistics.client.gui.tab;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 import net.voxelindustry.armedlogistics.client.gui.GuiLogisticNode;
@@ -21,7 +21,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.minecraft.util.EnumFacing.*;
+import static net.minecraft.util.Direction.*;
 
 public class FacingTab extends GuiAbsolutePane implements IGuiTab
 {
@@ -35,7 +35,7 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
     private TabButton button;
     private GuiLabel  invLabel;
 
-    private EnumMap<EnumFacing, Pair<FacingSlot, FacingLine>> facingSlots = new EnumMap<>(EnumFacing.class);
+    private EnumMap<Direction, Pair<FacingSlot, FacingLine>> facingSlots = new EnumMap<>(Direction.class);
 
     public FacingTab(GuiLogisticNode gui)
     {
@@ -50,7 +50,7 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
         invLabel.setHeight(9);
         addChild(invLabel, 6, 6);
 
-        for (EnumFacing facing : values())
+        for (Direction facing : values())
             facingSlots.put(facing, Pair.of(new FacingSlot(facing, I18n.format(ArmedLogistics.MODID + ".gui.facinglist.cardinal." + facing.getName2()), 2), new FacingLine(this, facing)));
 
         facingSlots.values().forEach(this::linkButtons);
@@ -70,12 +70,12 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
         facingList.setID("facing-list");
         elements.add(facingList);
 
-        GuiLabel facingListTitle = new GuiLabel(I18n.format("woodengears.gui.facinglist.title"));
+        GuiLabel facingListTitle = new GuiLabel(I18n.format("armedlogistics.gui.facinglist.title"));
         facingListTitle.setExpandToText(true);
         facingListTitle.setID("facing-list-title");
         facingList.addChild(facingListTitle, 2, 2);
 
-        for (Map.Entry<EnumFacing, Pair<FacingSlot, FacingLine>> facingSlot : facingSlots.entrySet())
+        for (Map.Entry<Direction, Pair<FacingSlot, FacingLine>> facingSlot : facingSlots.entrySet())
         {
             facingSlot.getValue().getLeft().setOnSelectEvent(e ->
             {
@@ -105,10 +105,10 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
         }
 
         BlockPos adjacentPos = gui.getTile().getPos().offset(gui.getTile().getFacing());
-        IBlockState state = Minecraft.getMinecraft().world.getBlockState(adjacentPos);
-        icon = state.getBlock().getItem(Minecraft.getMinecraft().world, adjacentPos, state);
+        BlockState state = Minecraft.getInstance().world.getBlockState(adjacentPos);
+        icon = state.getBlock().getItem(Minecraft.getInstance().world, adjacentPos, state);
 
-        invLabel.setText(state.getBlock().getLocalizedName());
+        invLabel.setText(state.getBlock().getNameTextComponent().getFormattedText());
 
         if (button != null)
             button.setIconStack(icon);
@@ -142,7 +142,7 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
 
     private void onFacingsSync(SyncedValue value)
     {
-        for (Map.Entry<EnumFacing, Pair<FacingSlot, FacingLine>> facingSlot : facingSlots.entrySet())
+        for (Map.Entry<Direction, Pair<FacingSlot, FacingLine>> facingSlot : facingSlots.entrySet())
         {
             facingSlot.getValue().getLeft().getSelectedProperty().setValue(gui.getTile().getAdjacentFacings().contains(facingSlot.getKey()));
         }
@@ -150,7 +150,7 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
         facingList.removeChildrenOfType(FacingLine.class);
 
         int index = 0;
-        for (EnumFacing facing : gui.getTile().getAdjacentFacings())
+        for (Direction facing : gui.getTile().getAdjacentFacings())
         {
             facingList.addChild(facingSlots.get(facing).getRight(), 2, 14 + index * 12);
             index++;
@@ -159,7 +159,7 @@ public class FacingTab extends GuiAbsolutePane implements IGuiTab
         facingList.setHeight(4 + facingList.getChildCount() * 12);
     }
 
-    void removeFacing(EnumFacing facing)
+    void removeFacing(Direction facing)
     {
         if (gui.getTile().getAdjacentFacings().contains(facing))
             new ServerActionBuilder("FACING_REMOVE")

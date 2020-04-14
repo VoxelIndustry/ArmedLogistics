@@ -1,7 +1,7 @@
 package net.voxelindustry.armedlogistics.client.gui.tab;
 
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 import net.voxelindustry.brokkgui.data.RectBox;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
@@ -12,7 +12,7 @@ public class FacingLine extends GuiLabel
 {
     private static final RectBox TEXT_PADDING = RectBox.build().top(1).create();
 
-    public FacingLine(FacingTab facingTab, EnumFacing facing)
+    public FacingLine(FacingTab facingTab, Direction facing)
     {
         super(I18n.format(ArmedLogistics.MODID + ".gui.facinglist.cardinal." + facing.name().toLowerCase()));
 

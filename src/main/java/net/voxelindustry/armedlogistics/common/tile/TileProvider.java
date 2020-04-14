@@ -4,21 +4,25 @@ import fr.ourten.teabeans.value.BaseProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.Direction;
 import net.voxelindustry.armedlogistics.common.grid.logistic.ProviderType;
 import net.voxelindustry.armedlogistics.common.grid.logistic.node.BaseItemProvider;
 import net.voxelindustry.armedlogistics.common.grid.logistic.node.IItemFilter;
 import net.voxelindustry.armedlogistics.common.grid.logistic.node.InventoryBuffer;
-import net.voxelindustry.steamlayer.container.BuiltContainer;
+import net.voxelindustry.armedlogistics.common.setup.ALContainers;
+import net.voxelindustry.armedlogistics.common.setup.ALTiles;
+import net.voxelindustry.steamlayer.common.utils.ItemUtils;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
 import net.voxelindustry.steamlayer.network.action.ActionSender;
 import net.voxelindustry.steamlayer.network.action.IActionReceiver;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
-import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.Arrays;
 
@@ -40,9 +44,9 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
     @Setter
     private boolean showFiltereds = true;
 
-    public TileProvider()
+    public TileProvider(TileEntityType<? extends TileProvider> type)
     {
-        super("provider");
+        super(type, "provider");
 
         buffer = new InventoryBuffer(8, 8 * 64);
 
@@ -51,6 +55,11 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
         whitelistProperty = new BaseProperty<>(true, "whitelistProperty");
         filters = new ItemStack[9];
         Arrays.fill(filters, ItemStack.EMPTY);
+    }
+
+    public TileProvider()
+    {
+        this(ALTiles.PROVIDER);
     }
 
     protected BaseItemProvider createItemProvider()
@@ -81,49 +90,50 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag)
+    public CompoundNBT write(CompoundNBT tag)
     {
         buffer.writeNBT(tag);
 
-        tag.setBoolean("whitelist", whitelistProperty.getValue());
-        tag.setBoolean("filteredShown", showFiltereds);
+        tag.putBoolean("whitelist", whitelistProperty.getValue());
+        tag.putBoolean("filteredShown", showFiltereds);
 
         for (int i = 0; i < filters.length; i++)
-            tag.setTag("filter" + i, filters[i].writeToNBT(new NBTTagCompound()));
+            tag.put("filter" + i, filters[i].write(new CompoundNBT()));
 
         provider.toNBT(tag);
 
-        return super.writeToNBT(tag);
+        return super.write(tag);
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound tag)
+    public void read(CompoundNBT tag)
     {
-        super.readFromNBT(tag);
+        super.read(tag);
 
         buffer.readNBT(tag);
         whitelistProperty.setValue(tag.getBoolean("whitelist"));
         showFiltereds = tag.getBoolean("filteredShown");
 
         for (int i = 0; i < 9; i++)
-            filters[i] = new ItemStack(tag.getCompoundTag("filter" + i));
+            filters[i] = ItemStack.read(tag.getCompound("filter" + i));
 
         provider.fromNBT(tag);
     }
 
     @Override
-    public BuiltContainer createContainer(EntityPlayer player)
+    public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity player)
     {
-        return new ContainerBuilder("provider", player)
+        return new ContainerBuilder(ALContainers.PROVIDER, player)
                 .player(player).inventory(8, 166).hotbar(8, 224)
+                .emptyTile(this)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncBoolean(getWhitelistProperty()::getValue, getWhitelistProperty()::setValue)
                 .syncInventory(this::getWrappedInventories, getCachedInventoryProperty()::setValue, 10)
                 .syncArray(this::getFilters, ItemStack.class, null, "filters")
                 .syncBoolean(this::isShowFiltereds, this::setShowFiltereds, "filteredShown")
-                .syncEnumList(this::getAdjacentFacings, EnumFacing.class, null, "facings")
-                .create();
+                .syncEnumList(this::getAdjacentFacings, Direction.class, null, "facings")
+                .create(windowId);
     }
 
     public void dropBuffer()
@@ -133,7 +143,7 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
     }
 
     @Override
-    public void handle(ActionSender sender, String actionID, NBTTagCompound payload)
+    public void handle(ActionSender sender, String actionID, CompoundNBT payload)
     {
         if ("WHITELIST_SWITCH".equals(actionID))
         {
@@ -143,7 +153,7 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
         }
         else if ("FILTER_CHANGE".equals(actionID))
         {
-            filters[payload.getInteger("index")] = new ItemStack(payload.getCompoundTag("stack"));
+            filters[payload.getInt("index")] = ItemStack.read(payload.getCompound("stack"));
             markDirty();
             provider.markDirty();
         }
@@ -154,19 +164,19 @@ public class TileProvider extends TileLogicisticNode implements IActionReceiver,
         }
         else if ("FACING_ADD".equals(actionID))
         {
-            addFacing(EnumFacing.byIndex(payload.getInteger("facing")));
+            addFacing(Direction.byIndex(payload.getInt("facing")));
             markDirty();
             provider.markDirty();
         }
         else if ("FACING_REMOVE".equals(actionID))
         {
-            removeFacing(EnumFacing.byIndex(payload.getInteger("facing")));
+            removeFacing(Direction.byIndex(payload.getInt("facing")));
             markDirty();
             provider.markDirty();
         }
         else if ("FACING_SET".equals(actionID))
         {
-            setFacing(EnumFacing.byIndex(payload.getInteger("facing")), payload.getInteger("index"));
+            setFacing(Direction.byIndex(payload.getInt("facing")), payload.getInt("index"));
             markDirty();
             provider.markDirty();
         }

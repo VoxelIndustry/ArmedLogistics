@@ -1,11 +1,11 @@
 package net.voxelindustry.armedlogistics.common.tile;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ITickable;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.NonNullList;
 import net.voxelindustry.armedlogistics.common.grid.logistic.ProviderType;
 
-public class TileActiveProvider extends TileProvider implements ITickable
+public class TileActiveProvider extends TileProvider implements ITickableTileEntity
 {
     @Override
     protected ProviderType getProviderType()
@@ -14,12 +14,12 @@ public class TileActiveProvider extends TileProvider implements ITickable
     }
 
     @Override
-    public void update()
+    public void tick()
     {
         if (isClient())
             return;
 
-        if (world.getTotalWorldTime() % 32 != ((pos.getX() ^ pos.getZ()) & 31))
+        if (world.getGameTime() % 32 != ((pos.getX() ^ pos.getZ()) & 31))
             return;
         randomTick();
     }

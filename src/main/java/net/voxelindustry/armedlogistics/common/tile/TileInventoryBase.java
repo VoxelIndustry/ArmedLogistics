@@ -2,57 +2,49 @@ package net.voxelindustry.armedlogistics.common.tile;
 
 import lombok.Getter;
 import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.voxelindustry.armedlogistics.ArmedLogistics;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tileentity.TileEntityType;
 import net.voxelindustry.steamlayer.inventory.InventoryHandler;
 import net.voxelindustry.steamlayer.tile.TileBase;
 
 @Getter
 public abstract class TileInventoryBase extends TileBase
 {
-    private final String           name;
     private final InventoryHandler inventory;
 
-    public TileInventoryBase(String name, int size)
+    public TileInventoryBase(TileEntityType<? extends TileInventoryBase> type, String name, int size)
     {
-        this.name = name;
-        this.inventory = new InventoryHandler(size);
+        super(type);
+
+        inventory = new InventoryHandler(size);
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag)
+    public CompoundNBT write(CompoundNBT tag)
     {
-        super.writeToNBT(tag);
+        super.write(tag);
 
-        tag.setTag("inv", this.inventory.serializeNBT());
+        tag.put("inv", inventory.serializeNBT());
 
         return tag;
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound tag)
+    public void read(CompoundNBT tag)
     {
-        super.readFromNBT(tag);
+        super.read(tag);
 
-        this.inventory.deserializeNBT(tag.getCompoundTag("inv"));
-    }
-
-    @Override
-    public ITextComponent getDisplayName()
-    {
-        return new TextComponentTranslation(ArmedLogistics.MODID + ".gui." + this.getName() + ".name");
+        inventory.deserializeNBT(tag.getCompound("inv"));
     }
 
     public void dropInventory()
     {
-        for (int slot = 0; slot < this.inventory.getSlots(); slot++)
+        for (int slot = 0; slot < inventory.getSlots(); slot++)
         {
             if (!canDropSlot(slot))
                 continue;
-            InventoryHelper.spawnItemStack(this.world, this.getPos().getX(), this.getPos().getY(),
-                    this.getPos().getZ(), inventory.getStackInSlot(slot));
+            InventoryHelper.spawnItemStack(world, getPos().getX(), getPos().getY(),
+                    getPos().getZ(), inventory.getStackInSlot(slot));
         }
     }
 

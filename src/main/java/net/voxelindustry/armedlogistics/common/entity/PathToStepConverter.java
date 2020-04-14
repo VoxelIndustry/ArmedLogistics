@@ -1,6 +1,6 @@
 package net.voxelindustry.armedlogistics.common.entity;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.voxelindustry.armedlogistics.common.grid.Path;
@@ -37,7 +37,7 @@ public class PathToStepConverter
         int index = 1;
         boolean straightPath = isPathStraight(path);
 
-        EnumFacing endFacing = EnumFacing.getFacingFromVector(
+        Direction endFacing = Direction.getFacingFromVector(
                 path.getTo().getX() - path.getPoints().get(path.getPoints().size() - 2).getX(),
                 0,
                 path.getTo().getZ() - path.getPoints().get(path.getPoints().size() - 2).getZ()).getOpposite();

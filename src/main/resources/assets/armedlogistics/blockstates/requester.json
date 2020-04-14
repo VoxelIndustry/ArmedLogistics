@@ -1,0 +1,38 @@
+{
+  "defaults": {
+    "model": "block/cube",
+    "textures": {
+      "particle": "armedlogistics:blocks/provider_bottom",
+      "down": "armedlogistics:blocks/provider_bottom",
+      "up": "armedlogistics:blocks/requester_front",
+      "north": "armedlogistics:blocks/requester_front",
+      "east": "armedlogistics:blocks/requester_side_mirror",
+      "south": "armedlogistics:blocks/requester_back",
+      "west": "armedlogistics:blocks/requester_side"
+    }
+  },
+  "variants": {
+    "facing": {
+      "north": {
+      },
+      "east": {
+        "y": 90
+      },
+      "south": {
+        "y": 180
+      },
+      "west": {
+        "y": 270
+      },
+      "down": {
+        "textures": {
+          "down": "armedlogistics:blocks/requester_front",
+          "north": "armedlogistics:blocks/requester_back",
+          "east": "armedlogistics:blocks/requester_back",
+          "west": "armedlogistics:blocks/requester_back"
+        }
+      }
+    }
+  },
+  "forge_marker": 1
+}

@@ -1,95 +1,60 @@
 package net.voxelindustry.armedlogistics.common.block;
 
-import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyDirection;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.voxelindustry.armedlogistics.ArmedLogistics;
-import net.voxelindustry.armedlogistics.common.gui.GuiType;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.voxelindustry.armedlogistics.common.tile.TileArmReservoir;
 import net.voxelindustry.gizmos.Gizmos;
 import net.voxelindustry.gizmos.handle.TimedGizmoHandle;
 import net.voxelindustry.gizmos.widget.WindowGizmo;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 
-public class BlockArmReservoir extends net.voxelindustry.armedlogistics.common.block.BlockTileBase<TileArmReservoir>
+public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
 {
-    public static final PropertyDirection FACING = PropertyDirection.create("facing",
-            facing -> facing.getAxis().isHorizontal());
+    public static final DirectionProperty FACING = DirectionProperty.create("facing",
+            facing -> facing != Direction.UP);
 
-    public BlockArmReservoir()
+    public BlockArmReservoir(Properties properties)
     {
-        super("armreservoir", Material.WOOD, TileArmReservoir.class);
+        super(properties, TileArmReservoir.class);
 
-        setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+        setDefaultState(getStateContainer().getBaseState()
+                .with(FACING, Direction.NORTH));
     }
 
     @Override
-    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY,
-                                            float hitZ, int meta, EntityLivingBase placer)
+    public BlockState getStateForPlacement(BlockItemUseContext context)
     {
-        EnumFacing cable = null;
-        int count = 0;
+        Direction placingFacing = context.getFace().getOpposite();
 
-        for (EnumFacing side : EnumFacing.HORIZONTALS)
-        {
-            if (world.getBlockState(pos.offset(side)).getBlock() instanceof net.voxelindustry.armedlogistics.common.block.BlockCable)
-            {
-                cable = side;
-                count++;
-            }
-        }
-
-        if (count == 1)
-            return getDefaultState().withProperty(FACING, cable);
-        return getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+        if (placingFacing == Direction.UP)
+            placingFacing = Direction.DOWN;
+        return getDefaultState().with(FACING, placingFacing);
     }
 
     @Override
-    public IBlockState getStateFromMeta(int meta)
+    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder)
     {
-        return getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta));
+        builder.add(FACING);
     }
 
     @Override
-    public int getMetaFromState(IBlockState state)
-    {
-        return state.getValue(FACING).getIndex();
-    }
-
-    @Override
-    public IBlockState withRotation(IBlockState state, Rotation rot)
-    {
-        return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
-    }
-
-    @Override
-    public IBlockState withMirror(IBlockState state, Mirror mirror)
-    {
-        return state.withRotation(mirror.toRotation(state.getValue(FACING)));
-    }
-
-    @Override
-    protected BlockStateContainer createBlockState()
-    {
-        return new BlockStateContainer(this, FACING);
-    }
-
-    @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player,
-                                    EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit)
     {
         if (player.isSneaking())
         {
@@ -115,14 +80,15 @@ public class BlockArmReservoir extends net.voxelindustry.armedlogistics.common.b
             return false;
         }
 
-        player.openGui(ArmedLogistics.instance, GuiType.ARM_RESERVOIR.ordinal(),
-                world, pos.getX(), pos.getY(), pos.getZ());
+        if (world.isRemote)
+            return true;
+
+        NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) world.getTileEntity(pos), pos);
         return true;
     }
 
-    @Nullable
     @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta)
+    public TileEntity createTileEntity(BlockState state, IBlockReader reader)
     {
         return new TileArmReservoir();
     }

@@ -5,7 +5,6 @@ import mcjty.theoneprobe.api.IProbeInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
-import net.voxelindustry.armedlogistics.compat.top.FluidElement;
 import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
 @AllArgsConstructor
@@ -35,7 +34,7 @@ public class TileInfoListImpl implements ITileInfoList
     public void addFluid(FluidStack stack, int capacity)
     {
         if (stack != null)
-            probeInfo.element(new FluidElement(stack, stack.amount, capacity));
+            probeInfo.element(new FluidElement(stack, stack.getAmount(), capacity));
         else
             probeInfo.element(new FluidElement(null, 0, capacity));
     }

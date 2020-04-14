@@ -1,0 +1,8 @@
+{
+  "parent": "block/orientable",
+  "textures": {
+    "top": "armedlogistics:blocks/provider_bottom",
+    "front": "armedlogistics:blocks/armreservoir_front",
+    "side": "armedlogistics:blocks/armreservoir_side"
+  }
+}

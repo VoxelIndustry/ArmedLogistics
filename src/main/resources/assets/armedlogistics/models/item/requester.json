@@ -1,0 +1,10 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "up": "armedlogistics:blocks/requester_front",
+    "down": "armedlogistics:blocks/requester_front",
+    "north": "armedlogistics:blocks/requester_back",
+    "east": "armedlogistics:blocks/requester_back",
+    "west": "armedlogistics:blocks/requester_back"
+  }
+}

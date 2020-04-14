@@ -1,0 +1,10 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "up": "armedlogistics:blocks/storage_front",
+    "down": "armedlogistics:blocks/storage_front",
+    "north": "armedlogistics:blocks/storage_back",
+    "east": "armedlogistics:blocks/storage_back",
+    "west": "armedlogistics:blocks/storage_back"
+  }
+}

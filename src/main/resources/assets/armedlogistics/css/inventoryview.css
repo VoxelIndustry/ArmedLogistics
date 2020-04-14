@@ -1,0 +1,63 @@
+#stacks-panel {
+    background-texture: url("armedlogistics:textures/gui/inv_preview.png");
+}
+
+#stacks-panel:disabled {
+    background-color: #000000 25%;
+}
+
+#inv-label {
+    background-color: #71a3d6;
+    border-width: 1 1 0;
+    border-radius: 2 2 0 0;
+    border-color: #23405c;
+}
+
+#inv-label.status-invalid {
+    background-color: #d67b71;
+}
+
+#empty-label {
+    background-texture: url("armedlogistics:textures/gui/error-label.png");
+}
+
+#more-button {
+    background-texture: url("armedlogistics:textures/gui/more-bar.png");
+}
+
+#more-button:hover {
+    background-texture: url("armedlogistics:textures/gui/more-bar-hover.png");
+}
+
+#more-button text, #empty-label text {
+    color: #404040;
+}
+
+#inv-window {
+    background-texture: url("armedlogistics:textures/gui/inv-window.png");
+}
+
+scrollpane .grip-y {
+    background-texture: url("armedlogistics:textures/gui/inv-window-scroll.png");
+    background-color: rgba(0, 0, 0, 0);
+}
+
+scrollpane .grip-y:hover {
+    background-texture: url("armedlogistics:textures/gui/inv-window-scroll-hover.png");
+}
+
+.stack-slot {
+    background-texture: url("armedlogistics:textures/gui/inv-window-slot.png");
+}
+
+.shadow-rect {
+    background-color: #000000 25%;
+}
+
+#hide-button {
+    background-texture: url("armedlogistics:textures/gui/icon/eye_open.png");
+}
+
+#hide-button:active {
+    background-texture: url("armedlogistics:textures/gui/icon/eye_closed.png");
+}

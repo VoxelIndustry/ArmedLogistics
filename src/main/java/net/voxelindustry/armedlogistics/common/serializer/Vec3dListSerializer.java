@@ -2,7 +2,7 @@ package net.voxelindustry.armedlogistics.common.serializer;
 
 import io.netty.buffer.ByteBuf;
 import lombok.experimental.UtilityClass;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
@@ -34,25 +34,25 @@ public class Vec3dListSerializer
         return values;
     }
 
-    public static NBTTagCompound vec3dListToNBT(List<Vec3d> values)
+    public static CompoundNBT vec3dListToNBT(List<Vec3d> values)
     {
-        NBTTagCompound tag = new NBTTagCompound();
+        CompoundNBT tag = new CompoundNBT();
 
-        tag.setInteger("size", values.size());
+        tag.putInt("size", values.size());
 
         for (int i = 0; i < values.size(); i++)
         {
-            tag.setDouble("x" + i, values.get(i).x);
-            tag.setDouble("y" + i, values.get(i).y);
-            tag.setDouble("z" + i, values.get(i).z);
+            tag.putDouble("x" + i, values.get(i).x);
+            tag.putDouble("y" + i, values.get(i).y);
+            tag.putDouble("z" + i, values.get(i).z);
         }
 
         return tag;
     }
 
-    public static List<Vec3d> vec3dListFromNBT(NBTTagCompound tag)
+    public static List<Vec3d> vec3dListFromNBT(CompoundNBT tag)
     {
-        int size = tag.getInteger("size");
+        int size = tag.getInt("size");
         List<Vec3d> values = new ArrayList<>(size);
 
         for (int i = 0; i < size; i++)

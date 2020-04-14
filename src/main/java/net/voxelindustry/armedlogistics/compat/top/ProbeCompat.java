@@ -2,7 +2,6 @@ package net.voxelindustry.armedlogistics.compat.top;
 
 import mcjty.theoneprobe.TheOneProbe;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
-import net.voxelindustry.armedlogistics.compat.top.FluidElement;
 
 public class ProbeCompat
 {

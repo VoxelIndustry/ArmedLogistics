@@ -1,70 +1,60 @@
 package net.voxelindustry.armedlogistics.common.block;
 
-import net.minecraft.block.BlockContainer;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.renderer.chunk.ChunkRenderCache;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ChunkCache;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.voxelindustry.armedlogistics.ArmedLogistics;
-import net.voxelindustry.armedlogistics.common.tile.TileInventoryBase;
 import net.voxelindustry.steamlayer.tile.TileBase;
 
-public abstract class BlockTileBase<T extends TileBase> extends BlockContainer
+public abstract class BlockTileBase<T extends TileBase> extends Block
 {
     private Class<T> tileClass;
 
-    public BlockTileBase(String name, Material material, Class<T> tileClass)
+    public BlockTileBase(Properties properties, Class<T> tileClass)
     {
-        super(material);
-        this.setRegistryName(ArmedLogistics.MODID, name);
-        this.setTranslationKey(ArmedLogistics.MODID + "." + name);
-        this.setCreativeTab(ArmedLogistics.TAB_ALL);
-
+        super(properties);
         this.tileClass = tileClass;
     }
 
     @Override
-    public EnumBlockRenderType getRenderType(IBlockState state)
+    public void onReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean isMoving)
     {
-        return EnumBlockRenderType.MODEL;
-    }
-
-    @Override
-    public void breakBlock(final World world, final BlockPos pos, final IBlockState state)
-    {
-        final TileEntity tile = world.getTileEntity(pos);
-
-        if (tile instanceof TileInventoryBase)
+        if (state.getBlock() != newState.getBlock())
         {
-            ((TileInventoryBase) tile).dropInventory();
-            world.updateComparatorOutputLevel(pos, this);
-        }
+            TileEntity tileentity = world.getTileEntity(pos);
+            if (tileentity instanceof IInventory)
+            {
+                InventoryHelper.dropInventoryItems(world, pos, (IInventory) tileentity);
+                world.updateComparatorOutputLevel(pos, this);
+            }
 
-        super.breakBlock(world, pos, state);
+            super.onReplaced(state, world, pos, newState, isMoving);
+        }
     }
 
-    public T getWorldTile(IBlockAccess world, BlockPos pos)
+    public T getWorldTile(IWorldReader world, BlockPos pos)
     {
         return tileClass.cast(this.getRawWorldTile(world, pos));
     }
 
-    public TileEntity getRawWorldTile(IBlockAccess world, BlockPos pos)
+    public TileEntity getRawWorldTile(IWorldReader world, BlockPos pos)
     {
-        if (world instanceof ChunkCache)
-            return ((ChunkCache) world).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
+        if (world instanceof ChunkRenderCache)
+            return ((ChunkRenderCache) world).getTileEntity(pos, Chunk.CreateEntityType.CHECK);
         else
             return world.getTileEntity(pos);
     }
 
-    public boolean checkWorldTile(IBlockAccess world, BlockPos pos)
+    public boolean checkWorldTile(IWorldReader world, BlockPos pos)
     {
-        if (world instanceof ChunkCache)
-            return tileClass.isInstance(((ChunkCache) world).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK));
+        if (world instanceof ChunkRenderCache)
+            return tileClass.isInstance(((ChunkRenderCache) world).getTileEntity(pos, Chunk.CreateEntityType.CHECK));
         else
             return tileClass.isInstance(world.getTileEntity(pos));
     }
@@ -72,5 +62,11 @@ public abstract class BlockTileBase<T extends TileBase> extends BlockContainer
     public Class<T> getTileClass()
     {
         return tileClass;
+    }
+
+    @Override
+    public boolean hasTileEntity(BlockState state)
+    {
+        return true;
     }
 }

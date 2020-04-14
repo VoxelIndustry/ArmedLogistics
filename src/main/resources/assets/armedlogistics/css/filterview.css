@@ -1,0 +1,50 @@
+@import url("/assets/armedlogistics/css/ministatepopup.css");
+
+#filters-panel {
+    background-texture: url("armedlogistics:textures/gui/filter_whitelist.png");
+}
+
+#filterview.blacklist #filters-panel {
+    background-texture: url("armedlogistics:textures/gui/filter_blacklist.png");
+}
+
+#filter-switch-button {
+    background-texture: url("armedlogistics:textures/gui/filter_whitelist_button.png");
+}
+
+#filter-switch-button:hover {
+    background-texture: url("armedlogistics:textures/gui/filter_whitelist_button_hover.png");
+}
+
+#filterview.blacklist #filter-switch-button {
+    background-texture: url("armedlogistics:textures/gui/filter_blacklist_button.png");
+}
+
+#filterview.blacklist #filter-switch-button:hover {
+    background-texture: url("armedlogistics:textures/gui/filter_blacklist_button_hover.png");
+}
+
+#filterview.blacklist text {
+    color: #FFFFFF;
+}
+
+#filter-label {
+    background-color: #FFFFFF;
+    border-width: 1 1 0;
+    border-radius: 2 2 0 0;
+    border-color: black;
+}
+
+#filterview.blacklist #filter-label {
+    background-color: #919191;
+}
+
+#filterview.copypasting itemstack:hover {
+    border-color: #d67b71;
+    border-width: 1;
+}
+
+#filterview itemstack.selected, #filterview itemstack.selected:hover {
+    border-color: #28a745;
+    border-width: 1;
+}

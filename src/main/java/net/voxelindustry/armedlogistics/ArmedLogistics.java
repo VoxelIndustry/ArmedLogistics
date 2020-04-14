@@ -1,56 +1,58 @@
 package net.voxelindustry.armedlogistics;
 
-import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.voxelindustry.armedlogistics.common.CommonProxy;
-import net.voxelindustry.armedlogistics.common.CustomCreativeTab;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.voxelindustry.armedlogistics.client.ClientProxy;
+import net.voxelindustry.armedlogistics.common.ServerProxy;
+import net.voxelindustry.armedlogistics.common.TickHandler;
+import net.voxelindustry.armedlogistics.common.setup.ALBlocks;
+import net.voxelindustry.armedlogistics.common.setup.IProxy;
+import net.voxelindustry.armedlogistics.compat.CompatManager;
 import net.voxelindustry.brokkgui.BrokkGuiPlatform;
+import net.voxelindustry.steamlayer.common.container.CustomCreativeTab;
 import net.voxelindustry.steamlayer.grid.GridManager;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = ArmedLogistics.MODID, name = ArmedLogistics.NAME, version = ArmedLogistics.VERSION)
+@Mod(ArmedLogistics.MODID)
 public class ArmedLogistics
 {
     public static final String MODID   = "armedlogistics";
     public static final String NAME    = "Armed Logistics";
     public static final String VERSION = "0.1.0";
 
-    @Mod.Instance(MODID)
     public static ArmedLogistics instance;
 
-    public static final CreativeTabs TAB_ALL = new CustomCreativeTab(MODID);
+    public static final ItemGroup TAB_ALL = new CustomCreativeTab(MODID, () -> new ItemStack(ALBlocks.PROVIDER));
 
     public static Logger logger;
 
-    @SidedProxy(clientSide = "net.voxelindustry.armedlogistics.client.ClientProxy",
-            serverSide = "net.voxelindustry.armedlogistics.common.CommonProxy")
-    public static CommonProxy proxy;
+    public static IProxy proxy = DistExecutor.runForDist(() -> () -> new ClientProxy(), () -> () -> new ServerProxy());
 
     private GridManager gridManager;
 
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event)
+    public ArmedLogistics()
     {
-        logger = event.getModLog();
+        instance = this;
+        logger = LogManager.getLogger(ArmedLogistics.class);
 
-        proxy.preInit(event);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
     }
 
-    @EventHandler
-    public void init(FMLInitializationEvent event)
+    private void setup(FMLCommonSetupEvent e)
     {
-        proxy.init(event);
-    }
+        proxy.setup(e);
 
-    @EventHandler
-    public void postInit(FMLPostInitializationEvent event)
-    {
-        proxy.postInit(event);
+        CompatManager.setup(e);
+
+        gridManager = GridManager.createGetInstance(MODID);
+
+        MinecraftForge.EVENT_BUS.register(new TickHandler());
 
         BrokkGuiPlatform.getInstance().enableRenderDebug(true);
     }
@@ -58,7 +60,7 @@ public class ArmedLogistics
     public GridManager getGridManager()
     {
         if (gridManager == null)
-            this.gridManager = GridManager.createGetInstance(ArmedLogistics.MODID);
-        return this.gridManager;
+            gridManager = GridManager.createGetInstance(ArmedLogistics.MODID);
+        return gridManager;
     }
 }

@@ -1,7 +1,7 @@
 package net.voxelindustry.armedlogistics.common.entity;
 
 import lombok.Getter;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.Vec3d;
 
 public enum FacingLane
@@ -19,7 +19,7 @@ public enum FacingLane
         vector = new Vec3d(x, y, z);
     }
 
-    public static FacingLane fromFacing(EnumFacing facing)
+    public static FacingLane fromFacing(Direction facing)
     {
         switch (facing)
         {

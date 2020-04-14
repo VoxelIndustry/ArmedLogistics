@@ -2,21 +2,22 @@ package net.voxelindustry.armedlogistics.common.tile;
 
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.INameable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.IWorldNameable;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.IItemHandler;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 import net.voxelindustry.armedlogistics.common.block.BlockProvider;
 import net.voxelindustry.armedlogistics.common.grid.IRailConnectable;
-import net.voxelindustry.steamlayer.container.IContainerProvider;
 import net.voxelindustry.steamlayer.grid.CableGrid;
 import net.voxelindustry.steamlayer.grid.IConnectionAware;
 import net.voxelindustry.steamlayer.tile.ILoadable;
@@ -24,6 +25,7 @@ import net.voxelindustry.steamlayer.tile.ITileInfoList;
 import net.voxelindustry.steamlayer.tile.TileBase;
 import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -31,15 +33,15 @@ import java.util.List;
 import static net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY;
 
 @Getter
-public abstract class TileLogicisticNode extends TileBase implements IContainerProvider, ILoadable,
-        IConnectionAware, IRailConnectable, IWorldNameable
+public abstract class TileLogicisticNode extends TileBase implements INamedContainerProvider, ILoadable,
+        IConnectionAware, IRailConnectable, INameable
 {
     private BaseProperty<Boolean>      connectedInventoryProperty;
     private BaseProperty<IItemHandler> cachedInventoryProperty;
 
-    private List<EnumFacing> adjacentFacings;
+    private List<Direction> adjacentFacings;
 
-    private EnumMap<EnumFacing, IItemHandler> adjacentInventories;
+    private EnumMap<Direction, IItemHandler> adjacentInventories;
 
     private List<IItemHandler> inventories;
     private WrappedInventories wrappedInventories;
@@ -48,12 +50,14 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
 
     private TileCable cable;
 
-    private String  name;
-    private String  customName;
-    private boolean hasCustomName;
+    private String         name;
+    private ITextComponent customName;
+    private boolean        hasCustomName;
 
-    public TileLogicisticNode(String name)
+    public TileLogicisticNode(TileEntityType<? extends TileLogicisticNode> type,
+                              String name)
     {
+        super(type);
         this.name = name;
 
         connectedInventoryProperty = new BaseProperty<>(false, "connectedInventoryProperty");
@@ -61,7 +65,7 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
 
         adjacentFacings = new ArrayList<>();
 
-        adjacentInventories = new EnumMap<>(EnumFacing.class);
+        adjacentInventories = new EnumMap<>(Direction.class);
         inventories = new ArrayList<>(6);
 
         wrappedInventories = new WrappedInventories();
@@ -81,13 +85,13 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     }
 
     @Override
-    public void connectTrigger(EnumFacing facing, CableGrid grid)
+    public void connectTrigger(Direction facing, CableGrid grid)
     {
-        cable = (TileCable) world.getTileEntity(pos.offset(EnumFacing.UP, 2));
+        cable = (TileCable) world.getTileEntity(pos.offset(Direction.UP, 2));
     }
 
     @Override
-    public void disconnectTrigger(EnumFacing facing, CableGrid grid)
+    public void disconnectTrigger(Direction facing, CableGrid grid)
     {
         cable = null;
     }
@@ -95,11 +99,11 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     @Override
     public void load()
     {
-        BlockPos railPos = getPos().offset(EnumFacing.UP, 2);
+        BlockPos railPos = getPos().offset(Direction.UP, 2);
 
         TileEntity rail = world.getTileEntity(railPos);
         if (rail instanceof TileCable && ((TileCable) rail).hasGrid())
-            ((TileCable) rail).connectHandler(EnumFacing.DOWN, this, this);
+            ((TileCable) rail).connectHandler(Direction.DOWN, this, this);
 
         hasLoaded = true;
         addFacing(getFacing().getOpposite());
@@ -108,7 +112,7 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     public void disconnectGrid()
     {
         if (cable != null)
-            cable.disconnectHandler(EnumFacing.DOWN, this);
+            cable.disconnectHandler(Direction.DOWN, this);
     }
 
     public void onAdjacentRefresh()
@@ -122,24 +126,23 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         }
 
         adjacentInventories.clear();
-        for (EnumFacing facing : EnumFacing.values())
+        for (Direction facing : Direction.values())
         {
-            if (tile.hasCapability(ITEM_HANDLER_CAPABILITY, facing))
-                adjacentInventories.put(facing, tile.getCapability(ITEM_HANDLER_CAPABILITY, facing));
+            tile.getCapability(ITEM_HANDLER_CAPABILITY, facing).ifPresent(itemHandler -> adjacentInventories.put(facing, itemHandler));
         }
 
         if (!adjacentInventories.isEmpty())
             connectedInventoryProperty.setValue(true);
 
         inventories.clear();
-        for (EnumFacing facing : adjacentFacings)
+        for (Direction facing : adjacentFacings)
         {
             if (adjacentInventories.containsKey(facing))
                 inventories.add(adjacentInventories.get(facing));
         }
     }
 
-    protected void addFacing(EnumFacing facing)
+    protected void addFacing(Direction facing)
     {
         if (adjacentFacings.contains(facing))
             return;
@@ -147,13 +150,13 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
         onAdjacentRefresh();
     }
 
-    protected void removeFacing(EnumFacing facing)
+    protected void removeFacing(Direction facing)
     {
         adjacentFacings.remove(facing);
         onAdjacentRefresh();
     }
 
-    protected void setFacing(EnumFacing facing, int index)
+    protected void setFacing(Direction facing, int index)
     {
         if (adjacentFacings.contains(facing))
             return;
@@ -170,44 +173,44 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound tag)
+    public void read(CompoundNBT tag)
     {
-        super.readFromNBT(tag);
+        super.read(tag);
 
         hasCustomName = tag.getBoolean("hasCustomName");
 
         if (hasCustomName())
-            customName = tag.getString("customName");
+            customName = new StringTextComponent(tag.getString("customName"));
 
-        int adjacentFacings = tag.getInteger("adjacentFacings");
+        int adjacentFacings = tag.getInt("adjacentFacings");
         for (int i = 0; i < adjacentFacings; i++)
-            getAdjacentFacings().add(EnumFacing.byIndex(tag.getInteger("adjacentFacing" + i)));
+            getAdjacentFacings().add(Direction.byIndex(tag.getInt("adjacentFacing" + i)));
 
         if (isServer() && hasLoaded)
             onAdjacentRefresh();
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag)
+    public CompoundNBT write(CompoundNBT tag)
     {
         if (customName != null)
-            tag.setString("customName", customName);
-        tag.setBoolean("hasCustomName", hasCustomName);
+            tag.putString("customName", customName.getUnformattedComponentText());
+        tag.putBoolean("hasCustomName", hasCustomName);
 
         for (int i = 0; i < getAdjacentFacings().size(); i++)
-            tag.setInteger("adjacentFacing" + i, getAdjacentFacings().get(i).getIndex());
-        tag.setInteger("adjacentFacings", getAdjacentFacings().size());
+            tag.putInt("adjacentFacing" + i, getAdjacentFacings().get(i).getIndex());
+        tag.putInt("adjacentFacings", getAdjacentFacings().size());
 
-        return super.writeToNBT(tag);
+        return super.write(tag);
     }
 
-    public EnumFacing getFacing()
+    public Direction getFacing()
     {
-        IBlockState state = world.getBlockState(pos);
+        BlockState state = world.getBlockState(pos);
 
         if (state.getBlock() == Blocks.AIR)
-            return EnumFacing.DOWN;
-        return state.getValue(BlockProvider.FACING);
+            return Direction.DOWN;
+        return state.get(BlockProvider.FACING);
     }
 
     public BlockPos getRailPos()
@@ -216,29 +219,35 @@ public abstract class TileLogicisticNode extends TileBase implements IContainerP
     }
 
     @Override
-    public String getName()
+    public ITextComponent getName()
     {
         if (hasCustomName())
             return getCustomName();
-        return ArmedLogistics.MODID + ".gui." + name + ".name";
+        return new TranslationTextComponent(ArmedLogistics.MODID + ".gui." + name + ".name");
+    }
+
+    @Override
+    public ITextComponent getDisplayName()
+    {
+        return getName();
+    }
+
+    @Override
+    @Nullable
+    public ITextComponent getCustomName()
+    {
+        return customName;
     }
 
     public void setCustomName(String name)
     {
         hasCustomName = true;
-        customName = name;
+        customName = new StringTextComponent(name);
     }
 
     @Override
     public boolean hasCustomName()
     {
         return hasCustomName;
-    }
-
-    @Override
-    public ITextComponent getDisplayName()
-    {
-        return (hasCustomName() ? new TextComponentString(getName()) :
-                new TextComponentTranslation(getName()));
     }
 }

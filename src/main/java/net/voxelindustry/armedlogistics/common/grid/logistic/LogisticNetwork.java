@@ -4,7 +4,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.DyeColor;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.voxelindustry.armedlogistics.common.grid.RailGrid;
@@ -287,7 +287,7 @@ public class LogisticNetwork<T>
         return order;
     }
 
-    public ColoredOrder<T> makeOrder(Requester<T> requester, EnumDyeColor color, int quantity)
+    public ColoredOrder<T> makeOrder(Requester<T> requester, DyeColor color, int quantity)
     {
         ColoredOrder<T> order = new ColoredOrder<>(new ColoredStack(color, quantity), requester);
         order.setState(SUBMITTED);
@@ -309,7 +309,7 @@ public class LogisticNetwork<T>
         return order;
     }
 
-    public ColoredOrder<T> makeRemovalOrder(ColoredProvider<T> provider, EnumDyeColor color, int quantity)
+    public ColoredOrder<T> makeRemovalOrder(ColoredProvider<T> provider, DyeColor color, int quantity)
     {
         ColoredOrder<T> order = new ColoredOrder<>(new ColoredStack(color, quantity), provider);
         order.setState(SUBMITTED);

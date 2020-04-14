@@ -1,0 +1,72 @@
+{
+    "_comment": "Guis",
+
+    "armedlogistics.gui.provider.name": "Provider",
+    "armedlogistics.gui.provider_colored": "Colored Provider",
+    "armedlogistics.gui.requester.name": "Requester",
+    "armedlogistics.gui.storage.name": "Buffer Storage",
+    "armedlogistics.gui.armreservoir.name": "Arm Reservoir",
+
+    "armedlogistics.gui.inventory.where": "%s %s",
+    "armedlogistics.gui.inventory.notwhere": "No Inventory %s",
+    "armedlogistics.gui.inventory.genericname": "Inventory",
+    "armedlogistics.gui.inventory.more": "Show §o%d§r more",
+    "armedlogistics.gui.inventory.empty": "Empty inventory",
+    "armedlogistics.gui.inventory.hidefiltered.on": "Hide filtereds items",
+    "armedlogistics.gui.inventory.hidefiltered.off": "Show filtereds items",
+
+    "armedlogistics.gui.request.title": "Requests",
+    "armedlogistics.gui.sok.supply": "Supply",
+    "armedlogistics.gui.sok.once": "Once",
+    "armedlogistics.gui.sok.keep": "Keep",
+
+    "armedlogistics.gui.filter.title": "Filters",
+    "armedlogistics.gui.filter.whitelist": "Whitelist",
+    "armedlogistics.gui.filter.blacklist": "Blacklist",
+
+    "armedlogistics.gui.armreservoir.busy": "§o%d§r busy arms",
+    "armedlogistics.gui.armreservoir.returning": "§o%d§r returning arms",
+    "armedlogistics.gui.armreservoir.blocked": "§o%d§r blocked arms",
+
+    "armedlogistics.gui.facing.north": "at §lNorth",
+    "armedlogistics.gui.facing.south": "at §lSouth",
+    "armedlogistics.gui.facing.east": "at §lEast",
+    "armedlogistics.gui.facing.west": "at §lWest",
+    "armedlogistics.gui.facing.up": "§lAbove",
+    "armedlogistics.gui.facing.down": "§lBelow",
+
+    "armedlogistics.gui.facinglist.cardinal.north": "North",
+    "armedlogistics.gui.facinglist.cardinal.south": "South",
+    "armedlogistics.gui.facinglist.cardinal.east": "East",
+    "armedlogistics.gui.facinglist.cardinal.west": "West",
+    "armedlogistics.gui.facinglist.cardinal.up": "Up",
+    "armedlogistics.gui.facinglist.cardinal.down": "Down",
+
+    "armedlogistics.gui.facinglist.relative.north": "Front",
+    "armedlogistics.gui.facinglist.relative.south": "Back",
+    "armedlogistics.gui.facinglist.relative.east": "Left",
+    "armedlogistics.gui.facinglist.relative.west": "Right",
+    "armedlogistics.gui.facinglist.relative.up": "Above",
+    "armedlogistics.gui.facinglist.relative.down": "Below",
+    "armedlogistics.gui.facinglist.title": "Faces",
+
+    "armedlogistics.gui.facingtab": "Facing Configuration",
+    "armedlogistics.gui.facingtab.noinv": "No Inventory",
+
+    "armedlogistics.gui.copy": "Copied!",
+    "armedlogistics.gui.paste": "Pasted!",
+
+    "armedlogistics.gui.slot.singular": "Slot",
+    "armedlogistics.gui.slot.plural": "Slots",
+
+    "_comment": "Blocks",
+    "block.armedlogistics.provider_active": "Active Provider",
+    "block.armedlogistics.provider_passive": "Passive Provider",
+    "block.armedlogistics.storage": "Storage",
+    "block.armedlogistics.requester": "Requester",
+    "block.armedlogistics.armreservoir": "Arm Reservoir",
+    "block.armedlogistics.blockcable": "Rail",
+
+    "_comment": "Items",
+    "item.armedlogistics.logisticarm": "Logistic Arm"
+}

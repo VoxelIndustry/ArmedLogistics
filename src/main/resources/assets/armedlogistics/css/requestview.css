@@ -1,0 +1,13 @@
+@import url("/assets/armedlogistics/css/ministatepopup.css");
+
+#requestview {
+    background-texture: url("armedlogistics:textures/gui/requestview.png");
+    background-position: 9 0 0;
+}
+
+#request-label {
+    background-color: #B4CD7A;
+    border-width: 1 1 0;
+    border-radius: 2 2 0 0;
+    border-color: #485922;
+}

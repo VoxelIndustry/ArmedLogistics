@@ -2,7 +2,7 @@ package net.voxelindustry.armedlogistics.client.gui.tab;
 
 import lombok.Getter;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 import net.voxelindustry.brokkgui.data.RectAlignment;
 import net.voxelindustry.brokkgui.data.RectBox;
@@ -19,7 +19,7 @@ public class FacingSlot extends GuiToggleButton
     @Getter
     private int    slot;
 
-    public FacingSlot(EnumFacing facing, String name, int slots)
+    public FacingSlot(Direction facing, String name, int slots)
     {
         addStyleClass("facing-slot");
         addStyleClass("facing-" + facing.getName2());

@@ -1,7 +1,7 @@
 package net.voxelindustry.armedlogistics.common.entity;
 
 import lombok.Getter;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -26,24 +26,24 @@ public enum FacingCorner
         vector = new Vec3d(x, y, z);
     }
 
-    public static FacingCorner fromFacings(EnumFacing from, EnumFacing to)
+    public static FacingCorner fromFacings(Direction from, Direction to)
     {
         switch (from)
         {
             case NORTH:
-                if (to == EnumFacing.EAST)
+                if (to == Direction.EAST)
                     return NORTH_EAST;
                 return NORTH_WEST;
             case SOUTH:
-                if (to == EnumFacing.EAST)
+                if (to == Direction.EAST)
                     return SOUTH_EAST;
                 return SOUTH_WEST;
             case WEST:
-                if (to == EnumFacing.NORTH)
+                if (to == Direction.NORTH)
                     return WEST_NORTH;
                 return WEST_SOUTH;
             case EAST:
-                if (to == EnumFacing.NORTH)
+                if (to == Direction.NORTH)
                     return EAST_NORTH;
                 return EAST_SOUTH;
         }
@@ -52,7 +52,7 @@ public enum FacingCorner
 
     public static FacingCorner fromBlockPos(BlockPos from, BlockPos to)
     {
-        return fromFacings(EnumFacing.getFacingFromVector(from.getX(), from.getY(), from.getZ()),
-                EnumFacing.getFacingFromVector(to.getX(), to.getY(), to.getZ()));
+        return fromFacings(Direction.getFacingFromVector(from.getX(), from.getY(), from.getZ()),
+                Direction.getFacingFromVector(to.getX(), to.getY(), to.getZ()));
     }
 }

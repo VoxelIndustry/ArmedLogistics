@@ -3,20 +3,20 @@ package net.voxelindustry.armedlogistics.client.gui;
 import fr.ourten.teabeans.value.Observable;
 import lombok.AccessLevel;
 import lombok.Getter;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 import net.voxelindustry.armedlogistics.client.gui.component.FilterView;
 import net.voxelindustry.armedlogistics.client.gui.component.InventoryView;
-import net.voxelindustry.armedlogistics.common.init.WGBlocks;
+import net.voxelindustry.armedlogistics.common.setup.ALBlocks;
 import net.voxelindustry.armedlogistics.common.tile.TileActiveProvider;
 import net.voxelindustry.armedlogistics.common.tile.TileProvider;
 import net.voxelindustry.armedlogistics.common.tile.TileStorage;
 import net.voxelindustry.brokkgui.component.GuiNode;
-import net.voxelindustry.brokkgui.paint.Texture;
+import net.voxelindustry.brokkgui.sprite.Texture;
+import net.voxelindustry.steamlayer.common.utils.ItemUtils;
+import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.sync.SyncedValue;
 import net.voxelindustry.steamlayer.network.action.ServerActionBuilder;
-import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,27 +33,27 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
 
     private final List<GuiNode> elements = new ArrayList<>();
 
-    public GuiProvider(EntityPlayer player, TileProvider provider)
+    public GuiProvider(BuiltContainer container)
     {
-        super(player, provider);
+        super(container);
 
-        inventoryView = new InventoryView(this, provider);
-        inventoryView.getShowFiltered().setValue(provider.isShowFiltereds());
+        inventoryView = new InventoryView(this, getTile());
+        inventoryView.getShowFiltered().setValue(getTile().isShowFiltereds());
         inventoryView.getShowFiltered().addListener(this::onFilteredShownChange);
         getContainer().addSyncCallback("filteredShown", this::onFilteredShownSync);
 
         body.addChild(inventoryView, 6, 57);
 
         updateStatusStyle();
-        getListeners().attach(provider.getConnectedInventoryProperty(), obs -> updateStatusStyle());
+        getListeners().attach(getTile().getConnectedInventoryProperty(), obs -> updateStatusStyle());
 
-        filterView = new FilterView(provider.getWhitelistProperty()::getValue, this::onWhitelistChange,
-                provider.getFilters(), this::onFilterChange);
+        filterView = new FilterView(getTile().getWhitelistProperty()::getValue, this::onWhitelistChange,
+                getTile().getFilters(), this::onFilterChange);
         getContainer().addSyncCallback("filters", this::onFilterSync);
 
         body.addChild(filterView, 6, 17);
 
-        getListeners().attach(provider.getWhitelistProperty(),
+        getListeners().attach(getTile().getWhitelistProperty(),
                 (obs, oldValue, newValue) ->
                 {
                     filterView.refreshWhitelist(newValue);
@@ -96,11 +96,11 @@ public class GuiProvider extends GuiLogisticNode<TileProvider>
         if (icon == null)
         {
             if (getTile() instanceof TileStorage)
-                icon = new ItemStack(WGBlocks.STORAGE);
+                icon = new ItemStack(ALBlocks.STORAGE);
             else if (getTile() instanceof TileActiveProvider)
-                icon = new ItemStack(WGBlocks.ACTIVE_PROVIDER);
+                icon = new ItemStack(ALBlocks.ACTIVE_PROVIDER);
             else
-                icon = new ItemStack(WGBlocks.PROVIDER);
+                icon = new ItemStack(ALBlocks.PROVIDER);
         }
         return icon;
     }

@@ -170,6 +170,6 @@ public class FilterView extends GuiAbsolutePane implements ICopyPasteHandler<Mut
     private void showCopiedPopup(MutableItemStackView node)
     {
         PopupHandler.getInstance(getWindow()).addPopup(new MiniStatePopup(node,
-                I18n.format("woodengears.gui.copy")));
+                I18n.format("armedlogistics.gui.copy")));
     }
 }

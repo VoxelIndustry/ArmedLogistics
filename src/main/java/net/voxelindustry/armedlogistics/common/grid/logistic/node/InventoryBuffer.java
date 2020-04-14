@@ -2,9 +2,9 @@ package net.voxelindustry.armedlogistics.common.grid.logistic.node;
 
 import lombok.Getter;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
-import net.voxelindustry.steamlayer.utils.ItemUtils;
+import net.voxelindustry.steamlayer.common.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,20 +122,20 @@ public class InventoryBuffer
         return this.getCurrentCount() >= this.getCountCapacity();
     }
 
-    public NBTTagCompound writeNBT(NBTTagCompound tag)
+    public CompoundNBT writeNBT(CompoundNBT tag)
     {
         for (int i = 0; i < stacks.size(); i++)
         {
             ItemStack stack = stacks.get(i);
 
-            tag.setTag("stack" + i, stack.writeToNBT(new NBTTagCompound()));
+            tag.put("stack" + i, stack.serializeNBT());
         }
         return tag;
     }
 
-    public void readNBT(NBTTagCompound tag)
+    public void readNBT(CompoundNBT tag)
     {
         for (int i = 0; i < this.typeCapacity; i++)
-            stacks.set(i, new ItemStack(tag.getCompoundTag("stack" + i)));
+            stacks.set(i, ItemStack.read(tag.getCompound("stack" + i)));
     }
 }

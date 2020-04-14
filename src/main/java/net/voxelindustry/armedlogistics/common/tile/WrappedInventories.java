@@ -118,4 +118,20 @@ public class WrappedInventories implements IItemHandler
         }
         return 0;
     }
+
+    @Override
+    public boolean isItemValid(int slot, @Nonnull ItemStack stack)
+    {
+        if (inventories.isEmpty())
+            return false;
+
+        int slots = 0;
+        for (IItemHandler inventory : inventories)
+        {
+            if (slots + inventory.getSlots() > slot)
+                return inventory.isItemValid(slot, stack);
+            slots += inventory.getSlots();
+        }
+        return false;
+    }
 }

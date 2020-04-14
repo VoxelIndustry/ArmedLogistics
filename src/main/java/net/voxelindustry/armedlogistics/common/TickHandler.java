@@ -1,7 +1,7 @@
 package net.voxelindustry.armedlogistics.common;
 
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 
 public class TickHandler

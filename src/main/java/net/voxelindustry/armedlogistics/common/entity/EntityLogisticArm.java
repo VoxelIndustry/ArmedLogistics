@@ -1,14 +1,17 @@
 package net.voxelindustry.armedlogistics.common.entity;
 
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.network.play.server.SSpawnObjectPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
@@ -40,7 +43,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     private static final DataParameter<Float>     DAMAGE     =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.FLOAT);
     private static final DataParameter<ItemStack> ITEM       =
-            EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.ITEM_STACK);
+            EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.ITEMSTACK);
     private static final DataParameter<Integer>   PATH_INDEX =
             EntityDataManager.createKey(EntityLogisticArm.class, DataSerializers.VARINT);
 
@@ -60,15 +63,14 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     @Getter
     private ItemStack stack = EMPTY;
 
-    public EntityLogisticArm(World worldIn)
+    public EntityLogisticArm(EntityType<Entity> type, World world)
     {
-        super(worldIn);
-        setSize(0.3525F, 1.0F);
+        super(type, world);
     }
 
     public EntityLogisticArm(World world, LogisticShipment<ItemStack> shipment, TileArmReservoir reservoir, Path reservoirToProvider, Path providerToRequester, Path requesterToReservoir)
     {
-        this(world);
+        this(WGEntity.LOGISTIC_ARM, world);
 
         this.shipment = shipment;
 
@@ -83,9 +85,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
         Vec3d pos = steps.get(0);
 
         setPositionAndRotation(pos.x, pos.y - 0.0625D, pos.z, 0.0F, 90.0F);
-        motionX = 0.0D;
-        motionY = 0.0D;
-        motionZ = 0.0D;
+        setMotion(0, 0, 0);
         prevPosX = pos.x;
         prevPosY = pos.y;
         prevPosZ = pos.z;
@@ -114,7 +114,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     }
 
     @Override
-    public void onUpdate()
+    public void tick()
     {
         if (steps != null)
         {
@@ -201,7 +201,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
     private void completeShipment()
     {
-        setDead();
+        remove();
     }
 
     private double getSpeed()
@@ -253,7 +253,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     /////////////////////
 
     @Override
-    protected void entityInit()
+    protected void registerData()
     {
         dataManager.register(DAMAGE, 0.0F);
         dataManager.register(ITEM, EMPTY);
@@ -275,52 +275,58 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     }
 
     @Override
+    public IPacket<?> createSpawnPacket()
+    {
+        return new SSpawnObjectPacket(this);
+    }
+
+    @Override
     public boolean attackEntityFrom(DamageSource source, float amount)
     {
         return false;
     }
 
     @Override
-    protected void readEntityFromNBT(NBTTagCompound tag)
+    protected void readAdditional(CompoundNBT tag)
     {
-        stack = new ItemStack(tag.getCompoundTag("itemstack"));
+        stack = ItemStack.read(tag.getCompound("itemstack"));
 
-        pickupCount = tag.getInteger("pickupCount");
+        pickupCount = tag.getInt("pickupCount");
 
-        steps = Vec3dListSerializer.vec3dListFromNBT(tag.getCompoundTag("steps"));
-        shipment = LogisticShipmentSerializer.itemShipmentFromNBT(tag.getCompoundTag("shipment"));
+        steps = Vec3dListSerializer.vec3dListFromNBT(tag.getCompound("steps"));
+        shipment = LogisticShipmentSerializer.itemShipmentFromNBT(tag.getCompound("shipment"));
 
-        index = tag.getInteger("currentIndex");
-        pickupIndex = tag.getInteger("pickupIndex");
-        dropIndex = tag.getInteger("dropIndex");
+        index = tag.getInt("currentIndex");
+        pickupIndex = tag.getInt("pickupIndex");
+        dropIndex = tag.getInt("dropIndex");
 
-        pickupCount = tag.getInteger("pickupCount");
+        pickupCount = tag.getInt("pickupCount");
 
-        armState = LogisticArmState.values()[tag.getInteger("armState")];
-        armBlockCause = LogisticArmBlockCause.values()[tag.getInteger("blockState")];
+        armState = LogisticArmState.values()[tag.getInt("armState")];
+        armBlockCause = LogisticArmBlockCause.values()[tag.getInt("blockState")];
     }
 
     @Override
-    protected void writeEntityToNBT(NBTTagCompound tag)
+    public void writeAdditional(CompoundNBT tag)
     {
-        tag.setTag("itemstack", stack.writeToNBT(new NBTTagCompound()));
+        tag.put("itemstack", stack.serializeNBT());
 
-        tag.setInteger("pickupCount", pickupCount);
+        tag.putInt("pickupCount", pickupCount);
 
-        tag.setTag("steps", Vec3dListSerializer.vec3dListToNBT(steps));
-        tag.setTag("shipment", LogisticShipmentSerializer.itemShipmentToNBT(shipment));
+        tag.put("steps", Vec3dListSerializer.vec3dListToNBT(steps));
+        tag.put("shipment", LogisticShipmentSerializer.itemShipmentToNBT(shipment));
 
-        tag.setInteger("currentIndex", index);
-        tag.setInteger("pickupIndex", pickupIndex);
-        tag.setInteger("dropIndex", dropIndex);
+        tag.putInt("currentIndex", index);
+        tag.putInt("pickupIndex", pickupIndex);
+        tag.putInt("dropIndex", dropIndex);
 
-        tag.setInteger("pickupCount", pickupCount);
-        tag.setInteger("armState", armState.ordinal());
-        tag.setInteger("blockState", armBlockCause.ordinal());
+        tag.putInt("pickupCount", pickupCount);
+        tag.putInt("armState", armState.ordinal());
+        tag.putInt("blockState", armBlockCause.ordinal());
     }
 
     @Override
-    public void writeSpawnData(ByteBuf buffer)
+    public void writeSpawnData(PacketBuffer buffer)
     {
         Vec3dListSerializer.vec3dListToByteBuf(steps, buffer);
         LogisticShipmentSerializer.itemShipmentToByteBuf(shipment, buffer);
@@ -330,7 +336,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     }
 
     @Override
-    public void readSpawnData(ByteBuf buffer)
+    public void readSpawnData(PacketBuffer buffer)
     {
         steps = Vec3dListSerializer.vec3dListFromByteBuf(buffer);
         shipment = LogisticShipmentSerializer.itemShipmentFromByteBuf(buffer);

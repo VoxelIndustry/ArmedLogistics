@@ -94,7 +94,7 @@ public class RailGrid extends CableGrid
                 Path requesterToReservoir = getPath(shipment.getTo(), closestReservoirPos.get());
 
                 EntityLogisticArm arm = new EntityLogisticArm(provider.getWorld(), shipment, reservoir, reservoirToProvider, providerToRequester, requesterToReservoir);
-                provider.getWorld().spawnEntity(arm);
+                provider.getWorld().addEntity(arm);
 
                 shipment.setArmID(arm.getUniqueID());
                 shipped.add(shipment);

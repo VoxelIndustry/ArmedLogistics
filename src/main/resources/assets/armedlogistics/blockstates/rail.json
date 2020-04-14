@@ -1,0 +1,44 @@
+{
+  "multipart": [
+    {
+      "when": {"north": false, "east": false, "west": false, "south": false, "connected": false},
+      "apply": { "model": "armedlogistics:block/rail_single" }
+    },
+    {
+      "when": {"north": true, "east": false, "west": false, "south": false, "connected": false},
+      "apply": { "model": "armedlogistics:block/rail_mono" }
+    },
+    {
+      "when": {"north": false, "east": true, "west": false, "south": false, "connected": false},
+      "apply": { "model": "armedlogistics:block/rail_mono", "y": 90, "uvlock": false }
+    },
+    {
+      "when": {"north": false, "east": false, "west": true, "south": false, "connected": false},
+      "apply": { "model": "armedlogistics:block/rail_mono", "y": 270, "uvlock": false }
+    },
+    {
+      "when": {"north": false, "east": false, "west": false, "south": true, "connected": false},
+      "apply": { "model": "armedlogistics:block/rail_mono", "y": 180, "uvlock": false }
+    },
+    {
+      "when": {"connected":  true},
+      "apply": { "model":  "block/birch_fence_post", "y":  90}
+    },
+    {
+      "when": { "north": true },
+      "apply": { "model": "block/acacia_fence_side", "uvlock": true }
+    },
+    {
+      "when": { "east": true },
+      "apply": { "model": "block/acacia_fence_side", "y": 90, "uvlock": true }
+    },
+    {
+      "when": { "south": true },
+      "apply": { "model": "block/acacia_fence_side", "y": 180, "uvlock": true }
+    },
+    {
+      "when": { "west": true },
+      "apply": { "model": "block/acacia_fence_side", "y": 270, "uvlock": true }
+    }
+  ]
+}

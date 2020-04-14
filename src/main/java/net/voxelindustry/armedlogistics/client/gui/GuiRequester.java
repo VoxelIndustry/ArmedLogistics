@@ -2,20 +2,20 @@ package net.voxelindustry.armedlogistics.client.gui;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 import net.voxelindustry.armedlogistics.client.gui.component.InventoryView;
 import net.voxelindustry.armedlogistics.client.gui.component.RequestView;
 import net.voxelindustry.armedlogistics.client.gui.component.SOKCombo;
 import net.voxelindustry.armedlogistics.common.grid.logistic.node.RequesterMode;
-import net.voxelindustry.armedlogistics.common.init.WGBlocks;
+import net.voxelindustry.armedlogistics.common.setup.ALBlocks;
 import net.voxelindustry.armedlogistics.common.tile.TileRequester;
 import net.voxelindustry.brokkgui.component.GuiNode;
-import net.voxelindustry.brokkgui.paint.Texture;
+import net.voxelindustry.brokkgui.sprite.Texture;
+import net.voxelindustry.steamlayer.common.utils.ItemUtils;
+import net.voxelindustry.steamlayer.container.BuiltContainer;
 import net.voxelindustry.steamlayer.container.sync.SyncedValue;
 import net.voxelindustry.steamlayer.network.action.ServerActionBuilder;
-import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,24 +35,24 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
 
     private final List<GuiNode> elements = new ArrayList<>();
 
-    public GuiRequester(EntityPlayer player, TileRequester requester)
+    public GuiRequester(BuiltContainer container)
     {
-        super(player, requester);
+        super(container);
 
-        sokCombo = new SOKCombo(requester.getRequester().getMode(), this::onModeChange);
+        sokCombo = new SOKCombo(getTile().getRequester().getMode(), this::onModeChange);
         getContainer().addSyncCallback("mode", this::onModeSync);
         getMainPanel().addChild(sokCombo, 0, 4 + TAB_HEIGHT);
 
         sokOffset = (int) sokCombo.getWidth() + 4;
         getContainer().inventorySlots.forEach(slot -> slot.xPos += sokOffset / 2 + 1);
 
-        inventoryView = new InventoryView(this, requester);
+        inventoryView = new InventoryView(this, getTile());
         body.addChild(inventoryView, 6, 52);
 
         updateStatusStyle();
-        getListeners().attach(requester.getConnectedInventoryProperty(), obs -> updateStatusStyle());
+        getListeners().attach(getTile().getConnectedInventoryProperty(), obs -> updateStatusStyle());
 
-        requestView = new RequestView(requester.getRequester().getRequests(), this::onRequestChange);
+        requestView = new RequestView(getTile().getRequester().getRequests(), this::onRequestChange);
         getContainer().addSyncCallback("requests", this::onRequestSync);
         body.addChild(requestView, 6, 20);
 
@@ -89,7 +89,7 @@ public class GuiRequester extends GuiLogisticNode<TileRequester>
     public ItemStack getIcon()
     {
         if (icon == null)
-            icon = new ItemStack(WGBlocks.REQUESTER);
+            icon = new ItemStack(ALBlocks.REQUESTER);
         return icon;
     }
 

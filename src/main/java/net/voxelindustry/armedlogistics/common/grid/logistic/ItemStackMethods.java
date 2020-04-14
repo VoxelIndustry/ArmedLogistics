@@ -1,7 +1,7 @@
 package net.voxelindustry.armedlogistics.common.grid.logistic;
 
 import net.minecraft.item.ItemStack;
-import net.voxelindustry.steamlayer.utils.ItemUtils;
+import net.voxelindustry.steamlayer.common.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;

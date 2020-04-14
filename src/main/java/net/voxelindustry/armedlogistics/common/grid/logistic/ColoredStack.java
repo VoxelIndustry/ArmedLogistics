@@ -2,25 +2,25 @@ package net.voxelindustry.armedlogistics.common.grid.logistic;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import net.minecraft.item.EnumDyeColor;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.item.DyeColor;
+import net.minecraft.nbt.CompoundNBT;
 
 @Data
 @AllArgsConstructor
 public class ColoredStack
 {
-    private EnumDyeColor color;
-    private int          quantity;
+    private DyeColor color;
+    private int      quantity;
 
-    public ColoredStack(NBTTagCompound tag)
+    public ColoredStack(CompoundNBT tag)
     {
-        this(EnumDyeColor.values()[tag.getInteger("color")], tag.getInteger("quantity"));
+        this(DyeColor.values()[tag.getInt("color")], tag.getInt("quantity"));
     }
 
-    public NBTTagCompound toNBT(NBTTagCompound tag)
+    public CompoundNBT toNBT(CompoundNBT tag)
     {
-        tag.setInteger("color", color.ordinal());
-        tag.setInteger("quantity", quantity);
+        tag.putInt("color", color.ordinal());
+        tag.putInt("quantity", quantity);
         return tag;
     }
 }

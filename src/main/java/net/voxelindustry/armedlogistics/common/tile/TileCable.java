@@ -2,9 +2,9 @@ package net.voxelindustry.armedlogistics.common.tile;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
@@ -12,6 +12,7 @@ import net.voxelindustry.armedlogistics.client.render.WGOBJState;
 import net.voxelindustry.armedlogistics.common.grid.IRailConnectable;
 import net.voxelindustry.armedlogistics.common.grid.ITileRail;
 import net.voxelindustry.armedlogistics.common.grid.RailGrid;
+import net.voxelindustry.armedlogistics.common.setup.ALTiles;
 import net.voxelindustry.steamlayer.grid.IConnectionAware;
 import net.voxelindustry.steamlayer.grid.ITileCable;
 import net.voxelindustry.steamlayer.grid.ITileNode;
@@ -31,21 +32,23 @@ import java.util.stream.Collectors;
 
 public class TileCable extends TileBase implements ITileRail, ILoadable
 {
-    protected final EnumSet<EnumFacing>                       renderConnections;
+    protected final EnumSet<Direction>                       renderConnections;
     @Getter
-    protected final EnumMap<EnumFacing, ITileCable<RailGrid>> connectionsMap;
-    protected final EnumMap<EnumFacing, IRailConnectable>     adjacentHandler;
+    protected final EnumMap<Direction, ITileCable<RailGrid>> connectionsMap;
+    protected final EnumMap<Direction, IRailConnectable>     adjacentHandler;
     @Getter
     @Setter
-    protected       int                                       grid;
+    protected       int                                      grid;
 
     public TileCable()
     {
-        connectionsMap = new EnumMap<>(EnumFacing.class);
-        adjacentHandler = new EnumMap<>(EnumFacing.class);
+        super(ALTiles.CABLE);
+
+        connectionsMap = new EnumMap<>(Direction.class);
+        adjacentHandler = new EnumMap<>(Direction.class);
         grid = -1;
 
-        renderConnections = EnumSet.noneOf(EnumFacing.class);
+        renderConnections = EnumSet.noneOf(Direction.class);
     }
 
     @Override
@@ -60,11 +63,11 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         super.addInfo(list);
 
         list.addText("Grid: " + grid);
-        list.addText("Connected: " + connectionsMap.keySet().stream().map(EnumFacing::getName).collect(Collectors.joining(" ")));
-        list.addText("Handlers: " + adjacentHandler.keySet().stream().map(EnumFacing::getName).collect(Collectors.joining(" ")));
+        list.addText("Connected: " + connectionsMap.keySet().stream().map(Direction::getName).collect(Collectors.joining(" ")));
+        list.addText("Handlers: " + adjacentHandler.keySet().stream().map(Direction::getName).collect(Collectors.joining(" ")));
     }
 
-    public void connectHandler(EnumFacing facing, IRailConnectable to, TileEntity tile)
+    public void connectHandler(Direction facing, IRailConnectable to, TileEntity tile)
     {
         adjacentHandler.put(facing, to);
         updateState();
@@ -92,7 +95,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
             ((IConnectionAware) tile).connectTrigger(facing.getOpposite(), getGridObject());
     }
 
-    public void disconnectHandler(EnumFacing facing, TileEntity tile)
+    public void disconnectHandler(Direction facing, TileEntity tile)
     {
         if (hasGrid() && adjacentHandler.get(facing) instanceof TileArmReservoir)
             getGridObject().removeReservoir(this);
@@ -121,7 +124,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     }
 
     @Override
-    public void onChunkUnload()
+    public void onChunkUnloaded()
     {
         if (isServer())
             disconnectItself();
@@ -143,9 +146,9 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     public void load()
     {
         ArmedLogistics.instance.getGridManager().connectCable(this);
-        for (EnumFacing facing : EnumFacing.VALUES)
+        for (Direction facing : Direction.values())
         {
-            if (facing == EnumFacing.DOWN)
+            if (facing == Direction.DOWN)
                 scanHandlers(pos.down(2));
             if (facing.getAxis().isHorizontal())
                 scanHandlers(pos.offset(facing));
@@ -153,9 +156,9 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound tag)
+    public void read(CompoundNBT tag)
     {
-        super.readFromNBT(tag);
+        super.read(tag);
 
         if (isClient())
         {
@@ -165,9 +168,9 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag)
+    public CompoundNBT write(CompoundNBT tag)
     {
-        super.writeToNBT(tag);
+        super.write(tag);
 
         if (isServer())
             writeRenderConnections(tag);
@@ -180,7 +183,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         TileEntity tile = world.getTileEntity(posNeighbor);
 
         BlockPos substracted = posNeighbor.subtract(pos);
-        EnumFacing facing = EnumFacing.getFacingFromVector(substracted.getX(), substracted.getY(), substracted.getZ())
+        Direction facing = Direction.getFacingFromVector(substracted.getX(), substracted.getY(), substracted.getZ())
                 .getOpposite();
 
         if (adjacentHandler.containsKey(facing.getOpposite()))
@@ -202,7 +205,7 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     }
 
     @Override
-    public boolean canConnect(EnumFacing facing, ITileNode<?> to)
+    public boolean canConnect(Direction facing, ITileNode<?> to)
     {
         return to instanceof TileCable;
     }
@@ -238,15 +241,15 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     {
         StringBuilder rtn = new StringBuilder(10);
 
-        if (isConnected(EnumFacing.EAST))
+        if (isConnected(Direction.EAST))
             rtn.append("x+");
-        if (isConnected(EnumFacing.WEST))
+        if (isConnected(Direction.WEST))
             rtn.append("x-");
-        if (isConnected(EnumFacing.DOWN))
+        if (isConnected(Direction.DOWN))
             rtn.append("y-");
-        if (isConnected(EnumFacing.SOUTH))
+        if (isConnected(Direction.SOUTH))
             rtn.append("z+");
-        if (isConnected(EnumFacing.NORTH))
+        if (isConnected(Direction.NORTH))
             rtn.append("z-");
         return rtn.toString();
     }
@@ -255,14 +258,14 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     {
         List<String> parts = new ArrayList<>();
 
-        if (!isConnected(EnumFacing.WEST))
+        if (!isConnected(Direction.WEST))
         {
             parts.add("barZPosNeg");
             parts.add("backZPosNeg");
             parts.add("barZNegNeg");
             parts.add("backZNegNeg");
         }
-        if (!isConnected(EnumFacing.EAST))
+        if (!isConnected(Direction.EAST))
         {
             parts.add("barZPosPos");
             parts.add("backZPosPos");
@@ -270,14 +273,14 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
             parts.add("backZNegPos");
         }
 
-        if (!isConnected(EnumFacing.NORTH))
+        if (!isConnected(Direction.NORTH))
         {
             parts.add("barXPosNeg");
             parts.add("backXPosNeg");
             parts.add("barXNegNeg");
             parts.add("backXNegNeg");
         }
-        if (!isConnected(EnumFacing.SOUTH))
+        if (!isConnected(Direction.SOUTH))
         {
             parts.add("barXPosPos");
             parts.add("backXPosPos");
@@ -287,65 +290,65 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
 
         if (isDeadEnd())
         {
-            if (isConnected(EnumFacing.EAST))
+            if (isConnected(Direction.EAST))
             {
                 parts.add("backXPos");
                 parts.add("barXPos");
 
-                if (isConnected(EnumFacing.DOWN))
+                if (isConnected(Direction.DOWN))
                     parts.add("middleZ");
             }
-            else if (isConnected(EnumFacing.WEST))
+            else if (isConnected(Direction.WEST))
             {
                 parts.add("backXNeg");
                 parts.add("barXNeg");
 
-                if (isConnected(EnumFacing.DOWN))
+                if (isConnected(Direction.DOWN))
                     parts.add("middleZ");
             }
-            else if (isConnected(EnumFacing.NORTH))
+            else if (isConnected(Direction.NORTH))
             {
                 parts.add("backZNeg");
                 parts.add("barZNeg");
 
-                if (isConnected(EnumFacing.DOWN))
+                if (isConnected(Direction.DOWN))
                     parts.add("middleX");
             }
-            else if (isConnected(EnumFacing.SOUTH))
+            else if (isConnected(Direction.SOUTH))
             {
                 parts.add("backZPos");
                 parts.add("barZPos");
 
-                if (isConnected(EnumFacing.DOWN))
+                if (isConnected(Direction.DOWN))
                     parts.add("middleX");
             }
         }
 
         if (isStraight())
         {
-            if (isConnected(EnumFacing.NORTH) || isConnected(EnumFacing.SOUTH))
+            if (isConnected(Direction.NORTH) || isConnected(Direction.SOUTH))
             {
                 parts.add("backZNeg");
                 parts.add("barZNeg");
                 parts.add("backZPos");
                 parts.add("barZPos");
 
-                if (isConnected(EnumFacing.DOWN))
+                if (isConnected(Direction.DOWN))
                     parts.add("middleX");
             }
-            else if (isConnected(EnumFacing.EAST) || isConnected(EnumFacing.WEST))
+            else if (isConnected(Direction.EAST) || isConnected(Direction.WEST))
             {
                 parts.add("backXNeg");
                 parts.add("barXNeg");
                 parts.add("backXPos");
                 parts.add("barXPos");
 
-                if (isConnected(EnumFacing.DOWN))
+                if (isConnected(Direction.DOWN))
                     parts.add("middleZ");
             }
         }
 
-        if (!isConnected(EnumFacing.DOWN))
+        if (!isConnected(Direction.DOWN))
         {
             parts.add("middleX");
             parts.add("middleZ");
@@ -363,48 +366,48 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
             return;
         }
 
-        world.markBlockRangeForRenderUpdate(getPos(), getPos());
+        world.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
     }
 
     public boolean isDeadEnd()
     {
         return renderConnections.size() <= 1 ||
-                renderConnections.size() == 2 && isConnected(EnumFacing.DOWN);
+                renderConnections.size() == 2 && isConnected(Direction.DOWN);
     }
 
     public boolean isStraight()
     {
         if (renderConnections.size() > 2)
         {
-            if (renderConnections.size() != 3 || !isConnected(EnumFacing.DOWN))
+            if (renderConnections.size() != 3 || !isConnected(Direction.DOWN))
                 return false;
         }
-        return isConnected(EnumFacing.NORTH) && isConnected(EnumFacing.SOUTH)
-                || isConnected(EnumFacing.WEST) && isConnected(EnumFacing.EAST);
+        return isConnected(Direction.NORTH) && isConnected(Direction.SOUTH)
+                || isConnected(Direction.WEST) && isConnected(Direction.EAST);
     }
 
-    public boolean isConnected(EnumFacing facing)
+    public boolean isConnected(Direction facing)
     {
         return renderConnections.contains(facing);
     }
 
-    public NBTTagCompound writeRenderConnections(NBTTagCompound tag)
+    public CompoundNBT writeRenderConnections(CompoundNBT tag)
     {
-        for (Map.Entry<EnumFacing, ITileCable<RailGrid>> entry : connectionsMap.entrySet())
-            tag.setBoolean("connected" + entry.getKey().ordinal(), true);
-        for (Map.Entry<EnumFacing, IRailConnectable> entry : adjacentHandler.entrySet())
-            tag.setBoolean("connected" + entry.getKey().ordinal(), true);
+        for (Map.Entry<Direction, ITileCable<RailGrid>> entry : connectionsMap.entrySet())
+            tag.putBoolean("connected" + entry.getKey().ordinal(), true);
+        for (Map.Entry<Direction, IRailConnectable> entry : adjacentHandler.entrySet())
+            tag.putBoolean("connected" + entry.getKey().ordinal(), true);
         return tag;
     }
 
-    public boolean readRenderConnections(NBTTagCompound tag)
+    public boolean readRenderConnections(CompoundNBT tag)
     {
         int previousConnections = renderConnections.size();
 
         renderConnections.clear();
-        for (EnumFacing facing : EnumFacing.VALUES)
+        for (Direction facing : Direction.values())
         {
-            if (tag.hasKey("connected" + facing.ordinal()))
+            if (tag.contains("connected" + facing.ordinal()))
                 renderConnections.add(facing);
         }
         return renderConnections.size() != previousConnections;

@@ -3,18 +3,13 @@ package net.voxelindustry.armedlogistics.compat.top;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import mcjty.theoneprobe.api.IElement;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.FluidStack;
-
-import java.io.IOException;
 
 @AllArgsConstructor
 public class FluidElement implements IElement
@@ -26,17 +21,11 @@ public class FluidElement implements IElement
     public FluidElement(ByteBuf buf)
     {
         PacketBuffer packetBuffer = new PacketBuffer(buf);
-        try
-        {
-            NBTTagCompound nbt = packetBuffer.readCompoundTag();
-            fluidStack = FluidStack.loadFluidStackFromNBT(nbt);
+        CompoundNBT nbt = packetBuffer.readCompoundTag();
+        fluidStack = FluidStack.loadFluidStackFromNBT(nbt);
 
-            amount = packetBuffer.readInt();
-            capacity = packetBuffer.readInt();
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
+        amount = packetBuffer.readInt();
+        capacity = packetBuffer.readInt();
     }
 
     @Override
@@ -45,13 +34,14 @@ public class FluidElement implements IElement
         if (fluidStack == null)
             return;
 
-        Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-        ResourceLocation still = fluidStack.getFluid().getStill(fluidStack);
-        TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(still.toString());
+        // FIXME: Use proper fluid render
+    /*    Minecraft.getInstance().getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
+        ResourceLocation still = fluidStack.getFluid().get.getStill(fluidStack);
+        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureMapBlocks().getAtlasSprite(still.toString());
 
         int width = this.getHeight();
         int height = (int) (this.getWidth() * ((float) amount / capacity));
-        int iconHeight = sprite.getIconHeight();
+        int iconHeight = sprite.getHeight();
         int offsetHeight = height;
 
         int iteration = 0;
@@ -63,7 +53,7 @@ public class FluidElement implements IElement
             iteration++;
             if (iteration > 50)
                 break;
-        }
+        }*/
     }
 
     public void drawTexturedModalRect(int x, int y, TextureAtlasSprite textureSprite, int w, int h)
@@ -94,7 +84,7 @@ public class FluidElement implements IElement
     public void toBytes(ByteBuf buf)
     {
         PacketBuffer packetBuffer = new PacketBuffer(buf);
-        NBTTagCompound nbt = new NBTTagCompound();
+        CompoundNBT nbt = new CompoundNBT();
 
         if (fluidStack != null)
             fluidStack.writeToNBT(nbt);
@@ -107,6 +97,6 @@ public class FluidElement implements IElement
     @Override
     public int getID()
     {
-        return net.voxelindustry.armedlogistics.compat.top.ProbeCompat.ELEMENT_FLUID;
+        return ProbeCompat.ELEMENT_FLUID;
     }
 }

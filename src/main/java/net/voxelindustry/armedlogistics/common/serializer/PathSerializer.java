@@ -2,7 +2,7 @@ package net.voxelindustry.armedlogistics.common.serializer;
 
 import io.netty.buffer.ByteBuf;
 import lombok.experimental.UtilityClass;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.voxelindustry.armedlogistics.common.grid.Path;
 
@@ -33,29 +33,29 @@ public class PathSerializer
         return path;
     }
 
-    public static NBTTagCompound pathToNBT(Path path)
+    public static CompoundNBT pathToNBT(Path path)
     {
-        NBTTagCompound tag = new NBTTagCompound();
+        CompoundNBT tag = new CompoundNBT();
 
-        tag.setLong("fromPos", path.getFrom().toLong());
-        tag.setLong("toPos", path.getTo().toLong());
+        tag.putLong("fromPos", path.getFrom().toLong());
+        tag.putLong("toPos", path.getTo().toLong());
 
-        tag.setBoolean("impossible", path.isImpossible());
-        tag.setInteger("count", path.getPoints().size());
+        tag.putBoolean("impossible", path.isImpossible());
+        tag.putInt("count", path.getPoints().size());
 
         for (int i = 0; i < path.getPoints().size(); i++)
-            tag.setLong("pos" + i, path.getPoints().get(i).toLong());
+            tag.putLong("pos" + i, path.getPoints().get(i).toLong());
 
         return tag;
     }
 
-    public static Path pathFromNBT(NBTTagCompound tag)
+    public static Path pathFromNBT(CompoundNBT tag)
     {
         Path path = new Path(BlockPos.fromLong(tag.getLong("fromPos")), BlockPos.fromLong(tag.getLong("toPos")));
 
         path.setImpossible(tag.getBoolean("impossible"));
 
-        int count = tag.getInteger("count");
+        int count = tag.getInt("count");
         for (int i = 0; i < count; i++)
             path.getPoints().add(BlockPos.fromLong(tag.getLong("pos" + i)));
 

@@ -23,8 +23,8 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
 
     public RequestView(List<ItemStack> requestList, BiConsumer<Integer, ItemStack> onRequestChange)
     {
-        this.setSize(164, 29);
-        this.setID("requestview");
+        setSize(164, 29);
+        setID("requestview");
 
         GuiLabel requestLabel = new GuiLabel(I18n.format(ArmedLogistics.MODID + ".gui.request.title"));
         requestLabel.setExpandToText(true);
@@ -32,12 +32,12 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
         requestLabel.setTextAlignment(RectAlignment.LEFT_CENTER);
         requestLabel.setTextPadding(RectBox.build().left(2).right(2).top(1).create());
         requestLabel.setID("request-label");
-        this.addChild(requestLabel, 1, 1);
+        addChild(requestLabel, 1, 1);
 
-        this.requests = new ItemStackView[9];
+        requests = new ItemStackView[9];
         for (int i = 0; i < 9; i++)
         {
-            final int finalIndex = i;
+            int finalIndex = i;
 
             MutableItemStackView view = new MutableItemStackView(requestList.size() > i ? requestList.get(i).copy() :
                     ItemStack.EMPTY, true, this);
@@ -45,26 +45,26 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
             view.getStackProperty().addListener(obs -> onRequestChange.accept(finalIndex, view.getItemStack()));
 
             requests[i] = view;
-            this.addChild(view, i * 18 + 1, 10);
+            addChild(view, i * 18 + 1, 10);
         }
 
-        this.setFocusable(true);
-        this.getEventDispatcher().addHandler(HoverEvent.TYPE, this::onHover);
-        this.getEventDispatcher().addHandler(KeyEvent.PRESS, this::onKeyPressed);
-        this.getEventDispatcher().addHandler(KeyEvent.RELEASE, this::onKeyReleased);
+        setFocusable(true);
+        getEventDispatcher().addHandler(HoverEvent.TYPE, this::onHover);
+        getEventDispatcher().addHandler(KeyEvent.PRESS, this::onKeyPressed);
+        getEventDispatcher().addHandler(KeyEvent.RELEASE, this::onKeyReleased);
     }
 
     public void setRequestStack(int index, ItemStack stack)
     {
-        this.requests[index].setItemStack(stack);
+        requests[index].setItemStack(stack);
     }
 
     private void onKeyPressed(KeyEvent.Press event)
     {
         if (BrokkGuiPlatform.getInstance().getKeyboardUtil().isCtrlKeyDown() &&
-                !this.getStyleClass().contains("copypasting"))
+                !getStyleClass().contains("copypasting"))
         {
-            this.addStyleClass("copypasting");
+            addStyleClass("copypasting");
 
             if (selected != null)
                 selected.addStyleClass("selected");
@@ -74,9 +74,9 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
     private void onKeyReleased(KeyEvent.Release event)
     {
         if (!BrokkGuiPlatform.getInstance().getKeyboardUtil().isCtrlKeyDown() &&
-                this.getStyleClass().contains("copypasting"))
+                getStyleClass().contains("copypasting"))
         {
-            this.removeStyleClass("copypasting");
+            removeStyleClass("copypasting");
 
             if (selected != null)
                 selected.removeStyleClass("selected");
@@ -90,14 +90,14 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
 
         if (event.isEntering())
         {
-            this.addStyleClass("copypasting");
+            addStyleClass("copypasting");
 
             if (selected != null)
                 selected.addStyleClass("selected");
         }
-        else if (this.getStyleClass().contains("copypasting"))
+        else if (getStyleClass().contains("copypasting"))
         {
-            this.removeStyleClass("copypasting");
+            removeStyleClass("copypasting");
             if (selected != null)
                 selected.removeStyleClass("selected");
         }
@@ -107,7 +107,7 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
     public void setClipboard(MutableItemStackView value)
     {
         if (value != null)
-            this.addStyleClass("copypasting");
+            addStyleClass("copypasting");
 
         if (value == selected)
             return;
@@ -130,7 +130,7 @@ public class RequestView extends GuiAbsolutePane implements ICopyPasteHandler<Mu
 
     private void showCopiedPopup(MutableItemStackView node)
     {
-        PopupHandler.getInstance(this.getWindow()).addPopup(new MiniStatePopup(node,
-                I18n.format("woodengears.gui.copy")));
+        PopupHandler.getInstance(getWindow()).addPopup(new MiniStatePopup(node,
+                I18n.format("armedlogistics.gui.copy")));
     }
 }

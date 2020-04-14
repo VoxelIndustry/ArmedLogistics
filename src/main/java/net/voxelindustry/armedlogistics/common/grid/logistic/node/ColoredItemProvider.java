@@ -4,7 +4,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import lombok.AccessLevel;
 import lombok.Getter;
-import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
 import net.voxelindustry.armedlogistics.common.grid.logistic.ColoredShipment;
 import net.voxelindustry.armedlogistics.common.grid.logistic.ColoredStack;
@@ -12,8 +12,8 @@ import net.voxelindustry.armedlogistics.common.grid.logistic.ItemStackMethods;
 import net.voxelindustry.armedlogistics.common.grid.logistic.LogisticNetwork;
 import net.voxelindustry.armedlogistics.common.grid.logistic.ProviderType;
 import net.voxelindustry.armedlogistics.common.tile.TileLogicisticNode;
+import net.voxelindustry.steamlayer.common.utils.ItemUtils;
 import net.voxelindustry.steamlayer.inventory.InventoryHandler;
-import net.voxelindustry.steamlayer.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 public class ColoredItemProvider extends BaseItemProvider implements ColoredProvider<ItemStack>
 {
     @Getter(AccessLevel.PROTECTED)
-    private ListMultimap<EnumDyeColor, ItemStack> colors;
+    private ListMultimap<DyeColor, ItemStack> colors;
 
     private List<ColoredShipment<ItemStack>> coloredShipments;
 
@@ -36,19 +36,19 @@ public class ColoredItemProvider extends BaseItemProvider implements ColoredProv
     {
         super(tile, type, handler, networkSupplier, buffer);
 
-        colors = MultimapBuilder.enumKeys(EnumDyeColor.class).arrayListValues().build();
+        colors = MultimapBuilder.enumKeys(DyeColor.class).arrayListValues().build();
 
         coloredShipments = new ArrayList<>();
     }
 
     @Override
-    public boolean hasColor(EnumDyeColor color)
+    public boolean hasColor(DyeColor color)
     {
         return colors.containsKey(color);
     }
 
     @Override
-    public List<ItemStack> getValuesFromColor(EnumDyeColor color)
+    public List<ItemStack> getValuesFromColor(DyeColor color)
     {
         return colors.get(color);
     }

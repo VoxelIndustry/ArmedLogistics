@@ -7,7 +7,7 @@ import net.voxelindustry.brokkgui.element.input.GuiButton;
 import net.voxelindustry.brokkgui.element.input.GuiTextfield;
 import net.voxelindustry.brokkgui.event.KeyEvent;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
-import org.lwjgl.input.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -56,7 +56,7 @@ public class EditableName extends GuiAbsolutePane
         {
             if (nameLabel.isVisible())
                 return;
-            if (e.getKey() != Keyboard.KEY_RETURN && e.getKey() != Keyboard.KEY_NUMPADENTER)
+            if (e.getKey() != GLFW.GLFW_KEY_ENTER && e.getKey() != GLFW.GLFW_KEY_KP_ENTER)
                 return;
             stopEditing();
         });

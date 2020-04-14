@@ -25,48 +25,48 @@ public class SOKCombo extends GuiAbsolutePane
     private final GuiRadioButton onceButton;
     private final GuiRadioButton supplyButton;
 
-    private String supplyText = I18n.format("woodengears.gui.sok.supply");
-    private String onceText   = I18n.format("woodengears.gui.sok.once");
-    private String keepText   = I18n.format("woodengears.gui.sok.keep");
+    private String supplyText = I18n.format("armedlogistics.gui.sok.supply");
+    private String onceText   = I18n.format("armedlogistics.gui.sok.once");
+    private String keepText   = I18n.format("armedlogistics.gui.sok.keep");
 
     public SOKCombo(RequesterMode currentMode, Consumer<RequesterMode> modeCallback)
     {
         // Longest width + left_offset + button + right_offset + label offset
-        this.setSize(getLongestText() + 2 + 9 + 2 + 3, 37);
-        this.setID("sokcombo");
+        setSize(getLongestText() + 2 + 9 + 2 + 3, 37);
+        setID("sokcombo");
 
         Rectangle sokLines = new Rectangle(1, 15);
         sokLines.setID("soklines");
-        this.addChild(sokLines, getWidth() - 6, 11);
+        addChild(sokLines, getWidth() - 6, 11);
 
-        this.supplyButton = new GuiRadioButton(supplyText);
+        supplyButton = new GuiRadioButton(supplyText);
         supplyButton.setExpandToLabel(false);
         supplyButton.getLabel().setTextAlignment(RectAlignment.LEFT_CENTER);
         supplyButton.getLabel().setTextPadding(textPadding);
         supplyButton.setSize(getLongestText() + 3 + 9, 7);
         supplyButton.setButtonSide(RectSide.RIGHT);
         supplyButton.addStyleClass("sok-button");
-        this.addChild(supplyButton, 2, 3);
+        addChild(supplyButton, 2, 3);
 
-        this.onceButton = new GuiRadioButton(onceText);
+        onceButton = new GuiRadioButton(onceText);
         onceButton.setExpandToLabel(false);
         onceButton.getLabel().setTextAlignment(RectAlignment.LEFT_CENTER);
         onceButton.getLabel().setTextPadding(textPadding);
         onceButton.setSize(getLongestText() + 3 + 9, 7);
         onceButton.setButtonSide(RectSide.RIGHT);
         onceButton.addStyleClass("sok-button");
-        this.addChild(onceButton, 2, 15);
+        addChild(onceButton, 2, 15);
 
-        this.keepButton = new GuiRadioButton(keepText);
+        keepButton = new GuiRadioButton(keepText);
         keepButton.setExpandToLabel(false);
         keepButton.getLabel().setTextAlignment(RectAlignment.LEFT_CENTER);
         keepButton.getLabel().setTextPadding(textPadding);
         keepButton.setSize(getLongestText() + 3 + 9, 7);
         keepButton.setButtonSide(RectSide.RIGHT);
         keepButton.addStyleClass("sok-button");
-        this.addChild(keepButton, 2, 27);
+        addChild(keepButton, 2, 27);
 
-        this.toggleGroup = new GuiToggleGroup();
+        toggleGroup = new GuiToggleGroup();
         toggleGroup.setAllowNothing(false);
 
         supplyButton.setToggleGroup(toggleGroup);
@@ -83,7 +83,7 @@ public class SOKCombo extends GuiAbsolutePane
                 modeCallback.accept(RequesterMode.CONTINUOUS);
         });
 
-        this.setMode(currentMode);
+        setMode(currentMode);
     }
 
     public void setMode(RequesterMode mode)
@@ -104,8 +104,8 @@ public class SOKCombo extends GuiAbsolutePane
 
     private float getLongestText()
     {
-        return Math.max(Minecraft.getMinecraft().fontRenderer.getStringWidth(supplyText),
-                Math.max(Minecraft.getMinecraft().fontRenderer.getStringWidth(onceText),
-                        Minecraft.getMinecraft().fontRenderer.getStringWidth(keepText)));
+        return Math.max(Minecraft.getInstance().fontRenderer.getStringWidth(supplyText),
+                Math.max(Minecraft.getInstance().fontRenderer.getStringWidth(onceText),
+                        Minecraft.getInstance().fontRenderer.getStringWidth(keepText)));
     }
 }

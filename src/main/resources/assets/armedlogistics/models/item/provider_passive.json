@@ -1,0 +1,10 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "up": "armedlogistics:blocks/provider_passive_front",
+    "down": "armedlogistics:blocks/provider_passive_front",
+    "north": "armedlogistics:blocks/provider_passive_back",
+    "east": "armedlogistics:blocks/provider_passive_back",
+    "west": "armedlogistics:blocks/provider_passive_back"
+  }
+}

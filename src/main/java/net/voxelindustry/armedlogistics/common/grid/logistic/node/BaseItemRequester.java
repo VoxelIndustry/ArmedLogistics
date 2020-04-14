@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.IItemHandler;
 import net.voxelindustry.armedlogistics.common.grid.logistic.ColoredShipment;
@@ -13,7 +13,7 @@ import net.voxelindustry.armedlogistics.common.grid.logistic.LogisticOrder;
 import net.voxelindustry.armedlogistics.common.grid.logistic.LogisticShipment;
 import net.voxelindustry.armedlogistics.common.serializer.LogisticShipmentSerializer;
 import net.voxelindustry.armedlogistics.common.tile.TileLogicisticNode;
-import net.voxelindustry.steamlayer.utils.ItemUtils;
+import net.voxelindustry.steamlayer.common.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -248,49 +248,49 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
         getNetworkSupplier().get().makeOrder(this, stack);
     }
 
-    public NBTTagCompound toNBT(NBTTagCompound tag)
+    public CompoundNBT toNBT(CompoundNBT tag)
     {
         int i = 0;
         for (LogisticShipment<ItemStack> shipment : shipments)
         {
-            tag.setTag("shipment" + i, LogisticShipmentSerializer.itemShipmentToNBT(shipment));
+            tag.put("shipment" + i, LogisticShipmentSerializer.itemShipmentToNBT(shipment));
             i++;
         }
-        tag.setInteger("shipmentCount", i);
+        tag.putInt("shipmentCount", i);
 
         i = 0;
         for (ColoredShipment<ItemStack> shipment : coloredShipments)
         {
-            tag.setTag("coloredShipment" + i, LogisticShipmentSerializer.coloredItemShipmentToNBT(shipment));
+            tag.put("coloredShipment" + i, LogisticShipmentSerializer.coloredItemShipmentToNBT(shipment));
             i++;
         }
-        tag.setInteger("coloredShipmentCount", i);
+        tag.putInt("coloredShipmentCount", i);
 
-        tag.setInteger("requesterMode", getMode().ordinal());
+        tag.putInt("requesterMode", getMode().ordinal());
 
         for (int index = 0; index < getRequests().size(); index++)
-            tag.setTag("request" + index, getRequests().get(index).writeToNBT(new NBTTagCompound()));
-        tag.setInteger("requests", getRequests().size());
+            tag.put("request" + index, getRequests().get(index).serializeNBT());
+        tag.putInt("requests", getRequests().size());
 
         return tag;
     }
 
-    public void fromNBT(NBTTagCompound tag)
+    public void fromNBT(CompoundNBT tag)
     {
-        int count = tag.getInteger("shipmentCount");
+        int count = tag.getInt("shipmentCount");
 
         for (int i = 0; i < count; i++)
-            shipments.add(LogisticShipmentSerializer.itemShipmentFromNBT(tag.getCompoundTag("shipment" + i)));
+            shipments.add(LogisticShipmentSerializer.itemShipmentFromNBT(tag.getCompound("shipment" + i)));
 
-        count = tag.getInteger("coloredShipmentCount");
+        count = tag.getInt("coloredShipmentCount");
 
         for (int i = 0; i < count; i++)
-            coloredShipments.add(LogisticShipmentSerializer.coloredItemShipmentFromNBT(tag.getCompoundTag("shipment" + i)));
+            coloredShipments.add(LogisticShipmentSerializer.coloredItemShipmentFromNBT(tag.getCompound("shipment" + i)));
 
-        setMode(RequesterMode.values()[tag.getInteger("requesterMode")]);
+        setMode(RequesterMode.values()[tag.getInt("requesterMode")]);
 
-        int requestCount = tag.getInteger("requests");
+        int requestCount = tag.getInt("requests");
         for (int index = 0; index < requestCount; index++)
-            addRequest(new ItemStack(tag.getCompoundTag("request" + index)));
+            addRequest(ItemStack.read(tag.getCompound("request" + index)));
     }
 }

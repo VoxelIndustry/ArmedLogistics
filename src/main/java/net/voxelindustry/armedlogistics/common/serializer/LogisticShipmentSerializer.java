@@ -2,12 +2,12 @@ package net.voxelindustry.armedlogistics.common.serializer;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.voxelindustry.armedlogistics.common.grid.logistic.ColoredShipment;
 import net.voxelindustry.armedlogistics.common.grid.logistic.ColoredStack;
 import net.voxelindustry.armedlogistics.common.grid.logistic.LogisticShipment;
+import net.voxelindustry.steamlayer.network.ByteBufHelper;
 
 public class LogisticShipmentSerializer
 {
@@ -16,7 +16,7 @@ public class LogisticShipmentSerializer
         buf.writeLong(shipment.getFrom().toLong());
         buf.writeLong(shipment.getTo().toLong());
 
-        ByteBufUtils.writeItemStack(buf, shipment.getContent());
+        ByteBufHelper.writeItemStack(buf, shipment.getContent());
     }
 
     public static LogisticShipment<ItemStack> itemShipmentFromByteBuf(ByteBuf buf)
@@ -24,48 +24,48 @@ public class LogisticShipmentSerializer
         return new LogisticShipment<>(
                 BlockPos.fromLong(buf.readLong()),
                 BlockPos.fromLong(buf.readLong()),
-                ByteBufUtils.readItemStack(buf));
+                ByteBufHelper.readItemStack(buf));
     }
 
-    public static NBTTagCompound itemShipmentToNBT(LogisticShipment<ItemStack> shipment)
+    public static CompoundNBT itemShipmentToNBT(LogisticShipment<ItemStack> shipment)
     {
-        NBTTagCompound tag = new NBTTagCompound();
+        CompoundNBT tag = new CompoundNBT();
 
-        tag.setLong("from", shipment.getFrom().toLong());
-        tag.setLong("to", shipment.getTo().toLong());
+        tag.putLong("from", shipment.getFrom().toLong());
+        tag.putLong("to", shipment.getTo().toLong());
 
-        tag.setTag("content", shipment.getContent().writeToNBT(new NBTTagCompound()));
+        tag.put("content", shipment.getContent().serializeNBT());
 
         return tag;
     }
 
-    public static LogisticShipment<ItemStack> itemShipmentFromNBT(NBTTagCompound tag)
+    public static LogisticShipment<ItemStack> itemShipmentFromNBT(CompoundNBT tag)
     {
         return new LogisticShipment<>(
                 BlockPos.fromLong(tag.getLong("from")),
                 BlockPos.fromLong(tag.getLong("to")),
-                new ItemStack(tag.getCompoundTag("content")));
+                ItemStack.read(tag.getCompound("content")));
     }
 
-    public static NBTTagCompound coloredItemShipmentToNBT(ColoredShipment<ItemStack> shipment)
+    public static CompoundNBT coloredItemShipmentToNBT(ColoredShipment<ItemStack> shipment)
     {
-        NBTTagCompound tag = new NBTTagCompound();
+        CompoundNBT tag = new CompoundNBT();
 
-        tag.setLong("from", shipment.getFrom().toLong());
-        tag.setLong("to", shipment.getTo().toLong());
+        tag.putLong("from", shipment.getFrom().toLong());
+        tag.putLong("to", shipment.getTo().toLong());
 
-        tag.setTag("content", shipment.getRawContent().writeToNBT(new NBTTagCompound()));
-        tag.setTag("color", shipment.getContent().toNBT(new NBTTagCompound()));
+        tag.put("content", shipment.getRawContent().serializeNBT());
+        tag.put("color", shipment.getContent().toNBT(new CompoundNBT()));
 
         return tag;
     }
 
-    public static ColoredShipment<ItemStack> coloredItemShipmentFromNBT(NBTTagCompound tag)
+    public static ColoredShipment<ItemStack> coloredItemShipmentFromNBT(CompoundNBT tag)
     {
         return new ColoredShipment<>(
                 BlockPos.fromLong(tag.getLong("from")),
                 BlockPos.fromLong(tag.getLong("to")),
-                new ColoredStack(tag.getCompoundTag("color")),
-                new ItemStack(tag.getCompoundTag("content")));
+                new ColoredStack(tag.getCompound("color")),
+                ItemStack.read(tag.getCompound("content")));
     }
 }

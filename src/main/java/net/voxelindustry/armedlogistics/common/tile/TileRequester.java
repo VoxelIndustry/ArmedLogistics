@@ -3,17 +3,20 @@ package net.voxelindustry.armedlogistics.common.tile;
 import fr.ourten.teabeans.value.BaseProperty;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.util.Direction;
 import net.minecraftforge.items.IItemHandler;
 import net.voxelindustry.armedlogistics.common.grid.logistic.node.BaseItemRequester;
 import net.voxelindustry.armedlogistics.common.grid.logistic.node.InventoryBuffer;
 import net.voxelindustry.armedlogistics.common.grid.logistic.node.RequesterMode;
-import net.voxelindustry.steamlayer.container.BuiltContainer;
+import net.voxelindustry.armedlogistics.common.setup.ALContainers;
+import net.voxelindustry.armedlogistics.common.setup.ALTiles;
 import net.voxelindustry.steamlayer.container.ContainerBuilder;
 import net.voxelindustry.steamlayer.network.action.ActionSender;
 import net.voxelindustry.steamlayer.network.action.IActionReceiver;
@@ -21,7 +24,7 @@ import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
 import java.util.List;
 
-public class TileRequester extends TileLogicisticNode implements ITickable, IActionReceiver
+public class TileRequester extends TileLogicisticNode implements ITickableTileEntity, IActionReceiver
 {
     @Getter
     private BaseItemRequester requester;
@@ -37,7 +40,7 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
 
     public TileRequester()
     {
-        super("requester");
+        super(ALTiles.REQUESTER, "requester");
 
         cachedInventoryProperty = new BaseProperty<>(null, "cachedInventoryProperty");
 
@@ -48,12 +51,12 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     }
 
     @Override
-    public void update()
+    public void tick()
     {
         if (isClient())
             return;
 
-        if (world.getTotalWorldTime() % 32 != ((pos.getX() ^ pos.getZ()) & 31))
+        if (world.getGameTime() % 32 != ((pos.getX() ^ pos.getZ()) & 31))
             return;
         randomTick();
     }
@@ -86,9 +89,9 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag)
+    public CompoundNBT write(CompoundNBT tag)
     {
-        super.writeToNBT(tag);
+        super.write(tag);
 
         buffer.writeNBT(tag);
 
@@ -97,26 +100,27 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound tag)
+    public void read(CompoundNBT tag)
     {
-        super.readFromNBT(tag);
+        super.read(tag);
 
         buffer.readNBT(tag);
         requester.fromNBT(tag);
     }
 
     @Override
-    public BuiltContainer createContainer(EntityPlayer player)
+    public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity player)
     {
-        return new ContainerBuilder("requester", player)
+        return new ContainerBuilder(ALContainers.REQUESTER, player)
                 .player(player).inventory(8, 161).hotbar(8, 219)
+                .emptyTile(this)
                 .sync()
                 .syncBoolean(getConnectedInventoryProperty()::getValue, getConnectedInventoryProperty()::setValue)
                 .syncInventory(this::getWrappedInventories, getCachedInventoryProperty()::setValue, 10)
                 .syncList(getRequester()::getRequests, ItemStack.class, null, "requests")
                 .syncEnum(getRequester()::getMode, getRequester()::setMode, RequesterMode.class, "mode")
-                .syncEnumList(this::getAdjacentFacings, EnumFacing.class, null, "facings")
-                .create();
+                .syncEnumList(this::getAdjacentFacings, Direction.class, null, "facings")
+                .create(windowId);
     }
 
     public void dropBuffer()
@@ -167,12 +171,12 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
     }
 
     @Override
-    public void handle(ActionSender sender, String actionID, NBTTagCompound payload)
+    public void handle(ActionSender sender, String actionID, CompoundNBT payload)
     {
         if ("REQUEST_CHANGE".equals(actionID))
         {
-            int index = payload.getInteger("index");
-            ItemStack stack = new ItemStack(payload.getCompoundTag("stack"));
+            int index = payload.getInt("index");
+            ItemStack stack = ItemStack.read(payload.getCompound("stack"));
 
             if (index >= getRequester().getRequests().size())
                 getRequester().addRequest(stack);
@@ -180,17 +184,17 @@ public class TileRequester extends TileLogicisticNode implements ITickable, IAct
                 getRequester().getRequests().set(index, stack);
         }
         else if ("MODE_CHANGE".equals(actionID))
-            getRequester().setMode(RequesterMode.values()[payload.getInteger("mode")]);
+            getRequester().setMode(RequesterMode.values()[payload.getInt("mode")]);
         else if ("FACING_ADD".equals(actionID))
         {
-            EnumFacing facing = EnumFacing.byIndex(payload.getInteger("facing"));
+            Direction facing = Direction.byIndex(payload.getInt("facing"));
             if (!getAdjacentFacings().contains(facing))
                 getAdjacentFacings().add(facing);
             markDirty();
         }
         else if ("FACING_REMOVE".equals(actionID))
         {
-            getAdjacentFacings().remove(EnumFacing.byIndex(payload.getInteger("facing")));
+            getAdjacentFacings().remove(Direction.byIndex(payload.getInt("facing")));
             markDirty();
         }
     }

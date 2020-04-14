@@ -4,7 +4,7 @@ import fr.ourten.teabeans.binding.BaseExpression;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.tileentity.TileEntity;
 import net.voxelindustry.armedlogistics.client.gui.component.EditableName;
 import net.voxelindustry.armedlogistics.client.gui.component.InventoryView;
@@ -15,9 +15,9 @@ import net.voxelindustry.armedlogistics.common.tile.TileLogicisticNode;
 import net.voxelindustry.brokkgui.component.GuiNode;
 import net.voxelindustry.brokkgui.data.RelativeBindingHelper;
 import net.voxelindustry.brokkgui.element.input.GuiToggleGroup;
-import net.voxelindustry.brokkgui.paint.Texture;
 import net.voxelindustry.brokkgui.panel.GuiAbsolutePane;
 import net.voxelindustry.brokkgui.shape.Rectangle;
+import net.voxelindustry.brokkgui.sprite.Texture;
 import net.voxelindustry.brokkgui.wrapper.container.BrokkGuiContainer;
 import net.voxelindustry.steamlayer.container.BuiltContainer;
 
@@ -26,7 +26,7 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
     public static final float TAB_HEIGHT  = 32;
     public static final float GUI_WIDTH   = 176;
     public static final float GUI_HEIGHT  = 216;
-    public static final int   FONT_HEIGHT = Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT;
+    public static final int   FONT_HEIGHT = Minecraft.getInstance().fontRenderer.FONT_HEIGHT;
 
 
     @Getter
@@ -44,11 +44,11 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
 
     protected EditableName title;
 
-    public GuiLogisticNode(EntityPlayer player, T tile)
+    public GuiLogisticNode(BuiltContainer container)
     {
-        super(tile.createContainer(player));
+        super(container);
 
-        this.tile = tile;
+        tile = (T) container.getMainTile();
 
         mainPanel = new GuiAbsolutePane();
         setMainPanel(mainPanel);
@@ -203,18 +203,22 @@ public abstract class GuiLogisticNode<T extends TileLogicisticNode> extends Brok
         if (tile.getConnectedInventoryProperty().getValue())
         {
             TileEntity tile =
-                    Minecraft.getMinecraft().world.getTileEntity(this.tile.getPos().offset(this.tile.getFacing()));
-            String name = tile.getDisplayName() != null ? tile.getDisplayName().getFormattedText() :
-                    I18n.format("woodengears.gui.inventory.genericname");
+                    Minecraft.getInstance().world.getTileEntity(this.tile.getPos().offset(this.tile.getFacing()));
 
-            getInventoryView().setInvStatus(I18n.format("woodengears.gui.inventory.where", name,
-                    I18n.format("woodengears.gui.facing." + this.tile.getFacing())));
+            if(!(tile instanceof INamedContainerProvider))
+                return;
+
+            String name = ((INamedContainerProvider) tile).getDisplayName() != null ? ((INamedContainerProvider) tile).getDisplayName().getFormattedText() :
+                    I18n.format("armedlogistics.gui.inventory.genericname");
+
+            getInventoryView().setInvStatus(I18n.format("armedlogistics.gui.inventory.where", name,
+                    I18n.format("armedlogistics.gui.facing." + this.tile.getFacing())));
             getInventoryView().setInvValid(true);
         }
         else
         {
-            getInventoryView().setInvStatus(I18n.format("woodengears.gui.inventory.notwhere",
-                    I18n.format("woodengears.gui.facing." + tile.getFacing())));
+            getInventoryView().setInvStatus(I18n.format("armedlogistics.gui.inventory.notwhere",
+                    I18n.format("armedlogistics.gui.facing." + tile.getFacing())));
             getInventoryView().setInvValid(false);
         }
     }
