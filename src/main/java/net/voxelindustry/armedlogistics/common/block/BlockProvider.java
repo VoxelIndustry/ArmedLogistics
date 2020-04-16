@@ -14,7 +14,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.voxelindustry.armedlogistics.common.tile.TileActiveProvider;
@@ -36,15 +36,6 @@ public class BlockProvider extends BlockTileBase<TileProvider>
 
         this.isActive = isActive;
     }
-
-    @Override
-    public void onNeighborChange(BlockState state, IWorldReader world, BlockPos pos, BlockPos neighbor)
-    {
-        super.onNeighborChange(state, world, pos, neighbor);
-
-        getWorldTile(world, pos).onAdjacentRefresh();
-    }
-
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context)
     {
@@ -53,6 +44,14 @@ public class BlockProvider extends BlockTileBase<TileProvider>
         if (placingFacing == Direction.UP)
             placingFacing = Direction.DOWN;
         return getDefaultState().with(FACING, placingFacing);
+    }
+
+    @Override
+    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld world, BlockPos currentPos, BlockPos facingPos)
+    {
+        getWorldTile(world, currentPos).onAdjacentRefresh();
+
+        return super.updatePostPlacement(stateIn, facing, facingState, world, currentPos, facingPos);
     }
 
     @Override

@@ -27,7 +27,7 @@ import java.time.Duration;
 public class BlockArmReservoir extends BlockTileBase<TileArmReservoir>
 {
     public static final DirectionProperty FACING = DirectionProperty.create("facing",
-            facing -> facing != Direction.UP);
+            facing -> facing.getAxis().isHorizontal());
 
     public BlockArmReservoir(Properties properties)
     {

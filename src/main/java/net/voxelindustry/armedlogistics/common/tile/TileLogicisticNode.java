@@ -107,6 +107,7 @@ public abstract class TileLogicisticNode extends TileBase implements INamedConta
 
         hasLoaded = true;
         addFacing(getFacing().getOpposite());
+        onAdjacentRefresh();
     }
 
     public void disconnectGrid()

@@ -3,7 +3,7 @@ package net.voxelindustry.armedlogistics.common.tile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.IContainerProvider;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.util.Direction;
 import net.minecraft.util.INameable;
 import net.minecraft.util.text.ITextComponent;
@@ -22,7 +22,7 @@ import net.voxelindustry.steamlayer.tile.ITileInfoList;
 
 import javax.annotation.Nullable;
 
-public class TileArmReservoir extends TileInventoryBase implements IContainerProvider, IRailConnectable, IConnectionAware, INameable
+public class TileArmReservoir extends TileInventoryBase implements INamedContainerProvider, IRailConnectable, IConnectionAware, INameable
 {
     private RailGrid grid;
 
