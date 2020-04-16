@@ -68,5 +68,8 @@
     "block.armedlogistics.blockcable": "Rail",
 
     "_comment": "Items",
-    "item.armedlogistics.logisticarm": "Logistic Arm"
+    "item.armedlogistics.logisticarm": "Logistic Arm",
+
+    "_comment": "Misc",
+    "itemGroup.armedlogistics": "Armed Logistics"
 }
