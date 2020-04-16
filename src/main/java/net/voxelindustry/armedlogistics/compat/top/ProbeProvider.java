@@ -11,7 +11,9 @@ import net.minecraft.world.World;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
 import net.voxelindustry.steamlayer.tile.ITileInfoProvider;
 
-public class ProbeProvider implements IProbeInfoProvider
+import java.util.Objects;
+
+class ProbeProvider implements IProbeInfoProvider
 {
     @Override
     public String getID()
@@ -24,7 +26,7 @@ public class ProbeProvider implements IProbeInfoProvider
                              BlockState blockState, IProbeHitData data)
     {
         TileEntity tile = world.getTileEntity(data.getPos());
-        if (tile instanceof ITileInfoProvider)
+        if (tile instanceof ITileInfoProvider && Objects.equals(ArmedLogistics.MODID, tile.getType().getRegistryName().getNamespace()))
         {
             TileInfoListImpl list = new TileInfoListImpl(probeInfo);
             ((ITileInfoProvider) tile).addInfo(list);
