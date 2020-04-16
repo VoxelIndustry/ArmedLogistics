@@ -20,11 +20,20 @@ public class Path
         this.from = from;
         this.to = to;
 
-        this.points = new ArrayList<>();
+        points = new ArrayList<>();
     }
 
     public boolean isEmpty()
     {
-        return this.points.isEmpty();
+        return points.isEmpty();
+    }
+
+    public Path copy()
+    {
+        Path path = new Path(from, to);
+        path.getPoints().addAll(getPoints());
+        path.setImpossible(isImpossible());
+
+        return path;
     }
 }

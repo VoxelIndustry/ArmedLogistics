@@ -11,13 +11,13 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.network.play.server.SSpawnObjectPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.voxelindustry.armedlogistics.common.block.BlockProvider;
 import net.voxelindustry.armedlogistics.common.block.BlockRequester;
 import net.voxelindustry.armedlogistics.common.block.BlockStorage;
@@ -25,10 +25,13 @@ import net.voxelindustry.armedlogistics.common.grid.Path;
 import net.voxelindustry.armedlogistics.common.grid.logistic.LogisticShipment;
 import net.voxelindustry.armedlogistics.common.serializer.LogisticShipmentSerializer;
 import net.voxelindustry.armedlogistics.common.serializer.Vec3dListSerializer;
+import net.voxelindustry.armedlogistics.common.setup.ALEntity;
 import net.voxelindustry.armedlogistics.common.tile.TileArmReservoir;
 import net.voxelindustry.armedlogistics.common.tile.TileProvider;
 import net.voxelindustry.armedlogistics.common.tile.TileRequester;
 import net.voxelindustry.armedlogistics.common.tile.TileStorage;
+import net.voxelindustry.brokkgui.paint.Color;
+import net.voxelindustry.gizmos.Gizmos;
 
 import java.util.List;
 
@@ -70,11 +73,11 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
     public EntityLogisticArm(World world, LogisticShipment<ItemStack> shipment, TileArmReservoir reservoir, Path reservoirToProvider, Path providerToRequester, Path requesterToReservoir)
     {
-        this(WGEntity.LOGISTIC_ARM, world);
+        this(ALEntity.LOGISTIC_ARM, world);
 
         this.shipment = shipment;
 
-        recreate(reservoirToProvider, providerToRequester, requesterToReservoir, reservoir);
+        recreate(reservoirToProvider.copy(), providerToRequester, requesterToReservoir.copy(), reservoir);
         initPos();
 
         noClip = true;
@@ -93,6 +96,9 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
     private void recreate(Path reservoirToProvider, Path providerToRequester, Path requesterToReservoir, TileArmReservoir reservoir)
     {
+        reservoirToProvider.getPoints().add(0, reservoir.getPos());
+        reservoirToProvider.setFrom(reservoir.getPos());
+
         requesterToReservoir.getPoints().add(reservoir.getPos());
 
         steps = PathToStepConverter.createStepsFromPath(reservoirToProvider);
@@ -111,6 +117,13 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
 
         steps.add(0, pos.add(FacingLane.fromFacing(reservoir.getFacing()).getVector()));
         steps.add(pos.add(FacingLane.fromFacing(reservoir.getFacing().getOpposite()).getVector()));
+
+        for (int i = 0; i < steps.size(); i++)
+        {
+            Vec3d vec = steps.get(i);
+            Gizmos.outlineBox(vec.add(0, -0.75, 0), new Vec3d(0.5, 0.5, 0.5), 0xFFD700AA, 3F).handle(() -> !isAlive());
+            Gizmos.text(vec.add(0, 0, 0), String.valueOf(i), Color.BLACK.toRGBAInt()).handle(() -> !isAlive());
+        }
     }
 
     @Override
@@ -277,7 +290,7 @@ public class EntityLogisticArm extends Entity implements IEntityAdditionalSpawnD
     @Override
     public IPacket<?> createSpawnPacket()
     {
-        return new SSpawnObjectPacket(this);
+        return NetworkHooks.getEntitySpawningPacket(this);
     }
 
     @Override

@@ -28,9 +28,9 @@ public enum FacingLane
             case SOUTH:
                 return SOUTH;
             case WEST:
-                return WEST;
-            case EAST:
                 return EAST;
+            case EAST:
+                return WEST;
         }
         return null;
     }

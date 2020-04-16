@@ -21,7 +21,7 @@ public class PathToStepConverter
         return previous.getX() != next.getX() && previous.getZ() != next.getZ();
     }
 
-    public static boolean isPathStraight(Path path)
+    public static boolean  isPathStraight(Path path)
     {
         if (path.getFrom().getX() != path.getTo().getX() && path.getFrom().getZ() != path.getTo().getZ())
             return false;
@@ -49,7 +49,6 @@ public class PathToStepConverter
             if (isNextRailCorner(index, path))
             {
                 BlockPos current = path.getPoints().get(index);
-
                 BlockPos previous = path.getPoints().get(index - 1).subtract(current);
                 BlockPos next = path.getPoints().get(index + 1).subtract(current);
 

@@ -1,30 +1,35 @@
-package net.voxelindustry.armedlogistics.common.entity;
+package net.voxelindustry.armedlogistics.common.setup;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EntityType.Builder;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.registries.ObjectHolder;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
+import net.voxelindustry.armedlogistics.common.entity.EntityLogisticArm;
 
-@Mod.EventBusSubscriber(modid = ArmedLogistics.MODID)
-public class WGEntity
+@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
+public class ALEntity
 {
 
+    @ObjectHolder(ArmedLogistics.MODID + ":logistic_arm")
     public static EntityType<Entity> LOGISTIC_ARM;
 
     @SubscribeEvent
     public static void registerEntity(RegistryEvent.Register<EntityType<?>> event)
     {
-        WGEntity.LOGISTIC_ARM = EntityType.Builder.create(EntityLogisticArm::new, EntityClassification.MISC)
+        EntityType<Entity> logistic_arm = Builder.create(EntityLogisticArm::new, EntityClassification.MISC)
                 .size(0.3525F, 1.0F)
                 .setTrackingRange(64)
                 .setUpdateInterval(1)
                 .setShouldReceiveVelocityUpdates(true)
                 .immuneToFire()
                 .build("logistic_arm");
+        logistic_arm.setRegistryName(ArmedLogistics.MODID, "logistic_arm");
 
-        event.getRegistry().registerAll(LOGISTIC_ARM);
+        event.getRegistry().registerAll(logistic_arm);
     }
 }
