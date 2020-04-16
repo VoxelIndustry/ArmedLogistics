@@ -1,15 +1,15 @@
 .tab:active:first-child {
-    background-texture: url("armedlogistics:textures/gui/tab/tab_begin.png");
+    background-texture: assets("armedlogistics:textures/gui/tab/tab_begin.png");
 }
 
 .tab:active {
-    background-texture: url("armedlogistics:textures/gui/tab/tab_middle.png");
+    background-texture: assets("armedlogistics:textures/gui/tab/tab_middle.png");
 }
 
 .tab:first-child {
-    background-texture: url("armedlogistics:textures/gui/tab/tab_begin_inactive.png");
+    background-texture: assets("armedlogistics:textures/gui/tab/tab_begin_inactive.png");
 }
 
 .tab {
-    background-texture: url("armedlogistics:textures/gui/tab/tab_inactive.png");
+    background-texture: assets("armedlogistics:textures/gui/tab/tab_inactive.png");
 }

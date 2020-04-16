@@ -1,27 +1,27 @@
 @import url("/assets/armedlogistics/css/ministatepopup.css");
 
 #filters-panel {
-    background-texture: url("armedlogistics:textures/gui/filter_whitelist.png");
+    background-texture: assets("armedlogistics:textures/gui/filter_whitelist.png");
 }
 
 #filterview.blacklist #filters-panel {
-    background-texture: url("armedlogistics:textures/gui/filter_blacklist.png");
+    background-texture: assets("armedlogistics:textures/gui/filter_blacklist.png");
 }
 
 #filter-switch-button {
-    background-texture: url("armedlogistics:textures/gui/filter_whitelist_button.png");
+    background-texture: assets("armedlogistics:textures/gui/filter_whitelist_button.png");
 }
 
 #filter-switch-button:hover {
-    background-texture: url("armedlogistics:textures/gui/filter_whitelist_button_hover.png");
+    background-texture: assets("armedlogistics:textures/gui/filter_whitelist_button_hover.png");
 }
 
 #filterview.blacklist #filter-switch-button {
-    background-texture: url("armedlogistics:textures/gui/filter_blacklist_button.png");
+    background-texture: assets("armedlogistics:textures/gui/filter_blacklist_button.png");
 }
 
 #filterview.blacklist #filter-switch-button:hover {
-    background-texture: url("armedlogistics:textures/gui/filter_blacklist_button_hover.png");
+    background-texture: assets("armedlogistics:textures/gui/filter_blacklist_button_hover.png");
 }
 
 #filterview.blacklist text {

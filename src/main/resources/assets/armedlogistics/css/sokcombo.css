@@ -3,13 +3,13 @@
 }
 
 .sok-button .box {
-    background-texture: url("armedlogistics:textures/gui/request_sok_button_off.png");
+    background-texture: assets("armedlogistics:textures/gui/request_sok_button_off.png");
     border-color: #555555;
     border-radius: 2;
 }
 
 .sok-button:active .box {
-    background-texture: url("armedlogistics:textures/gui/request_sok_button.png");
+    background-texture: assets("armedlogistics:textures/gui/request_sok_button.png");
 }
 
 .sok-button:hover .box {
@@ -19,7 +19,7 @@
 #sokcombo {
     background-color: #C6C6C6;
     border-width: 4;
-    border-image-source: url("armedlogistics:textures/gui/background_generic.png");
+    border-image-source: assets("armedlogistics:textures/gui/background_generic.png");
     border-image-slice: 40%;
 }
 
