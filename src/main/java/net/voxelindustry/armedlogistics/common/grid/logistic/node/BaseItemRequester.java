@@ -3,6 +3,7 @@ package net.voxelindustry.armedlogistics.common.grid.logistic.node;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.log4j.Log4j2;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
@@ -22,6 +23,7 @@ import java.util.function.Supplier;
 
 import static net.voxelindustry.armedlogistics.common.grid.logistic.node.RequesterMode.KEEP;
 
+@Log4j2
 public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Requester<ItemStack>, ColoredLogisticNode<ItemStack>
 {
     @Getter(AccessLevel.PROTECTED)
@@ -89,7 +91,9 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
                 break;
         }
 
-        return stack.getCount() - toInsert.getCount();
+        int insertedAmount = stack.getCount() - toInsert.getCount();
+        removeRequest(stack, insertedAmount);
+        return insertedAmount;
     }
 
     @Override
@@ -107,6 +111,7 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
     @Override
     public void removeOrder(LogisticOrder<ItemStack> order)
     {
+        log.debug("Order removed from requester. requester={} order={}", getRailPos(), ItemUtils.getPrettyStackName(order.getContent()));
         currentOrders.remove(order);
     }
 
@@ -129,19 +134,7 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
             return;
 
         if (mode == RequesterMode.CONTINUOUS)
-        {
-            index = index == requests.size() - 1 ? 0 : index + 1;
-            ItemStack request = requests.get(index);
-            int mayInsert = inventoryAccept(request);
-
-            if (mayInsert == 0)
-                return;
-
-            ItemStack order = request.copy();
-            order.setCount(Math.min(request.getMaxStackSize(), mayInsert));
-            tile.getCable().getGridObject().getStackNetwork().makeOrder(this, order);
             return;
-        }
 
         requests.get(index).shrink(quantity);
 
@@ -223,6 +216,7 @@ public class BaseItemRequester extends BaseLogisticNode<ItemStack> implements Re
     public void deliverShipment(LogisticShipment<ItemStack> shipment)
     {
         shipments.remove(shipment);
+        log.debug("Shipment delivered to requester. requester={} shipment={}", getRailPos(), ItemUtils.getPrettyStackName(shipment.getContent()));
 
         if (tile.getCable() == null || tile.getCable().getGrid() == -1)
             return;
