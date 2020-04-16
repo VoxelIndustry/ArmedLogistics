@@ -1,0 +1,29 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "armedlogistics:blocks/rail",
+		"particle": "armedlogistics:blocks/rail"
+	},
+	"elements": [
+		{
+			"name": "rail1",
+			"from": [7.5, 13, 5],
+			"to": [8.5, 15, 11],
+			"faces": {
+				"north": {"uv": [0, 0, 6, 2], "texture": "#0"},
+				"east": {"uv": [0, 0, 1, 2], "texture": "#0"},
+				"south": {"uv": [0, 0, 6, 2], "texture": "#0"},
+				"west": {"uv": [0, 0, 1, 2], "texture": "#0"},
+				"up": {"uv": [0, 0, 6, 1], "texture": "#0"},
+				"down": {"uv": [0, 0, 6, 1], "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "Single",
+			"origin": [8, 8, 8],
+			"children": [0]
+		}
+	]
+}

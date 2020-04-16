@@ -69,18 +69,9 @@ public class BlockRail extends BlockTileBase<TileCable>
         return false;
     }
 
-    @Override
-    public void onNeighborChange(BlockState state, IWorldReader world, BlockPos pos, BlockPos neighbor)
-    {
-        super.onNeighborChange(state, world, pos, neighbor);
-
-        if (!world.isRemote())
-            ((TileCable) world.getTileEntity(pos)).scanHandlers(neighbor);
-    }
-
     private boolean canConnect(BlockState state, Direction direction)
     {
-        return state.getBlock() instanceof BlockRail;
+        return state.getBlock() instanceof BlockRail || state.getBlock() instanceof BlockArmReservoir;
     }
 
     @Nullable
@@ -124,6 +115,9 @@ public class BlockRail extends BlockTileBase<TileCable>
 
         if (property == null)
             return state;
+
+        if (!world.isRemote())
+            ((TileCable) world.getTileEntity(currentPos)).scanHandlers(facingPos);
 
         return state.with(property, canConnect(facingState, facing));
     }

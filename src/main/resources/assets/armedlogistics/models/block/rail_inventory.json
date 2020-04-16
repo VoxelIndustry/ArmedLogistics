@@ -1,0 +1,86 @@
+{
+	"parent": "block/block",
+	"display": {
+		"gui": {
+			"rotation": [ 30, 135, 0 ],
+			"translation": [ 0, 0, 0],
+			"scale":[ 0.625, 0.625, 0.625 ]
+		},
+		"head": {
+			"rotation": [ 0, -90, 0 ],
+			"translation": [ 0, 0, 0 ],
+			"scale": [ 1, 1, 1 ]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [ 75, -135, 0 ],
+			"translation": [ 0, 2.5, 0],
+			"scale": [ 0.375, 0.375, 0.375 ]
+		}
+	},
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "armedlogistics:blocks/rail",
+		"particle": "armedlogistics:blocks/rail"
+	},
+	"elements": [
+		{
+			"name": "support1",
+			"from": [3, 15, 0],
+			"to": [6, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 14, 3, 15], "texture": "#0"},
+				"east": {"uv": [0, 15, 10, 16], "texture": "#0"},
+				"south": {"uv": [0, 14, 3, 15], "texture": "#0"},
+				"west": {"uv": [0, 15, 10, 16], "texture": "#0"},
+				"up": {"uv": [13, 6, 16, 16], "texture": "#0"},
+				"down": {"uv": [13, 6, 16, 16], "texture": "#0"}
+			}
+		},
+		{
+			"name": "support2",
+			"from": [10, 15, 0],
+			"to": [13, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 14, 3, 15], "texture": "#0"},
+				"east": {"uv": [0, 15, 10, 16], "texture": "#0"},
+				"south": {"uv": [0, 14, 3, 15], "texture": "#0"},
+				"west": {"uv": [0, 15, 10, 16], "texture": "#0"},
+				"up": {"uv": [13, 6, 16, 16], "texture": "#0"},
+				"down": {"uv": [13, 6, 16, 16], "texture": "#0"}
+			}
+		},
+		{
+			"name": "rail1",
+			"from": [4, 13, 0],
+			"to": [5, 15, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 1, 2], "texture": "#0"},
+				"east": {"uv": [0, 0, 8, 2], "texture": "#0"},
+				"south": {"uv": [0, 0, 1, 2], "texture": "#0"},
+				"west": {"uv": [0, 0, 8, 2], "texture": "#0"},
+				"up": {"uv": [0, 0, 1, 8], "texture": "#0"},
+				"down": {"uv": [0, 0, 1, 8], "texture": "#0"}
+			}
+		},
+		{
+			"name": "rail2",
+			"from": [11, 13, 0],
+			"to": [12, 15, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 1, 2], "texture": "#0"},
+				"east": {"uv": [0, 0, 8, 2], "texture": "#0"},
+				"south": {"uv": [0, 0, 1, 2], "texture": "#0"},
+				"west": {"uv": [0, 0, 8, 2], "texture": "#0"},
+				"up": {"uv": [0, 0, 1, 8], "texture": "#0"},
+				"down": {"uv": [0, 0, 1, 8], "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "Single",
+			"origin": [8, 8, 8],
+			"children": [0, 1, 2, 3]
+		}
+	]
+}

@@ -2,13 +2,14 @@ package net.voxelindustry.armedlogistics.common.tile;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.voxelindustry.armedlogistics.ArmedLogistics;
-import net.voxelindustry.armedlogistics.client.render.WGOBJState;
+import net.voxelindustry.armedlogistics.common.block.BlockRail;
 import net.voxelindustry.armedlogistics.common.grid.IRailConnectable;
 import net.voxelindustry.armedlogistics.common.grid.ITileRail;
 import net.voxelindustry.armedlogistics.common.grid.RailGrid;
@@ -21,13 +22,9 @@ import net.voxelindustry.steamlayer.tile.ITileInfoList;
 import net.voxelindustry.steamlayer.tile.TileBase;
 import net.voxelindustry.steamlayer.tile.event.TileTickHandler;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TileCable extends TileBase implements ITileRail, ILoadable
@@ -159,22 +156,12 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
     public void read(CompoundNBT tag)
     {
         super.read(tag);
-
-        if (isClient())
-        {
-            if (readRenderConnections(tag))
-                updateState();
-        }
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag)
     {
         super.write(tag);
-
-        if (isServer())
-            writeRenderConnections(tag);
-
         return tag;
     }
 
@@ -222,194 +209,15 @@ public class TileCable extends TileBase implements ITileRail, ILoadable
         return new RailGrid(nextID);
     }
 
-    ////////////
-    // RENDER //
-    ////////////
-
-    private static final HashMap<String, WGOBJState> variants = new HashMap<>();
-
-    public WGOBJState getVisibilityState()
-    {
-        String key = getVariantKey();
-
-        if (!variants.containsKey(key))
-            variants.put(key, buildVisibilityState());
-        return variants.get(key);
-    }
-
-    private String getVariantKey()
-    {
-        StringBuilder rtn = new StringBuilder(10);
-
-        if (isConnected(Direction.EAST))
-            rtn.append("x+");
-        if (isConnected(Direction.WEST))
-            rtn.append("x-");
-        if (isConnected(Direction.DOWN))
-            rtn.append("y-");
-        if (isConnected(Direction.SOUTH))
-            rtn.append("z+");
-        if (isConnected(Direction.NORTH))
-            rtn.append("z-");
-        return rtn.toString();
-    }
-
-    private WGOBJState buildVisibilityState()
-    {
-        List<String> parts = new ArrayList<>();
-
-        if (!isConnected(Direction.WEST))
-        {
-            parts.add("barZPosNeg");
-            parts.add("backZPosNeg");
-            parts.add("barZNegNeg");
-            parts.add("backZNegNeg");
-        }
-        if (!isConnected(Direction.EAST))
-        {
-            parts.add("barZPosPos");
-            parts.add("backZPosPos");
-            parts.add("barZNegPos");
-            parts.add("backZNegPos");
-        }
-
-        if (!isConnected(Direction.NORTH))
-        {
-            parts.add("barXPosNeg");
-            parts.add("backXPosNeg");
-            parts.add("barXNegNeg");
-            parts.add("backXNegNeg");
-        }
-        if (!isConnected(Direction.SOUTH))
-        {
-            parts.add("barXPosPos");
-            parts.add("backXPosPos");
-            parts.add("barXNegPos");
-            parts.add("backXNegPos");
-        }
-
-        if (isDeadEnd())
-        {
-            if (isConnected(Direction.EAST))
-            {
-                parts.add("backXPos");
-                parts.add("barXPos");
-
-                if (isConnected(Direction.DOWN))
-                    parts.add("middleZ");
-            }
-            else if (isConnected(Direction.WEST))
-            {
-                parts.add("backXNeg");
-                parts.add("barXNeg");
-
-                if (isConnected(Direction.DOWN))
-                    parts.add("middleZ");
-            }
-            else if (isConnected(Direction.NORTH))
-            {
-                parts.add("backZNeg");
-                parts.add("barZNeg");
-
-                if (isConnected(Direction.DOWN))
-                    parts.add("middleX");
-            }
-            else if (isConnected(Direction.SOUTH))
-            {
-                parts.add("backZPos");
-                parts.add("barZPos");
-
-                if (isConnected(Direction.DOWN))
-                    parts.add("middleX");
-            }
-        }
-
-        if (isStraight())
-        {
-            if (isConnected(Direction.NORTH) || isConnected(Direction.SOUTH))
-            {
-                parts.add("backZNeg");
-                parts.add("barZNeg");
-                parts.add("backZPos");
-                parts.add("barZPos");
-
-                if (isConnected(Direction.DOWN))
-                    parts.add("middleX");
-            }
-            else if (isConnected(Direction.EAST) || isConnected(Direction.WEST))
-            {
-                parts.add("backXNeg");
-                parts.add("barXNeg");
-                parts.add("backXPos");
-                parts.add("barXPos");
-
-                if (isConnected(Direction.DOWN))
-                    parts.add("middleZ");
-            }
-        }
-
-        if (!isConnected(Direction.DOWN))
-        {
-            parts.add("middleX");
-            parts.add("middleZ");
-            parts.add("middleBack");
-        }
-        return new WGOBJState(parts, false);
-    }
-
     @Override
     public void updateState()
     {
-        if (isServer())
-        {
-            sync();
-            return;
-        }
+        BlockState state = getBlockState();
+        Boolean connectedState = state.get(BlockRail.CONNECTED);
 
-        world.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
-    }
-
-    public boolean isDeadEnd()
-    {
-        return renderConnections.size() <= 1 ||
-                renderConnections.size() == 2 && isConnected(Direction.DOWN);
-    }
-
-    public boolean isStraight()
-    {
-        if (renderConnections.size() > 2)
-        {
-            if (renderConnections.size() != 3 || !isConnected(Direction.DOWN))
-                return false;
-        }
-        return isConnected(Direction.NORTH) && isConnected(Direction.SOUTH)
-                || isConnected(Direction.WEST) && isConnected(Direction.EAST);
-    }
-
-    public boolean isConnected(Direction facing)
-    {
-        return renderConnections.contains(facing);
-    }
-
-    public CompoundNBT writeRenderConnections(CompoundNBT tag)
-    {
-        for (Map.Entry<Direction, ITileCable<RailGrid>> entry : connectionsMap.entrySet())
-            tag.putBoolean("connected" + entry.getKey().ordinal(), true);
-        for (Map.Entry<Direction, IRailConnectable> entry : adjacentHandler.entrySet())
-            tag.putBoolean("connected" + entry.getKey().ordinal(), true);
-        return tag;
-    }
-
-    public boolean readRenderConnections(CompoundNBT tag)
-    {
-        int previousConnections = renderConnections.size();
-
-        renderConnections.clear();
-        for (Direction facing : Direction.values())
-        {
-            if (tag.contains("connected" + facing.ordinal()))
-                renderConnections.add(facing);
-        }
-        return renderConnections.size() != previousConnections;
+        if (connectedState && !adjacentHandler.containsKey(Direction.DOWN))
+            world.setBlockState(getPos(), state.with(BlockRail.CONNECTED, false));
+        else if (!connectedState && adjacentHandler.containsKey(Direction.DOWN))
+            world.setBlockState(getPos(), state.with(BlockRail.CONNECTED, true));
     }
 }

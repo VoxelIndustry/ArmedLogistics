@@ -1,44 +1,242 @@
 {
   "multipart": [
     {
-      "when": {"north": false, "east": false, "west": false, "south": false, "connected": false},
-      "apply": { "model": "armedlogistics:block/rail_single" }
+      "when": {
+        "south": "false",
+        "north": "false",
+        "east": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_single"
+      }
     },
     {
-      "when": {"north": true, "east": false, "west": false, "south": false, "connected": false},
-      "apply": { "model": "armedlogistics:block/rail_mono" }
+      "when": {
+        "OR": [
+          {
+            "south": "true"
+          },
+          {
+            "north": "true"
+          },
+          {
+            "east": "true"
+          },
+          {
+            "west": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_base"
+      }
     },
     {
-      "when": {"north": false, "east": true, "west": false, "south": false, "connected": false},
-      "apply": { "model": "armedlogistics:block/rail_mono", "y": 90, "uvlock": false }
+      "when": {
+        "south": "false"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_wall",
+        "y": 180
+      }
     },
     {
-      "when": {"north": false, "east": false, "west": true, "south": false, "connected": false},
-      "apply": { "model": "armedlogistics:block/rail_mono", "y": 270, "uvlock": false }
+      "when": {
+        "west": "false"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_wall",
+        "y": 270
+      }
     },
     {
-      "when": {"north": false, "east": false, "west": false, "south": true, "connected": false},
-      "apply": { "model": "armedlogistics:block/rail_mono", "y": 180, "uvlock": false }
+      "when": {
+        "north": "false"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_wall"
+      }
     },
     {
-      "when": {"connected":  true},
-      "apply": { "model":  "block/birch_fence_post", "y":  90}
+      "when": {
+        "east": "false"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_wall",
+        "y": 90
+      }
     },
     {
-      "when": { "north": true },
-      "apply": { "model": "block/acacia_fence_side", "uvlock": true }
+      "when": {
+        "north": "true"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_lane"
+      }
     },
     {
-      "when": { "east": true },
-      "apply": { "model": "block/acacia_fence_side", "y": 90, "uvlock": true }
+      "when": {
+        "east": "true"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_lane",
+        "y": 90
+      }
     },
     {
-      "when": { "south": true },
-      "apply": { "model": "block/acacia_fence_side", "y": 180, "uvlock": true }
+      "when": {
+        "south": "true"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_lane",
+        "y": 180
+      }
     },
     {
-      "when": { "west": true },
-      "apply": { "model": "block/acacia_fence_side", "y": 270, "uvlock": true }
+      "when": {
+        "west": "true"
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_lane",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "true"
+              },
+              {
+                "west": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_wall"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "true"
+              },
+              {
+                "north": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_wall",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "true"
+              },
+              {
+                "west": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_wall",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "true"
+              },
+              {
+                "north": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_wall",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "connected": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "true"
+              },
+              {
+                "north": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_middle",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "connected": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "true"
+              },
+              {
+                "east": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "apply": {
+        "model": "armedlogistics:block/rail_middle"
+      }
     }
   ]
 }
