@@ -50,7 +50,7 @@
     "armedlogistics.gui.facinglist.relative.down": "Below",
     "armedlogistics.gui.facinglist.title": "Faces",
 
-    "armedlogistics.gui.facingtab": "Facing Configuration",
+    "armedlogistics.gui.facingtab.name": "Facing Configuration",
     "armedlogistics.gui.facingtab.noinv": "No Inventory",
 
     "armedlogistics.gui.copy": "Copied!",

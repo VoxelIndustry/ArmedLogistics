@@ -54,8 +54,7 @@ public abstract class TileLogicisticNode extends TileBase implements INamedConta
     private ITextComponent customName;
     private boolean        hasCustomName;
 
-    public TileLogicisticNode(TileEntityType<? extends TileLogicisticNode> type,
-                              String name)
+    public TileLogicisticNode(TileEntityType<? extends TileLogicisticNode> type, String name)
     {
         super(type);
         this.name = name;

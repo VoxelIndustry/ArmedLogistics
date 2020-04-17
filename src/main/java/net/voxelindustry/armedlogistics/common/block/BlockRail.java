@@ -1,5 +1,9 @@
 package net.voxelindustry.armedlogistics.common.block;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SixWayBlock;
@@ -10,8 +14,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Plane;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
@@ -22,17 +28,18 @@ import javax.annotation.Nullable;
 
 public class BlockRail extends BlockTileBase<TileCable>
 {
-    protected static final AxisAlignedBB AABB_NONE  = new AxisAlignedBB(0.125, 1, 0.125, 0.875, 0.75, 0.875);
-    protected static final AxisAlignedBB AABB_EAST  = new AxisAlignedBB(0.875, 1, 0.125, 1.00D, 0.75, 0.875);
-    protected static final AxisAlignedBB AABB_WEST  = new AxisAlignedBB(0, 1, 0.125, 0.125, 0.75, 0.125);
-    protected static final AxisAlignedBB AABB_SOUTH = new AxisAlignedBB(0.875, 1, 0.125, 0.875, 0.75, 1.00D);
-    protected static final AxisAlignedBB AABB_NORTH = new AxisAlignedBB(0.125, 1, 0.00D, 0.125, 0.75, 0.125);
+    private static final double MIN_WIDTH = 0.1875;
+    private static final double MAX_WIDTH = 0.8125;
+    private static final double HEIGHT    = 0.8125;
 
     public static final BooleanProperty NORTH     = SixWayBlock.NORTH;
     public static final BooleanProperty EAST      = SixWayBlock.EAST;
     public static final BooleanProperty SOUTH     = SixWayBlock.SOUTH;
     public static final BooleanProperty WEST      = SixWayBlock.WEST;
     public static final BooleanProperty CONNECTED = BooleanProperty.create("connected");
+
+    private final Object2IntMap<BlockState> indexByState = new Object2IntOpenHashMap<>();
+    private final Int2ObjectMap<VoxelShape> shapeByIndex = new Int2ObjectOpenHashMap<>();
 
     public BlockRail(Properties properties)
     {
@@ -44,6 +51,40 @@ public class BlockRail extends BlockTileBase<TileCable>
                 .with(SOUTH, false)
                 .with(WEST, false)
                 .with(CONNECTED, false));
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, IBlockReader world, BlockPos pos, ISelectionContext context)
+    {
+        return shapeByIndex.computeIfAbsent(getIndex(state), BlockRail::computeShapeFromConnectionIndex);
+    }
+
+    @Override
+    public VoxelShape getCollisionShape(BlockState state, IBlockReader world, BlockPos pos, ISelectionContext context)
+    {
+        return getShape(state, world, pos, context);
+    }
+
+    protected int getIndex(BlockState state)
+    {
+        return indexByState.computeIntIfAbsent(state, (keyState) ->
+        {
+            int computedIndex = 0;
+
+            if (keyState.get(NORTH))
+                computedIndex |= 1 << Direction.NORTH.getHorizontalIndex();
+
+            if (keyState.get(EAST))
+                computedIndex |= 1 << Direction.EAST.getHorizontalIndex();
+
+            if (keyState.get(SOUTH))
+                computedIndex |= 1 << Direction.SOUTH.getHorizontalIndex();
+
+            if (keyState.get(WEST))
+                computedIndex |= 1 << Direction.WEST.getHorizontalIndex();
+
+            return computedIndex;
+        });
     }
 
     @Override
@@ -136,5 +177,28 @@ public class BlockRail extends BlockTileBase<TileCable>
                 return EAST;
         }
         return null;
+    }
+
+    private static VoxelShape computeShapeFromConnectionIndex(int index)
+    {
+        VoxelShape none = VoxelShapes.create(MIN_WIDTH, 1, MIN_WIDTH, MAX_WIDTH, HEIGHT, MAX_WIDTH);
+        if (((index >> Direction.NORTH.getHorizontalIndex()) & 1) == 1)
+        {
+            none = VoxelShapes.or(none, VoxelShapes.create(MIN_WIDTH, 1, 0.00D, MAX_WIDTH, HEIGHT, MIN_WIDTH));
+        }
+        if (((index >> Direction.SOUTH.getHorizontalIndex()) & 1) == 1)
+        {
+            none = VoxelShapes.or(none, VoxelShapes.create(MIN_WIDTH, 1, MAX_WIDTH, MAX_WIDTH, HEIGHT, 1.00D));
+        }
+        if (((index >> Direction.EAST.getHorizontalIndex()) & 1) == 1)
+        {
+            none = VoxelShapes.or(none, VoxelShapes.create(MAX_WIDTH, 1, MIN_WIDTH, 1.00D, HEIGHT, MAX_WIDTH));
+        }
+        if (((index >> Direction.WEST.getHorizontalIndex()) & 1) == 1)
+        {
+            none = VoxelShapes.or(none, VoxelShapes.create(0, 1, MIN_WIDTH, MIN_WIDTH, HEIGHT, MAX_WIDTH));
+        }
+
+        return none;
     }
 }
